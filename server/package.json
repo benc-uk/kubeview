@@ -1,0 +1,17 @@
+{
+  "name": "kubeview-server",
+  "version": "0.0.1",
+  "description": "API server for kubeview, scrapes Kubernetes API",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ben Coleman",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "kubernetes-client": "^6.8.3",
+    "request": "^2.88.0"
+  }
+}
