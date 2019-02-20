@@ -6,6 +6,10 @@
 <script>
 import apiMixin from "../mixins/api.js";
 import cytoscape from 'cytoscape'
+import coseBilkent from 'cytoscape-cose-bilkent';
+cytoscape.use( coseBilkent );
+
+// Urgh, gotta have this here, putting into data, causes weirdness
 var cy
 
 export default {
@@ -13,7 +17,7 @@ export default {
 
   mixins: [ apiMixin ],
   
-  props: [ 'namespace' ],
+  props: [ 'namespace', 'action' ],
 
   data() {
     return {
@@ -22,7 +26,11 @@ export default {
   },
 
   watch: {
-    namespace: function (val) {
+    namespace: function () {
+      this.refreshData()
+    },
+
+    action: function () {
       this.refreshData()
     }
   },
@@ -75,7 +83,7 @@ export default {
         let endpointId = `endpoint_${ep.metadata.name}`
         this.addNode(endpointId, ep.metadata.name, `svc`)
         
-        for(let subset of ep.subsets) {
+        for(let subset of ep.subsets || []) {
           for(let address of subset.addresses || []) {
             if(!address.targetRef) continue
             if(address.targetRef.kind != "Pod") continue
@@ -87,7 +95,30 @@ export default {
             this.addLink(endpointId, address.targetRef.uid)
           }          
         }
+      }
 
+      // Add ingresses
+      for(var ingress of this.apiData.ingresses) {
+        this.addNode(ingress.metadata.uid, ingress.metadata.name, `ing`)
+
+        // Find all external IPs of ingresses, and add them
+        for(let lb of ingress.status.loadBalancer.ingress || []) {
+          this.addNode(lb.ip, lb.ip, `ep`)
+          this.addLink(ingress.metadata.uid, lb.ip)
+        }
+
+        for(let rule of ingress.spec.rules || []) {
+          if(!rule.http.paths) continue
+          for(let path of rule.http.paths || []) {
+            let serviceName = path.backend.serviceName
+            try { 
+              this.addLink(ingress.metadata.uid, `endpoint_${serviceName}`) 
+            } catch(e) {
+              // eslint-disable-next-line
+              console.log(`### Unable to link ingress to service from path rule, it might be svc doesn't exist yet`);
+            }
+          }
+        }
       }
 
       this.relayout()
@@ -95,7 +126,7 @@ export default {
 
     relayout() {
       cy.resize();
-      cy.layout({name: 'grid'}).run();
+      cy.layout({name: 'cose-bilkent'}).run();
       cy.fit();
     }
   },

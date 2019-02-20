@@ -10,7 +10,7 @@
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav >
-          <b-button variant="light">Refresh</b-button> 
+          <b-button variant="light" @click="refresh()">Refresh</b-button> 
         </b-navbar-nav>
       </b-collapse>
 
@@ -19,7 +19,7 @@
       </b-navbar-nav>
     </b-navbar>
 
-    <viewer :namespace="namespace"></viewer>
+    <viewer :namespace="namespace" :action="action"></viewer>
 
     <b-modal id="aboutModal" title="About KubeView">
       <p>v0.0.1</p>
@@ -47,13 +47,18 @@ export default {
   data() {
     return {
       namespace: "default",
-      namespaces: []
+      namespaces: [],
+      action: ""
     }
   },
 
   methods: {
     nsChange(ns) {
       this.namespace = ns
+    },
+
+    refresh() {
+      this.action = `refresh_${Date.now()}`
     }
   },
 

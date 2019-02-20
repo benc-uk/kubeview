@@ -11,6 +11,7 @@
     "bootstrap-vue": "^2.0.0-rc.13",
     "bootswatch": "^4.3.1",
     "cytoscape": "^3.4.2",
+    "cytoscape-cose-bilkent": "^4.0.0",
     "vue": "^2.6.6"
   },
   "devDependencies": {

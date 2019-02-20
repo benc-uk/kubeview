@@ -9,6 +9,17 @@ var express = require('express')
 var app = express()
 var client = null;
 
+// Serve static content from working directory ('.') by default
+// - Optional parameter can specify different location, use when debugging & running locally
+// - e.g. `node server.js ../angular/dist/`
+var staticContentDir = process.argv[2] || __dirname;
+// resolve to an absolute path
+staticContentDir = require('path').resolve(staticContentDir)
+console.log(`### Content dir = '${staticContentDir}'`);
+
+// Serve all static content (index.html, js, css, assets, etc.)
+app.use('/', express.static(staticContentDir));
+
 // ===== API routes =====
 
 app.use('/api/namespaces', async function(req, res, next) {
@@ -50,10 +61,12 @@ app.use('/api/scrape/:ns', async function(req, res, next) {
   }
 })
 
-app.use('/', async function(req, res, next) {
-  res.send("Nothing to see, try the /api")
-})
-
+// Redirect all other requests to Vue.js app - i.e. index.html
+// This allows us to do in-app, client side routing and deep linking 
+// - see https://angular.io/guide/deployment#server-configuration
+app.use('*', function(req, res) {
+  res.sendFile(`${staticContentDir}/index.html`);
+});
 // ===== Start server =====
 
 // Server port
@@ -64,7 +77,7 @@ var server = app.listen(port, async function () {
 
   console.log(`### Connecting to Kubernetes API...`)
   try {
-    const path = '/home/ben/.kube/config'
+    const path = `${process.env.HOME}/.kube/config`
     const config = K8sConfig.fromKubeconfig(path)
     client = new Client({ config: config })
     await client.loadSpec()
