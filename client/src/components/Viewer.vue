@@ -56,6 +56,13 @@ export default {
     },
 
     refreshNodes() {
+      // Add deployments
+      for(let deploy of this.apiData.deployments) {
+        //let colour = 'green'
+        //if(rs.status.replicas != rs.status.readyReplicas) colour = 'red'
+        this.addNode(deploy.metadata.uid, deploy.metadata.name, `deploy`)
+      }
+
       // Add replicasets
       for(let rs of this.apiData.replicasets) {
         let colour = 'green'

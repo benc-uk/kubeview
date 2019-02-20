@@ -74,12 +74,16 @@ const port = process.env.PORT || 3000;
 
 var server = app.listen(port, async function () {
   console.log(`### Server listening on ${server.address().port}`)
-
+  console.log(`### NODE_ENV is ${process.env.NODE_ENV}`)
   console.log(`### Connecting to Kubernetes API...`)
   try {
-    const path = `${process.env.HOME}/.kube/config`
-    const config = K8sConfig.fromKubeconfig(path)
-    client = new Client({ config: config })
+    var kubeConf;
+    if(process.env.NODE_ENV == "production") {
+      kubeConf = K8sConfig.getInCluster()
+    } else {
+      kubeConf = K8sConfig.fromKubeconfig(`${process.env.HOME}/.kube/config`)
+    }
+    client = new Client({ config: kubeConf })
     await client.loadSpec()
     console.log(`### Connected to ${client.backend.requestOptions.baseUrl}`)
   } catch(e) {

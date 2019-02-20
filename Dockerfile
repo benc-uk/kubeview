@@ -12,12 +12,13 @@ RUN npm install --silent
 
 # Copy in the Vue.js app source
 COPY ${vue_root}/.env.production .
+COPY ${vue_root}/.eslintrc.js .
 COPY ${vue_root}/public ./public
 COPY ${vue_root}/src ./src
 
 # Run Vue CLI build & bundle, and output to ./dist
 # Updated to run in modern mode https://cli.vuejs.org/guide/browser-compatibility.html#modern-mode
-RUN npm run build-modern
+RUN npm run build
 
 # ===================================================================== #
 
