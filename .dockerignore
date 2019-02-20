@@ -1,0 +1,28 @@
+# Standard stuff
+Dockerfile*
+**/*Dockerfile*
+docker-compose*
+.dockerignore
+.git
+.gitignore
+readme.md
+**/readme.md
+**/LICENSE
+.vscode/
+
+# Node stuff
+node_modules
+**/node_modules
+**/*.log
+
+# Dotenv secrets!
+**/.env
+
+# Outputs, binaries etc
+**/bin/
+**/obj/
+**/dist/
+
+# Project specific folders
+junk/
+deploy/
