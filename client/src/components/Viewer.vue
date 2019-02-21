@@ -17,7 +17,7 @@ export default {
 
   mixins: [ apiMixin ],
   
-  props: [ 'namespace', 'action' ],
+  props: [ 'namespace', 'action', 'filter' ],
 
   data() {
     return {
@@ -48,33 +48,58 @@ export default {
 
     addNode(id, label, img) {
       console.log(`### Adding ${img} ${label}`)
-      cy.add({ data: { id: id, label: label, img: `img/res/${img}.svg` } })
+      try {
+        cy.add({ data: { id: id, label: label, img: `img/res/${img}.svg` } })
+      } catch(e) {
+        // eslint-disable-next-line
+        console.error(`### Unable to add node: ${img} ${label}`);
+      }
     },
 
     addLink(sourceId, targetId, label = "") {
-      cy.add({ data: { id: `${sourceId}__${targetId}`, label: label, source: sourceId, target: targetId } })
+      try {
+        cy.add({ data: { id: `${sourceId}__${targetId}`, label: label, source: sourceId, target: targetId } })
+      } catch(e) {
+        // eslint-disable-next-line
+        console.error(`### Unable to add link: ${sourceId} to ${targetId}`);
+      }      
     },
 
     refreshNodes() {
       // Add deployments
       for(let deploy of this.apiData.deployments) {
-        //let colour = 'green'
-        //if(rs.status.replicas != rs.status.readyReplicas) colour = 'red'
-        this.addNode(deploy.metadata.uid, deploy.metadata.name, `deploy`)
+        if(!this.filterShowNode(deploy)) continue
+
+        let colour = 'green'
+        let readyReplicas = deploy.status.readyReplicas || 0
+        if(deploy.status.replicas != readyReplicas) colour = 'red'
+        this.addNode(deploy.metadata.uid, deploy.metadata.name, `deploy-${colour}`)
       }
 
       // Add replicasets
       for(let rs of this.apiData.replicasets) {
+        if(!this.filterShowNode(rs)) continue
+
         let colour = 'green'
-        if(rs.status.replicas != rs.status.readyReplicas) colour = 'red'
+        let readyReplicas = rs.status.readyReplicas || 0
+        if(rs.status.replicas != readyReplicas) colour = 'red'
         this.addNode(rs.metadata.uid, rs.metadata.name, `rs-${colour}`)
+        for(let ownerRef of rs.metadata.ownerReferences || []) {
+          if(ownerRef.kind != "Deployment") continue
+          this.addLink(rs.metadata.uid, ownerRef.uid)
+        }          
       }
 
       // Add pods
       for(let pod of this.apiData.pods) {
+        if(!this.filterShowNode(pod)) continue
+
         let colour = 'green'
-        if(pod.status.phase == 'Pending') colour = 'grey'
-        if(pod.status.phase == 'Failed' || pod.status.phase == 'Unknown' || pod.status.phase == 'CrashLoopBackOff') colour = 'red'
+        if(pod.status.phase == 'Pending' || pod.status.phase == 'Unknown') colour = 'grey'
+        if(pod.status.phase == 'Failed' || pod.status.phase == 'CrashLoopBackOff') colour = 'red'
+        let readyCond = pod.status.conditions.find(c => c.type == 'Ready') || {}
+        if(readyCond.status != "True") colour = 'red'
+        
         this.addNode(pod.metadata.uid, pod.metadata.name, `pod-${colour}`) 
         for(let ownerRef of pod.metadata.ownerReferences || []) {
           if(ownerRef.kind != "ReplicaSet") continue
@@ -82,8 +107,10 @@ export default {
         }  
       }
 
-      // Add endpoints as services
+      // Add endpoints as services, anyone else confused over the service vs endpoint thing?
       for(let ep of this.apiData.endpoints) {
+        if(!this.filterShowNode(ep)) continue
+
         // Skip kubernetes service
         if(ep.metadata.name == 'kubernetes') continue
 
@@ -104,13 +131,26 @@ export default {
         }
       }
 
+      // We only loop over services to find ones with external lb address
+      for(let svc of this.apiData.services) {
+        if(!this.filterShowNode(svc)) continue
+
+        // Find all external IPs of ingresses, and add them
+        for(let lb of svc.status.loadBalancer.ingress || []) {
+          this.addNode(lb.ip, lb.ip, `ip`)
+          this.addLink(`endpoint_${svc.metadata.name}`, lb.ip)
+        }
+      }
+
       // Add ingresses
       for(var ingress of this.apiData.ingresses) {
+        if(!this.filterShowNode(ingress)) continue
+
         this.addNode(ingress.metadata.uid, ingress.metadata.name, `ing`)
 
         // Find all external IPs of ingresses, and add them
         for(let lb of ingress.status.loadBalancer.ingress || []) {
-          this.addNode(lb.ip, lb.ip, `ep`)
+          this.addNode(lb.ip, lb.ip, `ip`)
           this.addLink(ingress.metadata.uid, lb.ip)
         }
 
@@ -118,12 +158,7 @@ export default {
           if(!rule.http.paths) continue
           for(let path of rule.http.paths || []) {
             let serviceName = path.backend.serviceName
-            try { 
-              this.addLink(ingress.metadata.uid, `endpoint_${serviceName}`) 
-            } catch(e) {
-              // eslint-disable-next-line
-              console.log(`### Unable to link ingress to service from path rule, it might be svc doesn't exist yet`);
-            }
+            this.addLink(ingress.metadata.uid, `endpoint_${serviceName}`) 
           }
         }
       }
@@ -135,6 +170,18 @@ export default {
       cy.resize();
       cy.layout({name: 'cose-bilkent'}).run();
       cy.fit();
+    },
+
+    filterShowNode(node) {
+      if(!this.filter || this.filter.length <= 0) return true
+
+      let match = false
+      if(node.metadata.name.includes(this.filter)) match = true
+      for(let labelName in node.metadata.labels) {
+        if(labelName.includes(this.filter)) match = true
+        if(node.metadata.labels[labelName].includes(this.filter)) match = true
+      }
+      return match
     }
   },
 

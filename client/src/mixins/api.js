@@ -3,8 +3,6 @@ const API_ENDPOINT = process.env.VUE_APP_API_ENDPOINT
 export default {
   methods: {
     apiGetDataForNamespace(ns) {
-      console.log(API_ENDPOINT);
-      
       return fetch(`${API_ENDPOINT}/scrape/${ns}`)
       .then(resp => {
         return resp.json();
