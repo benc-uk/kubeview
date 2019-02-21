@@ -65,6 +65,24 @@ export default {
       }      
     },
 
+    addtoParent(id, parentId, label, img) {
+      try {
+        cy.add({ data: { id: id, label: label, img: `img/res/${img}.svg`, parent: parentId } })
+      } catch(e) {
+        // eslint-disable-next-line
+        console.error(`### Unable to add node: ${img} ${label}`);
+      }      
+    },
+
+    addGroup(id, label) {
+      try {
+        cy.add({ classes:['grp'], data: { id: id, label: label} })
+      } catch(e) {
+        // eslint-disable-next-line
+        console.error(`### Unable to add group: ${label}`);
+      }      
+    },
+
     refreshNodes() {
       // Add deployments
       for(let deploy of this.apiData.deployments) {
@@ -83,11 +101,20 @@ export default {
         let colour = 'green'
         let readyReplicas = rs.status.readyReplicas || 0
         if(rs.status.replicas != readyReplicas) colour = 'red'
+
+        // Add special "group" node for the RS
+        this.addGroup(`rsgroup_${rs.metadata.uid}`, rs.metadata.name)
+
+        // Add RS node and link it to the group
         this.addNode(rs.metadata.uid, rs.metadata.name, `rs-${colour}`)
+        this.addLink(rs.metadata.uid, `rsgroup_${rs.metadata.uid}`)
+
+        // Find all owning deploymenys of this RS
         for(let ownerRef of rs.metadata.ownerReferences || []) {
           if(ownerRef.kind != "Deployment") continue
-          this.addLink(rs.metadata.uid, ownerRef.uid)
-        }          
+          // Link rs group up to the deployment
+          this.addLink(`rsgroup_${rs.metadata.uid}`, ownerRef.uid)
+        }
       }
 
       // Add pods
@@ -100,14 +127,16 @@ export default {
         let readyCond = pod.status.conditions.find(c => c.type == 'Ready') || {}
         if(readyCond.status != "True") colour = 'red'
         
-        this.addNode(pod.metadata.uid, pod.metadata.name, `pod-${colour}`) 
-        for(let ownerRef of pod.metadata.ownerReferences || []) {
-          if(ownerRef.kind != "ReplicaSet") continue
-          this.addLink(pod.metadata.uid, ownerRef.uid)
-        }  
+        // Add pods to containing group node for the RS they are in 
+        this.addtoParent(pod.metadata.uid, `rsgroup_${pod.metadata.ownerReferences[0].uid}`, pod.metadata.name, `pod-${colour}`)
+        // for(let ownerRef of pod.metadata.ownerReferences || []) {
+        //   if(ownerRef.kind != "ReplicaSet") continue
+        //   this.addLink(pod.metadata.uid, ownerRef.uid)
+        // }  
       }
 
-      // Add endpoints as services, anyone else confused over the service vs endpoint thing?
+      // Add endpoints as services, 
+      //  - Anyone else confused over the service vs endpoint thing?
       for(let ep of this.apiData.endpoints) {
         if(!this.filterShowNode(ep)) continue
 
@@ -211,6 +240,20 @@ export default {
       'text-margin-y': '10vh',
       'text-outline-color': '#111',
       'text-outline-width': '4'
+    });
+
+    cy.style().selector('.grp').style({
+      'background-opacity': 0.25,
+      'background-color': '#000000',
+      'shape': 'roundrectangle',
+      'border-width': '6',
+      'border-color': '#777',
+      // 'background-width': 'auto',
+      // 'background-height': 'auto',
+      // 'background-fit': 'none',
+      // 'background-image': 'img/res/rs.svg',
+      // 'background-position-x': '0%',
+      // 'background-position-y': '0%'
     });
 
     cy.style().selector('node:selected').style({
