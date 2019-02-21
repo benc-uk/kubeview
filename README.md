@@ -17,7 +17,7 @@ Currently displays:
 - **Client SPA** - Written in Vue.js. All visualisation, mapping & logic done here
 - **API Server** - Scrapes Kubernetes API and presents it back out as a custom REST API. Also acts as HTTP server to the SPA
 
-![demo](https://user-images.githubusercontent.com/14982936/53127181-c978a800-3559-11e9-8903-183266db0ca9.png)
+![demo](https://user-images.githubusercontent.com/14982936/53201465-0311e780-361c-11e9-96ad-f627e903ad1a.png)
 
 
 # Repo Details
