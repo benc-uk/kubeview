@@ -1,0 +1,16 @@
+#
+# Azure Pipeline - Build defintion
+# Ben C, 2019
+#
+pool:
+  name: Hosted Ubuntu 1604
+
+steps:
+- bash: |
+    docker build . -t $(docker-user)/kubeview:latest
+  displayName: 'Build image'
+
+- bash: |
+    docker login -u $(docker-user) -p $(docker-password)
+    docker push $(docker-user)/kubeview
+  displayName: 'Push image to Dockerhub'
