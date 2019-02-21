@@ -5,6 +5,9 @@
 pool:
   name: Hosted Ubuntu 1604
 
+trigger:
+- master
+
 steps:
 - bash: |
     docker build . -t $(docker-user)/kubeview:latest
