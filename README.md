@@ -5,11 +5,12 @@ Shows what is happening inside a Kubernetes cluster in terms of objects and how 
 
 Currently displays:
 - Deployments
-- ReplicaSets
+- ReplicaSets / StatefulSets / DaemonSets
 - Pods
 - Services
 - Ingresses
 - LoadBalancer IPs
+- PersistentVolumeClaims
 
 **Note.** This is VERY work in progress! ☢
 

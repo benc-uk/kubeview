@@ -107,8 +107,7 @@ export default {
         if(!this.filterShowNode(rs)) continue
 
         let colour = 'green'
-        let readyReplicas = rs.status.readyReplicas || 0
-        if(rs.status.replicas != readyReplicas) colour = 'red'
+        if(rs.status.replicas != rs.status.readyReplicas) colour = 'red'
 
         // Add special "group" node for the RS
         this.addGroup(`rsgroup_${rs.metadata.uid}`, rs.metadata.name)
@@ -117,13 +116,50 @@ export default {
         this.addNode(rs.metadata.uid, rs.metadata.name, `rs-${colour}`, rs)
         this.addLink(rs.metadata.uid, `rsgroup_${rs.metadata.uid}`)
 
-        // Find all owning deploymenys of this RS
+        // Find all owning deployments of this RS
         for(let ownerRef of rs.metadata.ownerReferences || []) {
           if(ownerRef.kind != "Deployment") continue
           // Link rs group up to the deployment
-          this.addLink(`rsgroup_${rs.metadata.uid}`, ownerRef.uid)
+          this.addLink(rs.metadata.uid, ownerRef.uid)
         }
       }
+
+      // Add daemonsets
+      for(let ds of this.apiData.daemonsets) {
+        if(!this.filterShowNode(ds)) continue
+
+        let colour = 'green'
+        if(ds.status.numberReady != ds.status.desiredNumberScheduled) colour = 'red'
+
+        // Add special "group" node for the DS
+        this.addGroup(`dsgroup_${ds.metadata.uid}`, ds.metadata.name)
+
+        // Add DS node and link it to the group
+        this.addNode(ds.metadata.uid, ds.metadata.name, `ds`, ds)
+        this.addLink(ds.metadata.uid, `dsgroup_${ds.metadata.uid}`)
+      }
+
+      // Add statefulsets
+      for(let sts of this.apiData.statefulsets) {
+        if(!this.filterShowNode(sts)) continue
+
+        let colour = 'green'
+        if(sts.status.replicas != sts.status.readyReplicas) colour = 'red'
+
+        // Add special "group" node for the DS
+        this.addGroup(`stsgroup_${sts.metadata.uid}`, sts.metadata.name)
+
+        // Add DS node and link it to the group
+        this.addNode(sts.metadata.uid, sts.metadata.name, `sts`, sts)
+        this.addLink(sts.metadata.uid, `stsgroup_${sts.metadata.uid}`)
+      }
+
+      // And PVCs
+      // for(let pvc of this.apiData.persistentvolumeclaims) {
+      //   if(!this.filterShowNode(pvc)) continue
+
+      //   this.addNode(pvc.metadata.uid, pvc.metadata.name, `pvc`, pvc)
+      // }
 
       // Add pods
       for(let pod of this.apiData.pods) {
@@ -136,11 +172,22 @@ export default {
         if(readyCond.status == "True") colour = 'green'
         
         // Add pods to containing group node for the RS they are in 
-        this.addtoParent(pod.metadata.uid, `rsgroup_${pod.metadata.ownerReferences[0].uid}`, pod.metadata.name, `pod-${colour}`, pod)
-        // for(let ownerRef of pod.metadata.ownerReferences || []) {
-        //   if(ownerRef.kind != "ReplicaSet") continue
-        //   this.addLink(pod.metadata.uid, ownerRef.uid)
-        // }  
+        let owner = pod.metadata.ownerReferences[0];
+        let ownerId = ''
+        if(owner.kind == "DaemonSet")
+          ownerId= `dsgroup_${owner.uid}`
+        else if(owner.kind == "StatefulSet")
+          ownerId= `stsgroup_${owner.uid}`
+        else
+          ownerId= `rsgroup_${owner.uid}`
+
+        this.addtoParent(pod.metadata.uid, ownerId, pod.metadata.name, `pod-${colour}`, pod)
+
+        // for(let vols of pod.volumes || []) {
+        //   if(vol.persistentVolumeClaim) {
+        //     this.addLink(pod.metadata.uid, )
+        //   }
+        // }
       }
 
       // Add endpoints as services, 
@@ -198,7 +245,7 @@ export default {
             this.addLink(ingress.metadata.uid, `endpoint_${serviceName}`) 
           }
         }
-      }
+      }      
 
       this.relayout()
     },

@@ -49,10 +49,14 @@ app.use('/api/scrape/:ns', async function(req, res, next) {
   try {
     const services = await client.api.v1.namespaces(ns).services.get()
     const endpoints = await client.api.v1.namespaces(ns).endpoints.get()
+    const ingresses = await client.apis.extensions.v1beta1.namespaces(ns).ingresses.get()
     const pods = await client.api.v1.namespaces(ns).pods.get()
     const deployments = await client.apis.apps.v1.namespaces(ns).deployments.get()
     const replicasets = await client.apis.apps.v1.namespaces(ns).replicasets.get()
-    const ingresses = await client.apis.extensions.v1beta1.namespaces(ns).ingresses.get()
+    const daemonsets = await client.apis.apps.v1.namespaces(ns).daemonsets.get()
+    const statefulsets = await client.apis.apps.v1.namespaces(ns).statefulsets.get()
+    const persistentvolumeclaims = await client.api.v1.namespaces(ns).persistentvolumeclaims.get()
+    const persistentvolumes = await client.api.v1.persistentvolumes.get()
 
     // Build response data and send
     data.services = services.body.items
@@ -61,6 +65,9 @@ app.use('/api/scrape/:ns', async function(req, res, next) {
     data.pods = pods.body.items
     data.deployments = deployments.body.items
     data.replicasets = replicasets.body.items
+    data.daemonsets = daemonsets.body.items
+    data.persistentvolumeclaims = persistentvolumeclaims.body.items
+    data.persistentvolumes = persistentvolumes.body.items
     res.send(data)
 
   } catch(e) {
