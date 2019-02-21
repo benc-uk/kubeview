@@ -21,9 +21,9 @@ Currently displays:
 
 
 # Repo Details
-- [server](./server) - Source of the Node.js Express server
+- [server](./server) - Source of the Node.js Express API server
 - [client](./client) - Source of the Vue.js client app
-- [deploy](./deploy) - Kubernetes deployment manifests and instructions
+- [kubernetes](./kubernetes) - Kubernetes deployment manifests and instructions
 
 ### Azure Pipelines CI Build
 [![Build Status](https://dev.azure.com/bencoleman/Experiments/_apis/build/status/Build%20KubeView?branchName=master)](https://dev.azure.com/bencoleman/Experiments/_build/latest?definitionId=53&branchName=master)

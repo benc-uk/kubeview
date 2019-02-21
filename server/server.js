@@ -1,6 +1,7 @@
 // Dotenv handy for local config & debugging
 require('dotenv').config()
 
+// GoDaddy Kubernetes client
 const K8sConfig = require('kubernetes-client').config
 const Client = require('kubernetes-client').Client
 
@@ -11,7 +12,7 @@ var client = null;
 
 // Serve static content from working directory ('.') by default
 // - Optional parameter can specify different location, use when debugging & running locally
-// - e.g. `node server.js ../angular/dist/`
+// - e.g. `node server.js ../client/dist/`
 var staticContentDir = process.argv[2] || __dirname;
 // resolve to an absolute path
 staticContentDir = require('path').resolve(staticContentDir)
@@ -22,6 +23,9 @@ app.use('/', express.static(staticContentDir));
 
 // ===== API routes =====
 
+//
+// Get all Namespaces
+//
 app.use('/api/namespaces', async function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   
@@ -33,6 +37,9 @@ app.use('/api/namespaces', async function(req, res, next) {
   }
 })
 
+//
+// Main API scraper 
+//
 app.use('/api/scrape/:ns', async function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
 
@@ -67,6 +74,7 @@ app.use('/api/scrape/:ns', async function(req, res, next) {
 app.use('*', function(req, res) {
   res.sendFile(`${staticContentDir}/index.html`);
 });
+
 // ===== Start server =====
 
 // Server port
