@@ -2,8 +2,8 @@
 require('dotenv').config()
 
 // GoDaddy Kubernetes client
-const K8sConfig = require('kubernetes-client').config
-const Client = require('kubernetes-client').Client
+const k8sConfig = require('kubernetes-client').config
+const k8sClient = require('kubernetes-client').Client
 
 // Core Express & logging stuff
 var express = require('express')
@@ -87,11 +87,11 @@ var server = app.listen(port, async function () {
   try {
     var kubeConf;
     if(process.env.NODE_ENV == "production") {
-      kubeConf = K8sConfig.getInCluster()
+      kubeConf = k8sConfig.getInCluster()
     } else {
-      kubeConf = K8sConfig.fromKubeconfig(`${process.env.HOME}/.kube/config`)
+      kubeConf = k8sConfig.fromKubeconfig(`${process.env.HOME}/.kube/config`)
     }
-    client = new Client({ config: kubeConf })
+    client = new k8sClient({ config: kubeConf })
     await client.loadSpec()
     console.log(`### Connected to ${client.backend.requestOptions.baseUrl}`)
   } catch(e) {

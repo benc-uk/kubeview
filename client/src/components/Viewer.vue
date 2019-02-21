@@ -1,10 +1,16 @@
 <template>
-  <div id="mainview" ref="mainview">
+  <div id="viewwrap">
+    <div id="mainview" ref="mainview"></div>
+    <transition name="slide-fade">
+      <infobox v-if="infoBoxNode && infoBoxNode.metadata" :nodeData="infoBoxNode"></infobox>
+    </transition>
   </div>
 </template>
 
 <script>
 import apiMixin from "../mixins/api.js";
+import InfoBox from "./InfoBox";
+
 import cytoscape from 'cytoscape'
 import coseBilkent from 'cytoscape-cose-bilkent';
 cytoscape.use( coseBilkent );
@@ -13,15 +19,16 @@ cytoscape.use( coseBilkent );
 var cy
 
 export default {
-  name: 'Viewer',
+  name: 'viewer',
 
   mixins: [ apiMixin ],
-  
+  components: { 'infobox': InfoBox },
   props: [ 'namespace', 'action', 'filter' ],
 
   data() {
     return {
       apiData: null,
+      infoBoxNode: null
     }
   },
 
@@ -37,6 +44,7 @@ export default {
 
   methods: {
     refreshData() {
+      this.infoBoxNode = false;
       cy.remove("*")
       
       this.apiGetDataForNamespace(this.namespace)
@@ -46,10 +54,10 @@ export default {
       })
     },
 
-    addNode(id, label, img) {
+    addNode(id, label, img, sourceObj) {
       console.log(`### Adding ${img} ${label}`)
       try {
-        cy.add({ data: { id: id, label: label, img: `img/res/${img}.svg` } })
+        cy.add({ data: { id: id, label: label, img: `img/res/${img}.svg`, sourceObj: sourceObj } })
       } catch(e) {
         // eslint-disable-next-line
         console.error(`### Unable to add node: ${img} ${label}`);
@@ -65,9 +73,9 @@ export default {
       }      
     },
 
-    addtoParent(id, parentId, label, img) {
+    addtoParent(id, parentId, label, img, sourceObj) {
       try {
-        cy.add({ data: { id: id, label: label, img: `img/res/${img}.svg`, parent: parentId } })
+        cy.add({ data: { id: id, label: label, img: `img/res/${img}.svg`, parent: parentId, sourceObj: sourceObj } })
       } catch(e) {
         // eslint-disable-next-line
         console.error(`### Unable to add node: ${img} ${label}`);
@@ -91,7 +99,7 @@ export default {
         let colour = 'green'
         let readyReplicas = deploy.status.readyReplicas || 0
         if(deploy.status.replicas != readyReplicas) colour = 'red'
-        this.addNode(deploy.metadata.uid, deploy.metadata.name, `deploy-${colour}`)
+        this.addNode(deploy.metadata.uid, deploy.metadata.name, `deploy-${colour}`, deploy)
       }
 
       // Add replicasets
@@ -106,7 +114,7 @@ export default {
         this.addGroup(`rsgroup_${rs.metadata.uid}`, rs.metadata.name)
 
         // Add RS node and link it to the group
-        this.addNode(rs.metadata.uid, rs.metadata.name, `rs-${colour}`)
+        this.addNode(rs.metadata.uid, rs.metadata.name, `rs-${colour}`, rs)
         this.addLink(rs.metadata.uid, `rsgroup_${rs.metadata.uid}`)
 
         // Find all owning deploymenys of this RS
@@ -121,14 +129,14 @@ export default {
       for(let pod of this.apiData.pods) {
         if(!this.filterShowNode(pod)) continue
 
-        let colour = 'green'
-        if(pod.status.phase == 'Pending' || pod.status.phase == 'Unknown') colour = 'grey'
+        let colour = 'grey'
+        //if(pod.status.phase == 'Pending' || pod.status.phase == 'Unknown') colour = 'grey'
         if(pod.status.phase == 'Failed' || pod.status.phase == 'CrashLoopBackOff') colour = 'red'
         let readyCond = pod.status.conditions.find(c => c.type == 'Ready') || {}
-        if(readyCond.status != "True") colour = 'red'
+        if(readyCond.status == "True") colour = 'green'
         
         // Add pods to containing group node for the RS they are in 
-        this.addtoParent(pod.metadata.uid, `rsgroup_${pod.metadata.ownerReferences[0].uid}`, pod.metadata.name, `pod-${colour}`)
+        this.addtoParent(pod.metadata.uid, `rsgroup_${pod.metadata.ownerReferences[0].uid}`, pod.metadata.name, `pod-${colour}`, pod)
         // for(let ownerRef of pod.metadata.ownerReferences || []) {
         //   if(ownerRef.kind != "ReplicaSet") continue
         //   this.addLink(pod.metadata.uid, ownerRef.uid)
@@ -144,7 +152,7 @@ export default {
         if(ep.metadata.name == 'kubernetes') continue
 
         let endpointId = `endpoint_${ep.metadata.name}`
-        this.addNode(endpointId, ep.metadata.name, `svc`)
+        this.addNode(endpointId, ep.metadata.name, `svc`, ep)
         
         for(let subset of ep.subsets || []) {
           for(let address of subset.addresses || []) {
@@ -166,7 +174,7 @@ export default {
 
         // Find all external IPs of ingresses, and add them
         for(let lb of svc.status.loadBalancer.ingress || []) {
-          this.addNode(lb.ip, lb.ip, `ip`)
+          this.addNode(lb.ip, lb.ip, `ip`, lb)
           this.addLink(`endpoint_${svc.metadata.name}`, lb.ip)
         }
       }
@@ -175,11 +183,11 @@ export default {
       for(var ingress of this.apiData.ingresses) {
         if(!this.filterShowNode(ingress)) continue
 
-        this.addNode(ingress.metadata.uid, ingress.metadata.name, `ing`)
+        this.addNode(ingress.metadata.uid, ingress.metadata.name, `ing`, ingress)
 
         // Find all external IPs of ingresses, and add them
         for(let lb of ingress.status.loadBalancer.ingress || []) {
-          this.addNode(lb.ip, lb.ip, `ip`)
+          this.addNode(lb.ip, lb.ip, `ip`, lb)
           this.addLink(ingress.metadata.uid, lb.ip)
         }
 
@@ -217,13 +225,13 @@ export default {
   mounted: function() {
     cy = cytoscape({ 
       container: this.$refs.mainview,
-      wheelSensitivity: 0.15,
+      wheelSensitivity: 0.1,
       maxZoom: 5,
       minZoom: 0.2,
       selectionType: 'single'
     })
 
-    cy.style().selector('node').style({
+    cy.style().selector('node[img]').style({
       'background-opacity': 0,
       'label': 'data(label)',
       'background-fit': 'cover',
@@ -247,13 +255,7 @@ export default {
       'background-color': '#000000',
       'shape': 'roundrectangle',
       'border-width': '6',
-      'border-color': '#777',
-      // 'background-width': 'auto',
-      // 'background-height': 'auto',
-      // 'background-fit': 'none',
-      // 'background-image': 'img/res/rs.svg',
-      // 'background-position-x': '0%',
-      // 'background-position-y': '0%'
+      'border-color': '#777'
     });
 
     cy.style().selector('node:selected').style({
@@ -270,6 +272,25 @@ export default {
       'target-arrow-color': '#777'
     });
 
+    cy.on('select', evt => {
+      // Only work with nodes
+      if(evt.target.isNode()) {
+        // Force selection of single nodes only
+        if(cy.$('node:selected').length > 1) {
+          cy.$('node:selected')[0].unselect();
+        }
+        
+        this.infoBoxNode = evt.target.data('sourceObj')
+      }
+    })
+
+    cy.on('click tap', evt => {
+      // Only sensible way I could find to hide the info box when unselecting
+      if(!evt.target.length && this.infoBoxNode) {
+        this.infoBoxNode = false;
+      }
+    })
+
     this.refreshData()
   }
 
@@ -277,9 +298,26 @@ export default {
 </script>
 
 <style >
+  #viewwrap {
+    height: calc(100% - 67px)
+  }
   #mainview {
     width: 100%;
     background-color: #333;
-    height: calc(100% - 66px)
+    height: 100%;
   }
+
+  /* Enter and leave animations can use different */
+  /* durations and timing functions.              */
+  .slide-fade-enter-active {
+    transition: all .3s ease;
+  }
+  .slide-fade-leave-active {
+    transition: all .3s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+  }
+  .slide-fade-enter, .slide-fade-leave-to
+  /* .slide-fade-leave-active below version 2.1.8 */ {
+    transform: translateY(20px);
+    opacity: 0;
+  }  
 </style>

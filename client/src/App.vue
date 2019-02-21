@@ -6,18 +6,18 @@
       <b-navbar-brand class="logoText"><img src="./assets/logo.png" class="logo"> &nbsp;KubeView</b-navbar-brand>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <b-collapse is-nav id="nav_collapse">
-        Namespace:&nbsp;&nbsp;<b-dropdown :text="namespace" variant="info">
+        <b-dropdown :text="namespace" variant="light">
         <b-dropdown-item @click="nsChange(ns.metadata.name)" v-for="ns in namespaces" :key="ns.metadata.uid" >{{ ns.metadata.name }}</b-dropdown-item></b-dropdown>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <b-navbar-nav >
-          <b-button variant="light" @click="refresh()">Refresh</b-button> 
+          <b-button variant="info" @click="refresh()">↻ Refresh</b-button> 
         </b-navbar-nav>
         
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <input v-model="filter" @keyup.enter="filterUpdate()">&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 
+        <input v-model="filter" @keyup.enter="filterUpdate()" class="filterBox">&nbsp;&nbsp;
         <b-navbar-nav>
-          <b-button variant="light" @click="filterUpdate()">Filter</b-button> &nbsp;
-          <b-button variant="light" @click="filterClear()">Clear</b-button> 
+          <b-button variant="info" @click="filterUpdate()">Filter</b-button> &nbsp;
+          <b-button variant="info" @click="filterClear()">Clear</b-button> 
         </b-navbar-nav>
       </b-collapse>
 
@@ -98,5 +98,9 @@ export default {
   }
   .logoText {
     font-size: 30px !important;
+  }
+  .filterBox {
+    font-size: 120%;
+    width: 100px;
   }
 </style>
