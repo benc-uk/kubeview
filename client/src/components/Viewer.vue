@@ -1,6 +1,7 @@
 <template>
   <div id="viewwrap">
     <div id="mainview" ref="mainview"></div>
+    <loading v-if="!apiData" ><h1>Loading...</h1></loading>
     <transition name="slide-fade">
       <infobox v-if="infoBoxData" :nodeData="infoBoxData"></infobox>
     </transition>
@@ -10,6 +11,7 @@
 <script>
 import apiMixin from "../mixins/api.js";
 import InfoBox from "./InfoBox";
+import Loading from "./Loading";
 
 import cytoscape from 'cytoscape'
 import coseBilkent from 'cytoscape-cose-bilkent';
@@ -22,7 +24,10 @@ export default {
   name: 'viewer',
 
   mixins: [ apiMixin ],
-  components: { 'infobox': InfoBox },
+  components: { 
+    'infobox': InfoBox,
+    'loading': Loading 
+  },
   props: [ 'namespace', 'action', 'filter' ],
 
   data() {
@@ -44,7 +49,8 @@ export default {
 
   methods: {
     refreshData() {
-      this.infoBoxData = false;
+      this.apiData = null
+      this.infoBoxData = false
       cy.remove("*")
       
       this.apiGetDataForNamespace(this.namespace)
@@ -267,7 +273,7 @@ export default {
     relayout() {
       cy.resize();
       cy.layout({name: 'cose-bilkent'}).run();
-      cy.fit();
+      //cy.fit();
     },
 
     filterShowNode(node) {
