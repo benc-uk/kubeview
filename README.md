@@ -33,7 +33,6 @@ Currently displays:
 # Todo 
 ## Short Term
 - Improve the auto layout
-- Show info/details popup when clicking on an element
 
 ## Medium Term
 - Security
