@@ -1,6 +1,6 @@
 {
   "name": "kubeview",
-  "version": "0.0.41",
+  "version": "0.0.5",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -12,6 +12,7 @@
     "bootswatch": "^4.3.1",
     "cytoscape": "^3.4.2",
     "cytoscape-cose-bilkent": "^4.0.0",
+    "cytoscape-snap-to-grid": "^2.0.0",
     "vue": "^2.6.6"
   },
   "devDependencies": {

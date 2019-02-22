@@ -1,5 +1,5 @@
 <template>
-  <div class="infobox">
+  <div class="infobox" @click="$emit('hideInfoBox')">
     <b-card :title="metadata.name" :sub-title="nodeData.type">
 
       <div v-if="metadata && metadata.labels">
@@ -16,17 +16,50 @@
         </ul>
       </div>
 
-      <div v-if="containers">
+      <div v-if="specContainers">
         <h5>Containers</h5>
         <ul>
-          <div v-for="container of containers" :key="container.name">
+          <div v-for="container of specContainers" :key="container.name">
             <li><b>name:</b> {{container.name}}</li>
             <li><b>image:</b> {{container.image}}</li>
-            <li v-for="port of container.ports" :key="port.containerPort"><b>port:</b> {{port.containerPort}}</li>
+            <li v-for="(port, index) of container.ports" :key="index"><b>port:</b> {{port.containerPort}} ({{port.protocol}})</li>
           </div>
         </ul>
-      </div>         
+      </div>    
+
+      <div v-if="specInitContainers">
+        <h5>InitContainers</h5>
+        <ul>
+          <div v-for="container of specInitContainers" :key="container.name">
+            <li><b>name:</b> {{container.name}}</li>
+            <li><b>image:</b> {{container.image}}</li>
+            <li v-for="(port, index) in container.ports" :key="index"><b>port:</b> {{port.containerPort}} ({{port.protocol}})</li>
+          </div>
+        </ul>
+      </div>     
+
+      <div v-if="specPorts">
+        <h5>Ports</h5>
+        <ul>
+          <div v-for="(port, index) of specPorts" :key="`ports_${index}`">
+            <li><b>{{port.name || "port"}}:</b> {{port.port}} &rarr; {{port.targetPort}} ({{port.protocol}})</li>
+          </div>
+        </ul>
+      </div>     
+
+      <div v-if="subsets">
+        <h5>Endpoints</h5>
+        <ul>
+          <div v-for="(subset, index) of subsets" :key="`subsets_${index}`">
+            <li v-for="address of subset.addresses" :key="address.ip"><b>{{address.ip}}</b></li>
+          </div>
+        </ul>
+      </div>   
+
+      <b-button @click="$emit('fullInfo', nodeData)" variant="info">Full Object Details</b-button>
+
     </b-card>
+    
   </div>
 </template>
 
@@ -35,6 +68,7 @@ export default {
   name: 'infobox',
 
   props: [ 'nodeData' ],
+
 
   computed: {
     metadata() {
@@ -54,27 +88,39 @@ export default {
         if(available) statusTemp.available = available.status
       }
       delete statusTemp.containerStatuses
+      delete statusTemp.initContainerStatuses
       delete statusTemp.conditions
       delete statusTemp.qosClass
       return statusTemp
     },
 
-    containers() {
+    specContainers() {
       if(!checkNested(this.nodeData, 'sourceObj', 'spec', 'containers')) return false
 
-      let containers = this.nodeData.sourceObj.spec.containers
-      return containers
+      let array = this.nodeData.sourceObj.spec.containers
+      return array
     },
-    
-    // title() {
-    //   if(!this.metaData) return ""
-    //   return (this.metaData.name || "")
-    // },
-    
-    // subTitle() {
-    //   if(!this.nodeData.metadata) return ""
-    //   return (this.nodeData.metadata.selfLink || "")
-    // }    
+
+    specInitContainers() {
+      if(!checkNested(this.nodeData, 'sourceObj', 'spec', 'initContainers')) return false
+
+      let array = this.nodeData.sourceObj.spec.initContainers
+      return array
+    },  
+
+    specPorts() {
+      if(!checkNested(this.nodeData, 'sourceObj', 'spec', 'ports')) return false
+
+      let array = this.nodeData.sourceObj.spec.ports
+      return array
+    },    
+
+    subsets() {
+      if(!checkNested(this.nodeData, 'sourceObj', 'subsets')) return false
+
+      let array = this.nodeData.sourceObj.subsets
+      return array
+    }  
   }
 }
 
@@ -93,24 +139,24 @@ function checkNested(obj /*, level1, level2, ... levelN*/) {
 </script>
 
 <style scoped>
-.infobox {
-  font-size: 90%;
-  border: 1px solid rgb(0,120,215);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6); /*6px 6px 5px rgba(0,0,0,0.3);*/
-  position: absolute;
-  z-index: 8000;
-  bottom: 20px;
-  right: 20px;
-  padding: 0px !important;
-  word-wrap: break-word;
-  font-size: 105%;
-  max-width: 90%;
-  overflow: hidden;
-}
-li {
-  font-size: 90%;
-}
-b {
-  color:rgb(132, 190, 238)
-}
+  .infobox {
+    font-size: 90%;
+    border: 1px solid rgb(0, 120, 215);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+    position: absolute;
+    z-index: 8000;
+    bottom: 20px;
+    right: 20px;
+    padding: 0px !important;
+    word-wrap: break-word;
+    font-size: 105%;
+    max-width: 90%;
+    overflow: hidden;
+  }
+  li {
+    font-size: 90%;
+  }
+  b {
+    color: #5bc0de /* rgb(132, 190, 238) */
+  }
 </style>

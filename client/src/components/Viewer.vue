@@ -1,10 +1,17 @@
 <template>
   <div id="viewwrap">
     <div id="mainview" ref="mainview"></div>
+
     <loading v-if="!apiData" ><h1>Loading...</h1></loading>
+
     <transition name="slide-fade">
-      <infobox v-if="infoBoxData" :nodeData="infoBoxData"></infobox>
+      <infobox v-if="infoBoxData" :nodeData="infoBoxData" @hideInfoBox="infoBoxData = null" @fullInfo="showFullInfo"></infobox>
     </transition>
+
+    <b-modal centered :title="fullInfoTitle" ref="fullInfoModal" ok-only scrollable size="lg" body-class="fullInfoBody">
+      <pre>{{ fullInfoYaml }}</pre>
+    </b-modal>
+
   </div>
 </template>
 
@@ -13,9 +20,17 @@ import apiMixin from "../mixins/api.js";
 import InfoBox from "./InfoBox";
 import Loading from "./Loading";
 
+import yaml from 'js-yaml';
+
 import cytoscape from 'cytoscape'
 import coseBilkent from 'cytoscape-cose-bilkent';
 cytoscape.use( coseBilkent );
+
+// const jquery = require('jquery');
+// const gridGuide = require('cytoscape-grid-guide');
+// gridGuide( cytoscape, jquery );
+import snapToGrid from 'cytoscape-snap-to-grid';
+snapToGrid( cytoscape ); // register extension
 
 // Urgh, gotta have this here, putting into data, causes weirdness
 var cy
@@ -24,16 +39,20 @@ export default {
   name: 'viewer',
 
   mixins: [ apiMixin ],
+
   components: { 
     'infobox': InfoBox,
     'loading': Loading 
   },
+
   props: [ 'namespace', 'action', 'filter' ],
 
   data() {
     return {
       apiData: null,
-      infoBoxData: null
+      infoBoxData: null,
+      fullInfoYaml: null,
+      fullInfoTitle: ""
     }
   },
 
@@ -48,6 +67,12 @@ export default {
   },
 
   methods: {
+    showFullInfo() {
+      this.fullInfoYaml = yaml.safeDump(this.infoBoxData.sourceObj)
+      this.fullInfoTitle = `${this.infoBoxData.type}: ${this.infoBoxData.sourceObj.metadata.name}`
+      this.$refs.fullInfoModal.show()
+    },
+
     refreshData() {
       this.apiData = null
       this.infoBoxData = false
@@ -64,15 +89,15 @@ export default {
       try {
         let img = 'default'
         
-        if(type == "Deployment")  img = 'deploy'
-        if(type == "ReplicaSet")  img = 'rs'
-        if(type == "StatefulSet") img = 'sts'
-        if(type == "DaemonSet")   img = 'ds'
-        if(type == "Pod")         img = 'pod'
-        if(type == "Service")     img = 'svc'
-        if(type == "IP")          img = 'ip'
-        if(type == "Ingress")     img = 'ing'
-        if(type == "PVC")         img = 'pvc'
+        if(type == "Deployment")            img = 'deploy'
+        if(type == "ReplicaSet")            img = 'rs'
+        if(type == "StatefulSet")           img = 'sts'
+        if(type == "DaemonSet")             img = 'ds'
+        if(type == "Pod")                   img = 'pod'
+        if(type == "Service")               img = 'svc'
+        if(type == "IP")                    img = 'ip'
+        if(type == "Ingress")               img = 'ing'
+        if(type == "PersistentVolumeClaim") img = 'pvc'
 
         if(status) img += `-${status}`
 
@@ -185,7 +210,7 @@ export default {
 
         let status = 'grey'
         if(pvc.status.phase == 'Bound') status = 'green'
-        this.addNode(pvc, 'PVC', status)
+        this.addNode(pvc, 'PersistentVolumeClaim', status)
       }
 
       // Add pods
@@ -204,19 +229,24 @@ export default {
 
         for(let vol of pod.spec.volumes || []) {
           if(vol.persistentVolumeClaim) {
-            this.addLink(`PVC_${vol.persistentVolumeClaim.claimName}`, `Pod_${pod.metadata.name}`)
+            this.addLink(`PersistentVolumeClaim_${vol.persistentVolumeClaim.claimName}`, `Pod_${pod.metadata.name}`)
           }
         }
       }
 
-      // Add endpoints as services, 
-      //  - Anyone else confused over the service vs endpoint thing?
-      for(let svc of this.apiData.endpoints) {
+      // Find all services, we pull in info from the endpoint with matching name
+      // Basicaly merge the service and endpoint objects together
+      for(let svc of this.apiData.services) {
         if(!this.filterShowNode(svc)) continue
         let serviceId = `Service_${svc.metadata.name}`
 
-        // Skip kubernetes service
         if(svc.metadata.name == 'kubernetes') continue
+
+        // Find matching endpoint, and merge subsets into service 
+        let ep = this.apiData.endpoints.find(ep => ep.metadata.name == svc.metadata.name)
+        if(ep) {
+          svc.subsets = ep.subsets
+        }
 
         this.addNode(svc, 'Service')
 
@@ -228,12 +258,7 @@ export default {
             this.addLink(serviceId, `Pod_${address.targetRef.name}`)
           }        
         }
-      }
-
-      // We only loop over services to find ones with external lb address
-      for(let svc of this.apiData.services) {
-        if(!this.filterShowNode(svc)) continue
-
+        
         // Find all external IPs of service, and add them
         for(let lb of svc.status.loadBalancer.ingress || []) {
           // Fake Kubernetes object to display the IP
@@ -272,8 +297,9 @@ export default {
 
     relayout() {
       cy.resize();
-      cy.layout({name: 'cose-bilkent'}).run();
+      cy.layout({name: 'cose-bilkent', nodeRepulsion: 5000, nodeDimensionsIncludeLabels:true}).run();
       //cy.fit();
+      cy.fit();
     },
 
     filterShowNode(node) {
@@ -297,6 +323,8 @@ export default {
       minZoom: 0.2,
       selectionType: 'single'
     })
+
+    cy.snapToGrid({gridSpacing: 64})
 
     cy.style().selector('node[img]').style({
       'background-opacity': 0,
@@ -347,6 +375,9 @@ export default {
           cy.$('node:selected')[0].unselect();
         }
         
+        if(evt.target.hasClass('grp'))
+          return false
+        
         this.infoBoxData = evt.target.data()
       }
     })
@@ -358,6 +389,14 @@ export default {
       }
     })
 
+    // let gridOptions = {
+    //   gridSpacing: 64,
+    //   snapToGridOnRelease: true,
+    //   snapToGridDuringDrag: true,
+    //   //distributionGuidelines: true
+    // }
+    // cy.gridGuide(gridOptions)
+
     this.refreshData()
   }
 
@@ -368,10 +407,17 @@ export default {
   #viewwrap {
     height: calc(100% - 67px)
   }
+
   #mainview {
     width: 100%;
     background-color: #333;
     height: 100%;
+    box-shadow: inset 0 0 20px #000000;
+  }
+
+  .fullInfoBody {
+    color: #28c8e4;
+    background-color: #111;
   }
 
   /* Enter and leave animations can use different */
