@@ -66,6 +66,7 @@ app.use('/api/scrape/:ns', async function(req, res, next) {
     data.deployments = deployments.body.items
     data.replicasets = replicasets.body.items
     data.daemonsets = daemonsets.body.items
+    data.statefulsets = statefulsets.body.items
     data.persistentvolumeclaims = persistentvolumeclaims.body.items
     data.persistentvolumes = persistentvolumes.body.items
     res.send(data)

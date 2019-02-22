@@ -2,7 +2,7 @@
   <div id="viewwrap">
     <div id="mainview" ref="mainview"></div>
     <transition name="slide-fade">
-      <infobox v-if="infoBoxNode && infoBoxNode.metadata" :nodeData="infoBoxNode"></infobox>
+      <infobox v-if="infoBoxData" :nodeData="infoBoxData"></infobox>
     </transition>
   </div>
 </template>
@@ -28,7 +28,7 @@ export default {
   data() {
     return {
       apiData: null,
-      infoBoxNode: null
+      infoBoxData: null
     }
   },
 
@@ -44,7 +44,7 @@ export default {
 
   methods: {
     refreshData() {
-      this.infoBoxNode = false;
+      this.infoBoxData = false;
       cy.remove("*")
       
       this.apiGetDataForNamespace(this.namespace)
@@ -54,40 +54,45 @@ export default {
       })
     },
 
-    addNode(id, label, img, sourceObj) {
-      console.log(`### Adding ${img} ${label}`)
+    addNode(node, type, status, groupId = null) {
       try {
-        cy.add({ data: { id: id, label: label, img: `img/res/${img}.svg`, sourceObj: sourceObj } })
+        let img = 'default'
+        
+        if(type == "Deployment")  img = 'deploy'
+        if(type == "ReplicaSet")  img = 'rs'
+        if(type == "StatefulSet") img = 'sts'
+        if(type == "DaemonSet")   img = 'ds'
+        if(type == "Pod")         img = 'pod'
+        if(type == "Service")     img = 'svc'
+        if(type == "IP")          img = 'ip'
+        if(type == "Ingress")     img = 'ing'
+        if(type == "PVC")         img = 'pvc'
+
+        if(status) img += `-${status}`
+
+        console.log(`### Adding: ${node.metadata.name || node.metadata.selfLink}`);
+        cy.add({ data: { id: `${type}_${node.metadata.name}`, label: node.metadata.name, img: `img/res/${img}.svg`, sourceObj: node, type: type, parent: groupId } })
       } catch(e) {
         // eslint-disable-next-line
-        console.error(`### Unable to add node: ${img} ${label}`);
+        console.error(`### Unable to add node: ${node.metadata.name || node.metadata.selfLink}`);
       }
     },
 
-    addLink(sourceId, targetId, label = "") {
+    addLink(sourceId, targetId) {
       try {
-        cy.add({ data: { id: `${sourceId}__${targetId}`, label: label, source: sourceId, target: targetId } })
+        cy.add({ data: { id: `${sourceId}___${targetId}`, source: sourceId, target: targetId } })
       } catch(e) {
         // eslint-disable-next-line
         console.error(`### Unable to add link: ${sourceId} to ${targetId}`);
       }      
     },
 
-    addtoParent(id, parentId, label, img, sourceObj) {
+    addGroup(type, name) {
       try {
-        cy.add({ data: { id: id, label: label, img: `img/res/${img}.svg`, parent: parentId, sourceObj: sourceObj } })
+        cy.add({ classes:['grp'], data: { id: `grp_${type}_${name}`, label: name} })
       } catch(e) {
         // eslint-disable-next-line
-        console.error(`### Unable to add node: ${img} ${label}`);
-      }      
-    },
-
-    addGroup(id, label) {
-      try {
-        cy.add({ classes:['grp'], data: { id: id, label: label} })
-      } catch(e) {
-        // eslint-disable-next-line
-        console.error(`### Unable to add group: ${label}`);
+        console.error(`### Unable to add group: ${name}`);
       }      
     },
 
@@ -96,122 +101,126 @@ export default {
       for(let deploy of this.apiData.deployments) {
         if(!this.filterShowNode(deploy)) continue
 
-        let colour = 'green'
+        let status = 'green'
         let readyReplicas = deploy.status.readyReplicas || 0
-        if(deploy.status.replicas != readyReplicas) colour = 'red'
-        this.addNode(deploy.metadata.uid, deploy.metadata.name, `deploy-${colour}`, deploy)
+        if(deploy.status.replicas != readyReplicas) status = 'red'
+        this.addNode(deploy, 'Deployment', status)
       }
 
       // Add replicasets
       for(let rs of this.apiData.replicasets) {
         if(!this.filterShowNode(rs)) continue
+        let rsId = `ReplicaSet_${rs.metadata.name}`
 
-        let colour = 'green'
-        if(rs.status.replicas != rs.status.readyReplicas) colour = 'red'
+        let status = 'green'
+        if(rs.status.replicas != rs.status.readyReplicas) status = 'red'
 
         // Add special "group" node for the RS
-        this.addGroup(`rsgroup_${rs.metadata.uid}`, rs.metadata.name)
+        this.addGroup('ReplicaSet', rs.metadata.name)
 
         // Add RS node and link it to the group
-        this.addNode(rs.metadata.uid, rs.metadata.name, `rs-${colour}`, rs)
-        this.addLink(rs.metadata.uid, `rsgroup_${rs.metadata.uid}`)
+        this.addNode(rs, 'ReplicaSet', status)
+        this.addLink(rsId, `grp_ReplicaSet_${rs.metadata.name}`)
 
         // Find all owning deployments of this RS
         for(let ownerRef of rs.metadata.ownerReferences || []) {
-          if(ownerRef.kind != "Deployment") continue
-          // Link rs group up to the deployment
-          this.addLink(rs.metadata.uid, ownerRef.uid)
+          // Link rs up to the deployment
+          this.addLink(`${ownerRef.kind}_${ownerRef.name}`, rsId)
+        }
+      }
+
+      // Add statefulsets
+      for(let sts of this.apiData.statefulsets) {
+        if(!this.filterShowNode(sts)) continue
+        let stsId = `StatefulSet_${sts.metadata.name}`
+
+        let status = 'green'
+        if(sts.status.replicas != sts.status.readyReplicas) status = 'red'
+
+        // Add special "group" node for the statefulset
+        this.addGroup('StatefulSet', sts.metadata.name)
+
+        // Add statefulset node and link it to the group
+        this.addNode(sts, 'StatefulSet', status)
+        this.addLink(stsId, `grp_StatefulSet_${sts.metadata.name}`)
+
+        // Find all owning deployments of this statefulset
+        for(let ownerRef of sts.metadata.ownerReferences || []) {
+          // Link rs up to the deployment
+          this.addLink(`${ownerRef.kind}_${ownerRef.name}`, stsId)
         }
       }
 
       // Add daemonsets
       for(let ds of this.apiData.daemonsets) {
         if(!this.filterShowNode(ds)) continue
+        let dsId = `DaemonSet_${ds.metadata.name}`
 
-        let colour = 'green'
-        if(ds.status.numberReady != ds.status.desiredNumberScheduled) colour = 'red'
+        let status = 'green'
+        if(ds.status.numberReady != ds.status.desiredNumberScheduled) status = 'red'
 
-        // Add special "group" node for the DS
-        this.addGroup(`dsgroup_${ds.metadata.uid}`, ds.metadata.name)
+        // Add special "group" node for the statefulset
+        this.addGroup('DaemonSet', ds.metadata.name)
 
-        // Add DS node and link it to the group
-        this.addNode(ds.metadata.uid, ds.metadata.name, `ds`, ds)
-        this.addLink(ds.metadata.uid, `dsgroup_${ds.metadata.uid}`)
-      }
+        // Add statefulset node and link it to the group
+        this.addNode(ds, 'DaemonSet', status)
+        this.addLink(dsId, `grp_DaemonSet_${ds.metadata.name}`)
 
-      // Add statefulsets
-      for(let sts of this.apiData.statefulsets) {
-        if(!this.filterShowNode(sts)) continue
-
-        let colour = 'green'
-        if(sts.status.replicas != sts.status.readyReplicas) colour = 'red'
-
-        // Add special "group" node for the DS
-        this.addGroup(`stsgroup_${sts.metadata.uid}`, sts.metadata.name)
-
-        // Add DS node and link it to the group
-        this.addNode(sts.metadata.uid, sts.metadata.name, `sts`, sts)
-        this.addLink(sts.metadata.uid, `stsgroup_${sts.metadata.uid}`)
+        // Find all owning deployments of this statefulset
+        for(let ownerRef of ds.metadata.ownerReferences || []) {
+          // Link rs up to the deployment
+          this.addLink(`${ownerRef.kind}_${ownerRef.name}`, dsId)
+        }
       }
 
       // And PVCs
-      // for(let pvc of this.apiData.persistentvolumeclaims) {
-      //   if(!this.filterShowNode(pvc)) continue
+      for(let pvc of this.apiData.persistentvolumeclaims) {
+        if(!this.filterShowNode(pvc)) continue
 
-      //   this.addNode(pvc.metadata.uid, pvc.metadata.name, `pvc`, pvc)
-      // }
+        let status = 'grey'
+        if(pvc.status.phase == 'Bound') status = 'green'
+        this.addNode(pvc, 'PVC', status)
+      }
 
       // Add pods
       for(let pod of this.apiData.pods) {
         if(!this.filterShowNode(pod)) continue
 
-        let colour = 'grey'
-        //if(pod.status.phase == 'Pending' || pod.status.phase == 'Unknown') colour = 'grey'
-        if(pod.status.phase == 'Failed' || pod.status.phase == 'CrashLoopBackOff') colour = 'red'
+        let status = 'grey'
+        if(pod.status.phase == 'Failed' || pod.status.phase == 'CrashLoopBackOff') status = 'red'
         let readyCond = pod.status.conditions.find(c => c.type == 'Ready') || {}
-        if(readyCond.status == "True") colour = 'green'
+        if(readyCond.status == "True") status = 'green'
         
-        // Add pods to containing group node for the RS they are in 
+        // Add pods to containing group (ReplicaSet, DaemonSet, StatefulSet) that 'owns' them
         let owner = pod.metadata.ownerReferences[0];
-        let ownerId = ''
-        if(owner.kind == "DaemonSet")
-          ownerId= `dsgroup_${owner.uid}`
-        else if(owner.kind == "StatefulSet")
-          ownerId= `stsgroup_${owner.uid}`
-        else
-          ownerId= `rsgroup_${owner.uid}`
+        let groupId = `grp_${owner.kind}_${owner.name}`
+        this.addNode(pod, 'Pod', status, groupId)
 
-        this.addtoParent(pod.metadata.uid, ownerId, pod.metadata.name, `pod-${colour}`, pod)
-
-        // for(let vols of pod.volumes || []) {
-        //   if(vol.persistentVolumeClaim) {
-        //     this.addLink(pod.metadata.uid, )
-        //   }
-        // }
+        for(let vol of pod.spec.volumes || []) {
+          if(vol.persistentVolumeClaim) {
+            this.addLink(`PVC_${vol.persistentVolumeClaim.claimName}`, `Pod_${pod.metadata.name}`)
+          }
+        }
       }
 
       // Add endpoints as services, 
       //  - Anyone else confused over the service vs endpoint thing?
-      for(let ep of this.apiData.endpoints) {
-        if(!this.filterShowNode(ep)) continue
+      for(let svc of this.apiData.endpoints) {
+        if(!this.filterShowNode(svc)) continue
+        let serviceId = `Service_${svc.metadata.name}`
 
         // Skip kubernetes service
-        if(ep.metadata.name == 'kubernetes') continue
+        if(svc.metadata.name == 'kubernetes') continue
 
-        let endpointId = `endpoint_${ep.metadata.name}`
-        this.addNode(endpointId, ep.metadata.name, `svc`, ep)
-        
-        for(let subset of ep.subsets || []) {
-          for(let address of subset.addresses || []) {
+        this.addNode(svc, 'Service')
+
+        for(let subset of svc.subsets || []) {
+          let addresses = (subset.addresses || []).concat(subset.notReadyAddresses || [])
+          for(let address of addresses || []) {
             if(!address.targetRef) continue
             if(address.targetRef.kind != "Pod") continue
-            this.addLink(endpointId, address.targetRef.uid)
-          }
-          for(let address of subset.notReadyAddresses || []) {
-            if(!address.targetRef) continue
-            if(address.targetRef.kind != "Pod") continue
-            this.addLink(endpointId, address.targetRef.uid)
-          }          
+            this.addLink(serviceId, `Pod_${address.targetRef.name}`)
+          }        
         }
       }
 
@@ -219,30 +228,35 @@ export default {
       for(let svc of this.apiData.services) {
         if(!this.filterShowNode(svc)) continue
 
-        // Find all external IPs of ingresses, and add them
+        // Find all external IPs of service, and add them
         for(let lb of svc.status.loadBalancer.ingress || []) {
-          this.addNode(lb.ip, lb.ip, `ip`, lb)
-          this.addLink(`endpoint_${svc.metadata.name}`, lb.ip)
+          // Fake Kubernetes object to display the IP
+          let ipObj = { metadata: { name: lb.ip} }
+          this.addNode(ipObj, 'IP')
+          this.addLink(`IP_${ipObj.metadata.name}`, `Service_${svc.metadata.name}`)
         }
       }
 
-      // Add ingresses
+      // Add ingresses and link to services 
       for(var ingress of this.apiData.ingresses) {
         if(!this.filterShowNode(ingress)) continue
 
-        this.addNode(ingress.metadata.uid, ingress.metadata.name, `ing`, ingress)
+        this.addNode(ingress, 'Ingress')
 
         // Find all external IPs of ingresses, and add them
         for(let lb of ingress.status.loadBalancer.ingress || []) {
-          this.addNode(lb.ip, lb.ip, `ip`, lb)
-          this.addLink(ingress.metadata.uid, lb.ip)
+          // Fake Kubernetes object to display the IP
+          let ipObj = { metadata: { name: lb.ip} }
+          this.addNode(ipObj, 'IP')
+          this.addLink(`IP_${ipObj.metadata.name}`, `Ingress_${ingress.metadata.name}`)          
         }
 
         for(let rule of ingress.spec.rules || []) {
           if(!rule.http.paths) continue
           for(let path of rule.http.paths || []) {
             let serviceName = path.backend.serviceName
-            this.addLink(ingress.metadata.uid, `endpoint_${serviceName}`) 
+            //this.addLink(ingress.metadata.uid, `endpoint_${serviceName}`) 
+            this.addLink(`Service_${serviceName}`, `Ingress_${ingress.metadata.name}`) 
           }
         }
       }      
@@ -327,14 +341,14 @@ export default {
           cy.$('node:selected')[0].unselect();
         }
         
-        this.infoBoxNode = evt.target.data('sourceObj')
+        this.infoBoxData = evt.target.data()
       }
     })
 
     cy.on('click tap', evt => {
       // Only sensible way I could find to hide the info box when unselecting
-      if(!evt.target.length && this.infoBoxNode) {
-        this.infoBoxNode = false;
+      if(!evt.target.length && this.infoBoxData) {
+        this.infoBoxData = false;
       }
     })
 
