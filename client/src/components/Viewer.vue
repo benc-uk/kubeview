@@ -26,9 +26,6 @@ import cytoscape from 'cytoscape'
 import coseBilkent from 'cytoscape-cose-bilkent';
 cytoscape.use( coseBilkent );
 
-// const jquery = require('jquery');
-// const gridGuide = require('cytoscape-grid-guide');
-// gridGuide( cytoscape, jquery );
 import snapToGrid from 'cytoscape-snap-to-grid';
 snapToGrid( cytoscape ); // register extension
 
@@ -45,7 +42,7 @@ export default {
     'loading': Loading 
   },
 
-  props: [ 'namespace', 'action', 'filter' ],
+  props: [ 'namespace', 'filter' ],
 
   data() {
     return {
@@ -57,11 +54,7 @@ export default {
   },
 
   watch: {
-    namespace: function () {
-      this.refreshData()
-    },
-
-    action: function () {
+    namespace() {
       this.refreshData()
     }
   },
@@ -326,46 +319,16 @@ export default {
 
     cy.snapToGrid({gridSpacing: 64})
 
-    cy.style().selector('node[img]').style({
-      'background-opacity': 0,
-      'label': 'data(label)',
-      'background-fit': 'cover',
-      'background-image': 'data(img)',
-      'background-width': '90%',
-      'background-height': '90%',
-      'shape': 'roundrectangle',
-      'width': '128',
-      'height': '128',
-      'border-width': '0',
-      'font-size': '20%',
-      'color': '#eee',
-      'text-valign': 'bottom',
-      'text-margin-y': '10vh',
-      'text-outline-color': '#111',
-      'text-outline-width': '4'
-    });
+    cy.style().selector('node[img]').style(require('../assets/styles/node.json'));
 
-    cy.style().selector('.grp').style({
-      'background-opacity': 0.25,
-      'background-color': '#000000',
-      'shape': 'roundrectangle',
-      'border-width': '6',
-      'border-color': '#777'
-    });
+    cy.style().selector('.grp').style(require('../assets/styles/grp.json'));
 
     cy.style().selector('node:selected').style({
       'border-width': '4',
       'border-color': 'rgb(0, 120, 215)'
     });
 
-    cy.style().selector('edge').style({
-      'target-arrow-shape': 'triangle',
-      'curve-style': 'bezier',
-      'width': 6,
-      'line-color': '#777',
-      'arrow-scale': '1.5',
-      'target-arrow-color': '#777'
-    });
+    cy.style().selector('edge').style(require('../assets/styles/edge.json'));
 
     cy.on('select', evt => {
       // Only work with nodes
@@ -389,14 +352,7 @@ export default {
       }
     })
 
-    // let gridOptions = {
-    //   gridSpacing: 64,
-    //   snapToGridOnRelease: true,
-    //   snapToGridDuringDrag: true,
-    //   //distributionGuidelines: true
-    // }
-    // cy.gridGuide(gridOptions)
-
+    // Inital load
     this.refreshData()
   }
 

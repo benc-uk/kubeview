@@ -1,0 +1,18 @@
+{
+  "background-opacity": 0,
+  "label":              "data(label)",
+  "background-fit":     "cover",
+  "background-image":   "data(img)",
+  "background-width":   "90%",
+  "background-height":  "90%",
+  "shape":              "roundrectangle",
+  "width":              128,
+  "height":             128,
+  "border-width":       0,
+  "font-size":          "20%",
+  "color":              "#eee",
+  "text-valign":        "bottom",
+  "text-margin-y":      "10vh",
+  "text-outline-color": "#111",
+  "text-outline-width": 4
+}

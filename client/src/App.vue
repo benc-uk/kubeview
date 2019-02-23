@@ -14,9 +14,9 @@
         </b-navbar-nav>
         
         &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 
-        <input v-model="filter" @keyup.enter="filterUpdate()" class="filterBox">&nbsp;&nbsp;
+        <input v-model="filter" @keyup.enter="refresh()" class="filterBox">&nbsp;&nbsp;
         <b-navbar-nav>
-          <b-button variant="info" @click="filterUpdate()">Filter</b-button> &nbsp;
+          <b-button variant="info" @click="refresh()">Filter</b-button> &nbsp;
           <b-button variant="info" @click="filterClear()">Clear</b-button> 
         </b-navbar-nav>
       </b-collapse>
@@ -26,7 +26,7 @@
       </b-navbar-nav>
     </b-navbar>
 
-    <viewer :namespace="namespace" :action="action" :filter="filter"></viewer>
+    <viewer :namespace="namespace" :filter="filter" ref="viewer"></viewer>
 
     <b-modal id="aboutModal" title="About KubeView">
       <p>v{{ version }}</p>
@@ -55,7 +55,6 @@ export default {
     return {
       namespace: "default",
       namespaces: [],
-      action: "",
       filter: "",
       version: require('../package.json').version
     }
@@ -67,16 +66,12 @@ export default {
     },
 
     refresh() {
-      this.action = `refresh_${Date.now()}`
-    },
-
-    filterUpdate() {
-      this.action = `refresh_${Date.now()}`
+      this.$refs.viewer.refreshData()
     },
 
     filterClear() {
       this.filter = ""
-      this.action = `refresh_${Date.now()}`
+      this.$refs.viewer.refreshData()
     }
   },
 
