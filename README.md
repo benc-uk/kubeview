@@ -1,7 +1,7 @@
 # KubeView
 Kubernetes cluster visualiser and mapper
 
-Shows what is happening inside a Kubernetes cluster in terms of objects and how they are interconnected. Data is fetched real-time from the Kubernetes API. The status of some objects (Pods, ReplicaSets) are colour coded red/green to represent their status and health
+Shows what is happening inside a Kubernetes cluster in terms of objects and how they are interconnected. Data is fetched real-time from the Kubernetes API. The status of some objects (Pods, ReplicaSets, Deployments) are colour coded red/green to represent their status and health
 
 Currently displays:
 - Deployments
@@ -12,10 +12,10 @@ Currently displays:
 - LoadBalancer IPs
 - PersistentVolumeClaims
 
-**Note.** This is VERY work in progress! ☢
+**Note.** This is a work in progress ☢
 
 ## Application Components
-- **Client SPA** - Written in Vue.js. All visualisation, mapping & logic done here
+- **Client SPA** - Vue.js single page app. All visualisation, mapping & logic done here
 - **API Server** - Scrapes Kubernetes API and presents it back out as a custom REST API. Also acts as HTTP server to the SPA
 
 ![demo](https://user-images.githubusercontent.com/14982936/53201465-0311e780-361c-11e9-96ad-f627e903ad1a.png)

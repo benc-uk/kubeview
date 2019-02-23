@@ -2,7 +2,6 @@
   "background-opacity": 0,
   "label":              "data(label)",
   "background-fit":     "cover",
-  "background-image":   "data(img)",
   "background-width":   "90%",
   "background-height":  "90%",
   "shape":              "roundrectangle",

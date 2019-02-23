@@ -1,0 +1,3 @@
+FROM busybox
+
+CMD [ "blah" ]

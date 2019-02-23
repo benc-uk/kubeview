@@ -7,17 +7,16 @@
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <b-collapse is-nav id="nav_collapse">
         <b-dropdown :text="namespace" variant="light">
-        <b-dropdown-item @click="nsChange(ns.metadata.name)" v-for="ns in namespaces" :key="ns.metadata.uid" >{{ ns.metadata.name }}</b-dropdown-item></b-dropdown>
+        <b-dropdown-item @click="namespace = ns.metadata.name" v-for="ns in namespaces" :key="ns.metadata.uid" >{{ ns.metadata.name }}</b-dropdown-item></b-dropdown>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <b-navbar-nav >
+        <!-- <b-navbar-nav >
           <b-button variant="info" @click="refresh()">↻ Refresh</b-button> 
-        </b-navbar-nav>
+        </b-navbar-nav> -->
         
-        &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 
-        <input v-model="filter" @keyup.enter="refresh()" class="filterBox">&nbsp;&nbsp;
+        <input v-model="filter" @keyup.enter="$refs.viewer.refreshData(false)" class="filterBox" placeholder="filter...">&nbsp;&nbsp;
         <b-navbar-nav>
-          <b-button variant="info" @click="refresh()">Filter</b-button> &nbsp;
-          <b-button variant="info" @click="filterClear()">Clear</b-button> 
+          <b-button variant="info" @click="$refs.viewer.refreshData(false)">Filter</b-button> &nbsp;
+          <b-button variant="info" @click="filter = ''; $refs.viewer.refreshData(false)">Clear</b-button> 
         </b-navbar-nav>
       </b-collapse>
 
@@ -33,9 +32,7 @@
       <p><a href="https://github.com/benc-uk/kubeview">https://github.com/benc-uk/kubeview</a></p>
       <p>Ben Coleman</p>
     </b-modal>
-
   </div>
-
 </template>
 
 <script>
@@ -60,24 +57,17 @@ export default {
     }
   },
 
-  methods: {
-    nsChange(ns) {
-      this.namespace = ns
-    },
-
-    refresh() {
-      this.$refs.viewer.refreshData()
-    },
-
-    filterClear() {
-      this.filter = ""
-      this.$refs.viewer.refreshData()
-    }
-  },
+  // methods: {
+  //   refresh(soft) {
+  //     this.$refs.viewer.refreshData(soft)
+  //   }
+  // },
 
   mounted() {
     this.apiGetNamespaces()
-    .then(data => this.namespaces = data)
+    .then(data => {
+      this.namespaces = data
+    })
   }
 }
 </script>

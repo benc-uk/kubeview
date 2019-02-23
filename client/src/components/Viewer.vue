@@ -2,7 +2,7 @@
   <div id="viewwrap">
     <div id="mainview" ref="mainview"></div>
 
-    <loading v-if="!apiData" ><h1>Loading...</h1></loading>
+    <loading v-if="!apiData"></loading>
 
     <transition name="slide-fade">
       <infobox v-if="infoBoxData" :nodeData="infoBoxData" @hideInfoBox="infoBoxData = null" @fullInfo="showFullInfo"></infobox>
@@ -21,21 +21,32 @@ import InfoBox from "./InfoBox";
 import Loading from "./Loading";
 
 import yaml from 'js-yaml';
-
+import VueTimers from 'vue-timers/mixin'
 import cytoscape from 'cytoscape'
+
 import coseBilkent from 'cytoscape-cose-bilkent';
 cytoscape.use( coseBilkent );
-
 import snapToGrid from 'cytoscape-snap-to-grid';
 snapToGrid( cytoscape ); // register extension
 
 // Urgh, gotta have this here, putting into data, causes weirdness
 var cy
 
+function hashStr(s) {
+  var hash = 0, i, chr;
+  if (s.length === 0) return hash;
+  for (i = 0; i < s.length; i++) {
+    chr   = s.charCodeAt(i);
+    hash  = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
+
 export default {
   name: 'viewer',
 
-  mixins: [ apiMixin ],
+  mixins: [ apiMixin, VueTimers ],
 
   components: { 
     'infobox': InfoBox,
@@ -49,14 +60,20 @@ export default {
       apiData: null,
       infoBoxData: null,
       fullInfoYaml: null,
-      fullInfoTitle: ""
+      fullInfoTitle: "",
+      apiDataHash: null,
+      //timer: 0,
+      refreshInterval: 10 * 1000
     }
   },
 
+  timers: {
+    refreshDataSoft: { time: 8000, autostart: true, repeat: true }
+  },
+
   watch: {
-    namespace() {
-      this.refreshData()
-    }
+    namespace() { this.refreshData(false) }, 
+    //filter() { this.refreshData(true) }    
   },
 
   methods: {
@@ -66,58 +83,80 @@ export default {
       this.$refs.fullInfoModal.show()
     },
 
-    refreshData() {
-      this.apiData = null
-      this.infoBoxData = false
-      cy.remove("*")
+    refreshDataSoft() {
+      this.refreshData(true)
+    },
+
+    refreshData(soft = false) {
+      console.log(`### Refresing data...`);
       
+      // Soft refresh is called by interval timer
+      // Will not redraw/refresh nodes if no changes
+
       this.apiGetDataForNamespace(this.namespace)
-      .then(data => {
-        this.apiData = data
-        this.refreshNodes()
+      .then(newData => {
+        // Try to detect topology changes
+        let hash = this.calcHash(newData)
+        let changed = false
+        if(soft)
+          changed = hash != this.apiDataHash
+        else
+          changed = true
+        console.log(`### Changed ${changed} (was forced ${!soft})`);
+        this.apiData = newData
+        this.apiDataHash = hash
+
+        if(changed) {
+          //this.apiData = null
+          cy.remove("*")
+          this.infoBoxData = false          
+          this.refreshNodes()
+        } else {
+          //try to detect status changes
+          for(let pod of this.apiData.pods) {
+            let status = this.calcStatus(pod)
+            cy.$id(`Pod_${pod.metadata.name}`).data('status', status)
+          }
+          for(let rs of this.apiData.replicasets) {
+            let status = this.calcStatus(rs)
+            cy.$id(`ReplicaSet_${rs.metadata.name}`).data('status', status)
+          }          
+          for(let deploy of this.apiData.deployments) {
+            let status = this.calcStatus(deploy)
+            cy.$id(`Deployment_${deploy.metadata.name}`).data('status', status)
+          }               
+        }
       })
     },
 
-    addNode(node, type, status, groupId = null) {
-      try {
-        let img = 'default'
-        
-        if(type == "Deployment")            img = 'deploy'
-        if(type == "ReplicaSet")            img = 'rs'
-        if(type == "StatefulSet")           img = 'sts'
-        if(type == "DaemonSet")             img = 'ds'
-        if(type == "Pod")                   img = 'pod'
-        if(type == "Service")               img = 'svc'
-        if(type == "IP")                    img = 'ip'
-        if(type == "Ingress")               img = 'ing'
-        if(type == "PersistentVolumeClaim") img = 'pvc'
-
-        if(status) img += `-${status}`
-
-        console.log(`### Adding: ${node.metadata.name || node.metadata.selfLink}`);
-        cy.add({ data: { id: `${type}_${node.metadata.name}`, label: node.metadata.name, img: `img/res/${img}.svg`, sourceObj: node, type: type, parent: groupId } })
-      } catch(e) {
-        // eslint-disable-next-line
-        console.error(`### Unable to add node: ${node.metadata.name || node.metadata.selfLink}`);
+    calcHash(data) {
+      let hashString = ''
+      for(let type in data) {
+        for(let obj of data[type]) {
+          hashString += obj.metadata.selfLink
+        }
       }
+      return hashStr(hashString)
     },
 
-    addLink(sourceId, targetId) {
-      try {
-        cy.add({ data: { id: `${sourceId}___${targetId}`, source: sourceId, target: targetId } })
-      } catch(e) {
-        // eslint-disable-next-line
-        console.error(`### Unable to add link: ${sourceId} to ${targetId}`);
+    calcStatus(node) {
+      let status = 'grey'
+      
+      if(node.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/deployments/`)) {
+        status = 'red'
+        let cond = node.status.conditions.find(c => c.type == 'Available') || {}
+        if(cond.status == "True") status = 'green'
+      }
+      if(node.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/replicasets/`)) {
+        status = 'green'
+        if(node.status.replicas != node.status.readyReplicas) status = 'red'
+      }     
+      if(node.metadata.selfLink.startsWith(`/api/v1/namespaces/${this.namespace}/pods/`)) {
+        let cond = node.status.conditions.find(c => c.type == 'Ready') || {}
+        if(cond.status == "True") status = 'green'
+        if(node.status.phase == 'Failed' || node.status.phase == 'CrashLoopBackOff') status = 'red'
       }      
-    },
-
-    addGroup(type, name) {
-      try {
-        cy.add({ classes:['grp'], data: { id: `grp_${type}_${name}`, label: name} })
-      } catch(e) {
-        // eslint-disable-next-line
-        console.error(`### Unable to add group: ${name}`);
-      }      
+      return status
     },
 
     refreshNodes() {
@@ -125,10 +164,7 @@ export default {
       for(let deploy of this.apiData.deployments) {
         if(!this.filterShowNode(deploy)) continue
 
-        let status = 'green'
-        let readyReplicas = deploy.status.readyReplicas || 0
-        if(deploy.status.replicas != readyReplicas) status = 'red'
-        this.addNode(deploy, 'Deployment', status)
+        this.addNode(deploy, 'Deployment', this.calcStatus(deploy))
       }
 
       // Add replicasets
@@ -210,15 +246,15 @@ export default {
       for(let pod of this.apiData.pods) {
         if(!this.filterShowNode(pod)) continue
 
-        let status = 'grey'
-        if(pod.status.phase == 'Failed' || pod.status.phase == 'CrashLoopBackOff') status = 'red'
-        let readyCond = pod.status.conditions.find(c => c.type == 'Ready') || {}
-        if(readyCond.status == "True") status = 'green'
+        // let status = 'grey'
+        // if(pod.status.phase == 'Failed' || pod.status.phase == 'CrashLoopBackOff') status = 'red'
+        // let readyCond = pod.status.conditions.find(c => c.type == 'Ready') || {}
+        // if(readyCond.status == "True") status = 'green'
         
         // Add pods to containing group (ReplicaSet, DaemonSet, StatefulSet) that 'owns' them
         let owner = pod.metadata.ownerReferences[0];
         let groupId = `grp_${owner.kind}_${owner.name}`
-        this.addNode(pod, 'Pod', status, groupId)
+        this.addNode(pod, 'Pod', this.calcStatus(pod), groupId)
 
         for(let vol of pod.spec.volumes || []) {
           if(vol.persistentVolumeClaim) {
@@ -289,10 +325,51 @@ export default {
     },
 
     relayout() {
+      this.showLoading = false;
       cy.resize();
       cy.layout({name: 'cose-bilkent', nodeRepulsion: 5000, nodeDimensionsIncludeLabels:true}).run();
       //cy.fit();
       cy.fit();
+    },
+
+    addNode(node, type, status = '', groupId = null) {
+      try {
+        let icon = 'default'
+        
+        if(type == "Deployment")            icon = 'deploy'
+        if(type == "ReplicaSet")            icon = 'rs'
+        if(type == "StatefulSet")           icon = 'sts'
+        if(type == "DaemonSet")             icon = 'ds'
+        if(type == "Pod")                   icon = 'pod'
+        if(type == "Service")               icon = 'svc'
+        if(type == "IP")                    icon = 'ip'
+        if(type == "Ingress")               icon = 'ing'
+        if(type == "PersistentVolumeClaim") icon = 'pvc'
+
+        //console.log(`### Adding: ${node.metadata.name || node.metadata.selfLink}`);
+        cy.add({ data: { id: `${type}_${node.metadata.name}`, label: node.metadata.name, icon: icon, sourceObj: node, type: type, parent: groupId, status: status } })
+      } catch(e) {
+        // eslint-disable-next-line
+        console.error(`### Unable to add node: ${node.metadata.name || node.metadata.selfLink}`);
+      }
+    },
+
+    addLink(sourceId, targetId) {
+      try {
+        cy.add({ data: { id: `${sourceId}___${targetId}`, source: sourceId, target: targetId } })
+      } catch(e) {
+        // eslint-disable-next-line
+        console.error(`### Unable to add link: ${sourceId} to ${targetId}`);
+      }      
+    },
+
+    addGroup(type, name) {
+      try {
+        cy.add({ classes:['grp'], data: { id: `grp_${type}_${name}`, label: name} })
+      } catch(e) {
+        // eslint-disable-next-line
+        console.error(`### Unable to add group: ${name}`);
+      }      
     },
 
     filterShowNode(node) {
@@ -319,16 +396,16 @@ export default {
 
     cy.snapToGrid({gridSpacing: 64})
 
-    cy.style().selector('node[img]').style(require('../assets/styles/node.json'));
-
+    cy.style().selector('node[icon]').style(require('../assets/styles/node.json'));
+    cy.style().selector('node[icon]').style("background-image", function(ele) { 
+      return ele.data('status') ? `img/res/${ele.data('icon')}-${ele.data('status')}.svg` : `img/res/${ele.data('icon')}.svg`
+    })
     cy.style().selector('.grp').style(require('../assets/styles/grp.json'));
-
+    cy.style().selector('edge').style(require('../assets/styles/edge.json'));
     cy.style().selector('node:selected').style({
       'border-width': '4',
       'border-color': 'rgb(0, 120, 215)'
     });
-
-    cy.style().selector('edge').style(require('../assets/styles/edge.json'));
 
     cy.on('select', evt => {
       // Only work with nodes
@@ -354,9 +431,13 @@ export default {
 
     // Inital load
     this.refreshData()
+    // if(this.timer)
+    //   clearInterval(this.timer)
+    // this.timer = setInterval(() => { this.refreshData(true) }, this.refreshInterval) //this.$refs.viewer.refreshData(true), )
   }
 
 }
+
 </script>
 
 <style >
@@ -376,16 +457,13 @@ export default {
     background-color: #111;
   }
 
-  /* Enter and leave animations can use different */
-  /* durations and timing functions.              */
   .slide-fade-enter-active {
     transition: all .3s ease;
   }
   .slide-fade-leave-active {
     transition: all .3s cubic-bezier(1.0, 0.5, 0.8, 1.0);
   }
-  .slide-fade-enter, .slide-fade-leave-to
-  /* .slide-fade-leave-active below version 2.1.8 */ {
+  .slide-fade-enter, .slide-fade-leave-to {
     transform: translateY(20px);
     opacity: 0;
   }  
