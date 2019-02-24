@@ -37,10 +37,12 @@
 
     <viewer :namespace="namespace" :filter="filter" :autoRefresh="autoRefresh" ref="viewer"></viewer>
 
-    <b-modal id="aboutModal" title="About KubeView">
-      <p>v{{ version }}</p>
-      <p><a href="https://github.com/benc-uk/kubeview">https://github.com/benc-uk/kubeview</a></p>
-      <p>Ben Coleman</p>
+    <b-modal id="aboutModal" title="About KubeView" header-bg-variant="info" header-text-variant="dark" ok-only>
+      <div class="text-center">
+      <img src="./assets/logo.png" width="100">
+      <p>v{{ version }} - Ben Coleman</p>
+      <b-button href="https://github.com/benc-uk/kubeview" variant="success">GitHub Project</b-button>
+      </div>
     </b-modal>
   </div>
 </template>
@@ -73,12 +75,6 @@ export default {
       autoRefresh: -1
     }
   },
-
-  // methods: {
-  //   refresh(soft) {
-  //     this.$refs.viewer.refreshData(soft)
-  //   }
-  // },
 
   mounted() {
     this.apiGetNamespaces()

@@ -25,11 +25,6 @@ import yaml from 'js-yaml'
 import VueTimers from 'vue-timers/mixin'
 import cytoscape from 'cytoscape'
 
-// import coseBilkent from 'cytoscape-cose-bilkent'
-// cytoscape.use(coseBilkent)
-// import snapToGrid from 'cytoscape-snap-to-grid'
-// snapToGrid(cytoscape)
-
 // Urgh, gotta have this here, putting into data, causes weirdness
 var cy
 
@@ -51,13 +46,13 @@ export default {
       infoBoxData: null,
       fullInfoYaml: null,
       fullInfoTitle: "",
-      loading: false,
-      typeIndexes: []
+      loading: false
     }
   },
 
+  // VueTimers mixin is pretty sweet
   timers: {
-    timerRefresh: { time: 99999, autostart: false, repeat: true }
+    timerRefresh: { time: 60000, autostart: false, repeat: true }
   },
 
   watch: {
@@ -75,25 +70,31 @@ export default {
   },
 
   methods: {
+    //
+    // Display the detail info dialog with YAML version of the selected object
+    //
     showFullInfo() {
       this.fullInfoYaml = yaml.safeDump(this.infoBoxData.sourceObj)
       this.fullInfoTitle = `${this.infoBoxData.type}: ${this.infoBoxData.sourceObj.metadata.name}`
       this.$refs.fullInfoModal.show()
     },
 
+    //
+    // Called by the auto refresh timer, invokes a 'soft' refresh 
+    //
     timerRefresh() {
       this.refreshData(true)
     },
 
+    //
+    // Called to reload data from the API and display it
+    //
     refreshData(soft = false) {
-      console.log(`${Date.now()} Refreshing...`)
-      
+      // Soft refresh will not redraw/refresh nodes if no changes
       if(!soft) { 
         cy.remove("*")
         this.loading = true 
       }
-      // Soft refresh is called by interval timer
-      // Will not redraw/refresh nodes if no changes
 
       this.apiGetDataForNamespace(this.namespace)
       .then(newData => {
@@ -101,7 +102,6 @@ export default {
         let changed = true
         if(soft) changed = this.detectChange(newData) 
 
-        //console.log(`### Changed ${changed} (was forced ${!soft})`);
         this.apiData = newData
 
         if(changed) {
@@ -115,20 +115,13 @@ export default {
       })
     },
 
-    calcHash(data) {
-      let hashString = ''
-      for(let type in data) {
-        for(let obj of data[type]) {
-          hashString += obj.metadata.selfLink
-        }
-      }
-      return this.utilsHashStr(hashString)
-    },
-
+    //
+    // On a soft refresh, this detects changes between old & new data
+    //
     detectChange(data) {
       if(!this.apiData) return false
 
-      // scan new data, match with old objects and check resourceVersion changes
+      // Scan new data, match with old objects and check resourceVersion changes
       for(let type in data) {
         for(let obj of data[type]) {
           // We have to skip these objects, the resourceVersion is constantly shifting 
@@ -137,17 +130,15 @@ export default {
 
           let oldObj = this.apiData[type].find(o => o.metadata.uid == obj.metadata.uid)
           if(!oldObj || (oldObj.metadata.resourceVersion != obj.metadata.resourceVersion)) {
-            console.log("changed!", obj.metadata.selfLink)
             return true
           }
         }
       }
-      // scan old data and look for missing objects, which means they are deleted
+      // Scan old data and look for missing objects, which means they are deleted
       for(let type in this.apiData) {
         for(let obj of this.apiData[type]) {
           let newObj = data[type].find(o => o.metadata.uid == obj.metadata.uid)
           if(!newObj) {
-            console.log("deleted!", obj.metadata.selfLink)
             return true
           }
         }
@@ -155,6 +146,9 @@ export default {
       return false
     },    
 
+    //
+    // Some objects are colour coded by status
+    //
     calcStatus(kubeObj) {
       let status = 'grey'
       
@@ -185,6 +179,9 @@ export default {
       return status
     },
 
+    //
+    // Convience method to add ReplicaSets / DaemonSets / StatefulSets
+    //
     addSet(type, kubeObjs) {
       for(let obj of kubeObjs) {
         if(!this.filterShowNode(obj)) continue
@@ -204,6 +201,9 @@ export default {
       }
     },
 
+    //
+    // The core processing logic is here, add objects to layout
+    //
     refreshNodes() {
       // Add deployments
       for(let deploy of this.apiData.deployments) {
@@ -212,6 +212,7 @@ export default {
         this.addNode(deploy, 'Deployment', this.calcStatus(deploy))
       }
 
+      // The 'sets' - ReplicaSets / DaemonSets / StatefulSets
       this.addSet('ReplicaSet', this.apiData.replicasets)
       this.addSet('StatefulSet', this.apiData.statefulsets)
       this.addSet('DaemonSet', this.apiData.daemonsets)
@@ -267,6 +268,7 @@ export default {
         }
         
         // Find all external IPs of service, and add them
+        // For this we create a pseudo-object
         for(let lb of svc.status.loadBalancer.ingress || []) {
           // Fake Kubernetes object to display the IP
           let ipObj = { metadata: { name: lb.ip} }
@@ -275,7 +277,7 @@ export default {
         }
       }
 
-      // Add ingresses and link to services 
+      // Add Ingresses and link to Services  
       for(var ingress of this.apiData.ingresses) {
         if(!this.filterShowNode(ingress)) continue
 
@@ -289,6 +291,7 @@ export default {
           this.addLink(`IP_${ipObj.metadata.name}`, `Ingress_${ingress.metadata.name}`)          
         }
 
+        // Ingresses joined to Services by the rules
         for(let rule of ingress.spec.rules || []) {
           if(!rule.http.paths) continue
           for(let path of rule.http.paths || []) {
@@ -299,29 +302,31 @@ export default {
         }
       }      
 
+      // Finially done! Call re-layout
       this.relayout()
     },
 
+    //
+    // Relayout nodes and display them 
+    //
     relayout() {      
       cy.resize()
-
+      
+      // Use breadthfirst with Deployments or DaemonSets or StatefulSets at the root
       cy.layout({
         name: 'breadthfirst', 
         roots: cy.nodes(`[type = "Deployment"],[type = "DaemonSet"],[type = "StatefulSet"]`),
         nodeDimensionsIncludeLabels: true,
         spacingFactor: 1
       }).run()
-
-      // if(this.filter) {
-      //   cy.nodes(`[name !*= "${this.filter}"]`).style('display', 'none')
-      //   cy.fit(cy.nodes(`[name *= "${this.filter}"]`))
-      // }     
     },
 
+    //
+    // Add node to the Cytoscape graph
+    //
     addNode(node, type, status = '', groupId = null) {
       try {
         let icon = 'default'
-
         if(type == "Deployment")            icon = 'deploy'
         if(type == "ReplicaSet")            icon = 'rs'
         if(type == "StatefulSet")           icon = 'sts'
@@ -336,7 +341,7 @@ export default {
         if(type == "Pod") 
           label = node.metadata.labels['pod-template-hash'] || node.metadata.labels['controller-revision-hash'] || node.status.podIP || ""
         
-        console.log(`### Adding: ${type} -> ${node.metadata.name || node.metadata.selfLink}`);
+        //console.log(`### Adding: ${type} -> ${node.metadata.name || node.metadata.selfLink}`);
         cy.add({ data: { id: `${type}_${node.metadata.name}`, label: label, icon: icon, sourceObj: node, 
                          type: type, parent: groupId, status: status, name: node.metadata.name } })
       } catch(e) {
@@ -344,26 +349,32 @@ export default {
       }
     },
 
+    //
+    // Link two nodes togther
+    //
     addLink(sourceId, targetId) {
       try {
         cy.add({ data: { id: `${sourceId}___${targetId}`, source: sourceId, target: targetId } })
       } catch(e) {
-        // eslint-disable-next-line
         console.error(`### Unable to add link: ${sourceId} to ${targetId}`);
       }      
     },
 
+    //
+    // A group is like a container, currently only used to hold Pods
+    //
     addGroup(type, name) {
       try {
         cy.add({ classes:['grp'], data: { id: `grp_${type}_${name}`, label: name, name: name} })
       } catch(e) {
-        // eslint-disable-next-line
         console.error(`### Unable to add group: ${name}`);
       }      
     },
 
+    //
+    // Filter out nodes, called before adding/processing them
+    //
     filterShowNode(node) {
-      //return true
       if(!this.filter || this.filter.length <= 0) return true
 
       let match = false
@@ -376,7 +387,11 @@ export default {
     }
   },
 
+  //
+  // Init component and set things up
+  //
   mounted: function() {
+    // Create cytoscape, this bad boy is why we're here 
     cy = cytoscape({ 
       container: this.$refs.mainview,
       wheelSensitivity: 0.1,
@@ -384,8 +399,8 @@ export default {
       minZoom: 0.2,
       selectionType: 'single'
     })
-    //cy.snapToGrid({gridSpacing: 64})
 
+    // Styling cytoscape to look good, stylesheets are held as JSON external
     cy.style().selector('node[icon]').style(require('../assets/styles/node.json'));
     cy.style().selector('node[icon]').style("background-image", function(ele) { 
       return ele.data('status') ? `img/res/${ele.data('icon')}-${ele.data('status')}.svg` : `img/res/${ele.data('icon')}.svg`
@@ -397,6 +412,7 @@ export default {
       'border-color': 'rgb(0, 120, 215)'
     });
 
+    // Click/select event opens the infobox
     cy.on('select', evt => {
       // Only work with nodes
       if(evt.target.isNode()) {
@@ -414,20 +430,20 @@ export default {
       }
     })
 
+    // Only sensible way I could find to hide the info box when unselecting
     cy.on('click tap', evt => {
-      // Only sensible way I could find to hide the info box when unselecting
       if(!evt.target.length && this.infoBoxData) {
         this.infoBoxData = false;
       }
     })
 
-    // Inital load
+    // Inital load of everything ...
     this.refreshData()
   }
 }
 </script>
 
-<style >
+<style>
   #viewwrap {
     height: calc(100% - 67px)
   }
