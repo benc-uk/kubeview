@@ -20,7 +20,7 @@ Currently displays:
 - **Client SPA** - Vue.js single page app. All visualisation, mapping & logic done here
 - **API Server** - Scrapes Kubernetes API and presents it back out as a custom REST API. Also acts as HTTP server to the SPA
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/ukF6aLIUu58" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+### [Short video demo 🡕 ](https://www.youtube.com/watch?v=ukF6aLIUu58)
 
 ![demo](https://user-images.githubusercontent.com/14982936/53201465-0311e780-361c-11e9-96ad-f627e903ad1a.png)
 
