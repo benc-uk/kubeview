@@ -1,9 +1,9 @@
 # KubeView
-Kubernetes cluster visualiser and mapper
+Kubernetes cluster visualiser and visual explorer
 
-Shows what is happening inside a Kubernetes cluster in terms of objects and how they are interconnected. Data is fetched real-time from the Kubernetes API. The status of some objects (Pods, ReplicaSets, Deployments) are colour coded red/green to represent their status and health
+Shows what is happening inside a Kubernetes cluster, the objects and how they are interconnected. Data is fetched real-time from the Kubernetes API. The status of some objects (Pods, ReplicaSets, Deployments) are colour coded red/green to represent their status and health
 
-The app auto refresh and dynamically updates the view as new data comes in or changes
+The app auto refreshes and dynamically updates the view as new data comes in or changes
 
 Currently displays:
 - Deployments
@@ -36,7 +36,7 @@ Currently displays:
 
 # Todo 
 ## Short Term
-- ?
+- Filtering improvements (no refresh)
 
 ## Medium Term
 - Security

@@ -303,13 +303,19 @@ export default {
     },
 
     relayout() {      
-      cy.resize();
+      cy.resize()
+
       cy.layout({
         name: 'breadthfirst', 
         roots: cy.nodes(`[type = "Deployment"],[type = "DaemonSet"],[type = "StatefulSet"]`),
         nodeDimensionsIncludeLabels: true,
         spacingFactor: 1
-      }).run();
+      }).run()
+
+      // if(this.filter) {
+      //   cy.nodes(`[name !*= "${this.filter}"]`).style('display', 'none')
+      //   cy.fit(cy.nodes(`[name *= "${this.filter}"]`))
+      // }     
     },
 
     addNode(node, type, status = '', groupId = null) {
@@ -331,7 +337,8 @@ export default {
           label = node.metadata.labels['pod-template-hash'] || node.metadata.labels['controller-revision-hash'] || node.status.podIP || ""
         
         console.log(`### Adding: ${type} -> ${node.metadata.name || node.metadata.selfLink}`);
-        cy.add({ data: { id: `${type}_${node.metadata.name}`, label: label, icon: icon, sourceObj: node, type: type, parent: groupId, status: status } })
+        cy.add({ data: { id: `${type}_${node.metadata.name}`, label: label, icon: icon, sourceObj: node, 
+                         type: type, parent: groupId, status: status, name: node.metadata.name } })
       } catch(e) {
         console.error(`### Unable to add node: ${node.metadata.name || node.metadata.selfLink}`);
       }
@@ -348,7 +355,7 @@ export default {
 
     addGroup(type, name) {
       try {
-        cy.add({ classes:['grp'], data: { id: `grp_${type}_${name}`, label: name} })
+        cy.add({ classes:['grp'], data: { id: `grp_${type}_${name}`, label: name, name: name} })
       } catch(e) {
         // eslint-disable-next-line
         console.error(`### Unable to add group: ${name}`);
@@ -356,6 +363,7 @@ export default {
     },
 
     filterShowNode(node) {
+      //return true
       if(!this.filter || this.filter.length <= 0) return true
 
       let match = false
@@ -399,6 +407,8 @@ export default {
         
         if(evt.target.hasClass('grp'))
           return false
+        
+        console.log(evt.target.data());
         
         this.infoBoxData = evt.target.data()
       }
