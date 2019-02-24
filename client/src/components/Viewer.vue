@@ -448,6 +448,7 @@ export default {
     height: calc(100% - 67px)
   }
 
+  /* Style the cytoscape canvas */
   #mainview {
     width: 100%;
     background-color: #333;
