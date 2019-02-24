@@ -3,6 +3,8 @@ Kubernetes cluster visualiser and mapper
 
 Shows what is happening inside a Kubernetes cluster in terms of objects and how they are interconnected. Data is fetched real-time from the Kubernetes API. The status of some objects (Pods, ReplicaSets, Deployments) are colour coded red/green to represent their status and health
 
+The app auto refresh and dynamically updates the view as new data comes in or changes
+
 Currently displays:
 - Deployments
 - ReplicaSets / StatefulSets / DaemonSets
@@ -18,6 +20,11 @@ Currently displays:
 - **Client SPA** - Vue.js single page app. All visualisation, mapping & logic done here
 - **API Server** - Scrapes Kubernetes API and presents it back out as a custom REST API. Also acts as HTTP server to the SPA
 
+<video width="800" height="600" controls>
+  <source src="assets/demo.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+
 ![demo](https://user-images.githubusercontent.com/14982936/53201465-0311e780-361c-11e9-96ad-f627e903ad1a.png)
 
 
@@ -32,10 +39,9 @@ Currently displays:
 
 # Todo 
 ## Short Term
-- Improve the auto layout
+- ?
 
 ## Medium Term
 - Security
-- Refresh data dynamically (without a full re-layout)
 - Add AI
 - Profit

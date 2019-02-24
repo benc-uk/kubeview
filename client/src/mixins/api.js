@@ -22,6 +22,6 @@ export default {
         // eslint-disable-next-line
         console.log(`### API Error! ${err.toString()}`);
       })
-    }    
+    }
   }
 }

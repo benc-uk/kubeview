@@ -4,20 +4,30 @@
       <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
 
       <b-navbar-brand class="logoText"><img src="./assets/logo.png" class="logo"> &nbsp;KubeView</b-navbar-brand>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
       <b-collapse is-nav id="nav_collapse">
-        <b-dropdown :text="namespace" variant="light">
-        <b-dropdown-item @click="namespace = ns.metadata.name" v-for="ns in namespaces" :key="ns.metadata.uid" >{{ ns.metadata.name }}</b-dropdown-item></b-dropdown>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <!-- <b-navbar-nav >
-          <b-button variant="info" @click="refresh()">↻ Refresh</b-button> 
-        </b-navbar-nav> -->
-        
-        <input v-model="filter" @keyup.enter="$refs.viewer.refreshData(false)" class="filterBox" placeholder="filter...">&nbsp;&nbsp;
         <b-navbar-nav>
-          <b-button variant="info" @click="$refs.viewer.refreshData(false)">Filter</b-button> &nbsp;
-          <b-button variant="info" @click="filter = ''; $refs.viewer.refreshData(false)">Clear</b-button> 
+          <b-dropdown :text="namespace" variant="info">
+            <b-dropdown-header>Pick namespace to show</b-dropdown-header>
+            <b-dropdown-item @click="filter = ''; namespace = ns.metadata.name" v-for="ns in namespaces" :key="ns.metadata.uid" >{{ ns.metadata.name }}</b-dropdown-item>
+          </b-dropdown>&nbsp;&nbsp;
         </b-navbar-nav>
+
+        <b-navbar-nav>
+          <b-form-input v-model="filter" @keyup.enter="$refs.viewer.refreshData(false)" class="filterBox" placeholder="filter..."></b-form-input>&nbsp;&nbsp;
+          <b-button variant="info" @click="$refs.viewer.refreshData(false)">Refresh</b-button> &nbsp;&nbsp;
+        </b-navbar-nav>
+
+        <b-navbar-nav>
+          <b-dropdown split :text="autoRefreshText" split-variant="light" variant="info">
+            <b-dropdown-item @click="autoRefresh=0">Off</b-dropdown-item>
+            <b-dropdown-item @click="autoRefresh=5">5 secs</b-dropdown-item>
+            <b-dropdown-item @click="autoRefresh=10">10 secs</b-dropdown-item>
+            <b-dropdown-item @click="autoRefresh=15">15 secs</b-dropdown-item>
+            <b-dropdown-item @click="autoRefresh=30">30 secs</b-dropdown-item>
+            <b-dropdown-item @click="autoRefresh=60">60 secs</b-dropdown-item>
+          </b-dropdown>
+        </b-navbar-nav>                  
       </b-collapse>
 
       <b-navbar-nav class="ml-auto">
@@ -25,7 +35,7 @@
       </b-navbar-nav>
     </b-navbar>
 
-    <viewer :namespace="namespace" :filter="filter" ref="viewer"></viewer>
+    <viewer :namespace="namespace" :filter="filter" :autoRefresh="autoRefresh" ref="viewer"></viewer>
 
     <b-modal id="aboutModal" title="About KubeView">
       <p>v{{ version }}</p>
@@ -48,12 +58,19 @@ export default {
     Viewer
   },
 
+  computed: {
+    autoRefreshText() {
+      return this.autoRefresh ? `Auto Refresh: ${this.autoRefresh} secs` : "Auto Refresh: Off" 
+    }
+  },
+
   data() {
     return {
       namespace: "default",
       namespaces: [],
       filter: "",
-      version: require('../package.json').version
+      version: require('../package.json').version,
+      autoRefresh: -1
     }
   },
 
@@ -68,6 +85,8 @@ export default {
     .then(data => {
       this.namespaces = data
     })
+
+    this.autoRefresh = 10
   }
 }
 </script>

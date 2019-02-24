@@ -64,21 +64,24 @@
 </template>
 
 <script>
+import utils from "../mixins/utils.js"
+
 export default {
   name: 'infobox',
 
   props: [ 'nodeData' ],
 
+  mixins: [ utils ],
 
   computed: {
     metadata() {
-      if(!checkNested(this.nodeData, 'sourceObj', 'metadata')) return false
+      if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'metadata')) return false
 
       return this.nodeData.sourceObj.metadata
     },
 
     status() {
-      if(!checkNested(this.nodeData, 'sourceObj', 'status')) return false
+      if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'status')) return false
       let statusTemp = this.nodeData.sourceObj.status
 
       if(statusTemp.conditions) {
@@ -95,28 +98,28 @@ export default {
     },
 
     specContainers() {
-      if(!checkNested(this.nodeData, 'sourceObj', 'spec', 'containers')) return false
+      if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'spec', 'containers')) return false
 
       let array = this.nodeData.sourceObj.spec.containers
       return array
     },
 
     specInitContainers() {
-      if(!checkNested(this.nodeData, 'sourceObj', 'spec', 'initContainers')) return false
+      if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'spec', 'initContainers')) return false
 
       let array = this.nodeData.sourceObj.spec.initContainers
       return array
     },  
 
     specPorts() {
-      if(!checkNested(this.nodeData, 'sourceObj', 'spec', 'ports')) return false
+      if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'spec', 'ports')) return false
 
       let array = this.nodeData.sourceObj.spec.ports
       return array
     },    
 
     subsets() {
-      if(!checkNested(this.nodeData, 'sourceObj', 'subsets')) return false
+      if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'subsets')) return false
 
       let array = this.nodeData.sourceObj.subsets
       return array
@@ -124,18 +127,7 @@ export default {
   }
 }
 
-function checkNested(obj /*, level1, level2, ... levelN*/) {
-  var args = Array.prototype.slice.call(arguments, 1);
 
-  for (var i = 0; i < args.length; i++) {
-    if (!obj || !obj.hasOwnProperty(args[i])) {
-      return false;
-    }
-    obj = obj[args[i]];
-  }
-  
-  return true;
-}
 </script>
 
 <style scoped>
