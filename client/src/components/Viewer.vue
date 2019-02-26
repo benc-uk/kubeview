@@ -29,8 +29,6 @@ import cytoscape from 'cytoscape'
 var cy
 
 export default {
-  name: 'viewer',
-
   mixins: [ apiMixin, utils, VueTimers ],
 
   components: { 
@@ -423,8 +421,6 @@ export default {
         
         if(evt.target.hasClass('grp'))
           return false
-        
-        console.log(evt.target.data());
         
         this.infoBoxData = evt.target.data()
       }

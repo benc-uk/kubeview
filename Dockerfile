@@ -27,7 +27,7 @@ RUN npm run build
 #
 FROM node:10-alpine
 
-LABEL version="0.0.6" 
+LABEL version="0.0.7" 
 ARG basedir="server"
 ENV NODE_ENV production
 

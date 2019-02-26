@@ -52,8 +52,6 @@ import Viewer from './components/Viewer.vue'
 import apiMixin from "./mixins/api.js";
 
 export default {
-  name: 'app',
-
   mixins: [ apiMixin ],
 
   components: {

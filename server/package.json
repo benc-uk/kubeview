@@ -1,9 +1,10 @@
 {
   "name": "kubeview-server",
-  "version": "0.0.6",
-  "description": "API server for kubeview, scrapes Kubernetes API",
+  "version": "0.0.7",
+  "description": "API server for KubeView, scrapes/proxies Kubernetes API",
   "main": "server.js",
   "scripts": {
+    "start": "node server.js"
   },
   "author": "Ben Coleman",
   "license": "MIT",

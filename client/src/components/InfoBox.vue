@@ -1,11 +1,18 @@
 <template>
   <div class="infobox" @click="$emit('hideInfoBox')">
     <b-card :title="metadata.name" :sub-title="nodeData.type">
-
+      <h6 class="text-muted" v-if="metadata.creationTimestamp">&bull; Created: {{ utilsDateFromISO8601(metadata.creationTimestamp).toLocaleString() }}</h6>
       <div v-if="metadata && metadata.labels">
         <h5>Labels</h5>
         <ul>
           <li v-for="(label, key) of metadata.labels" :key="key"><b>{{key}}:</b> {{label}}</li>
+        </ul>
+      </div>
+
+      <div v-if="annotations">
+        <h5>Annotations</h5>
+        <ul>
+          <li v-for="(label, key) of annotations" :key="key"><b>{{key}}:</b> {{label}}</li>
         </ul>
       </div>
 
@@ -52,6 +59,7 @@
         <ul>
           <div v-for="(subset, index) of subsets" :key="`subsets_${index}`">
             <li v-for="address of subset.addresses" :key="address.ip"><b>{{address.ip}}</b></li>
+            <li v-for="address of subset.notReadyAddresses" :key="address.ip"><b>{{address.ip}} (Not Ready)</b></li>
           </div>
         </ul>
       </div>   
@@ -67,8 +75,6 @@
 import utils from "../mixins/utils.js"
 
 export default {
-  name: 'infobox',
-
   props: [ 'nodeData' ],
 
   mixins: [ utils ],
@@ -82,19 +88,44 @@ export default {
 
     status() {
       if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'status')) return false
-      let statusTemp = this.nodeData.sourceObj.status
+      let statusCopy = {}
+      Object.assign(statusCopy, this.nodeData.sourceObj.status);
 
-      if(statusTemp.conditions) {
-        let ready = statusTemp.conditions.find(c => c.type == 'Ready') 
-        if(ready) statusTemp.ready = ready.status
-        let available = statusTemp.conditions.find(c => c.type == 'Available') 
-        if(available) statusTemp.available = available.status
+      // Conditions contains a LOT of info, this is probably the most important
+      if(statusCopy.conditions) {
+        let ready = statusCopy.conditions.find(c => c.type == 'Ready') 
+        if(ready) statusCopy.ready = ready.status
+        let available = statusCopy.conditions.find(c => c.type == 'Available') 
+        if(available) statusCopy.available = available.status
       }
-      delete statusTemp.containerStatuses
-      delete statusTemp.initContainerStatuses
-      delete statusTemp.conditions
-      delete statusTemp.qosClass
-      return statusTemp
+
+      // Fiddly ingress stuff
+      if(this.utilsCheckNested(statusCopy, 'loadBalancer', 'ingress')) {
+        statusCopy.loadBalancerIPs = ''
+        for(let ingress of statusCopy.loadBalancer.ingress) {
+          statusCopy.loadBalancerIPs += (ingress.ip.toString() + " ")
+        }
+      }
+
+      delete statusCopy.loadBalancer
+      delete statusCopy.containerStatuses
+      delete statusCopy.initContainerStatuses
+      delete statusCopy.conditions
+      delete statusCopy.qosClass
+
+      if(Object.keys(statusCopy).length <= 0) return false
+      return statusCopy
+    },
+
+    annotations() {
+      if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'metadata', 'annotations')) return false
+      let annoCopy = {}
+      Object.assign(annoCopy, this.metadata.annotations);
+
+      delete annoCopy['kubectl.kubernetes.io/last-applied-configuration']
+
+      if(Object.keys(annoCopy).length <= 0) return false
+      return annoCopy
     },
 
     specContainers() {
