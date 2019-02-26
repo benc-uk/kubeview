@@ -1,6 +1,6 @@
 {
   "name": "kubeview-server",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "API server for KubeView, scrapes/proxies Kubernetes API",
   "main": "server.js",
   "scripts": {

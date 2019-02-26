@@ -1,11 +1,14 @@
 # KubeView - Deployment Manifests
 
+These manifests deploy KuebView from public images pushed to DockerHub via the CI builds in Azure Pipelines
+
 We assume RBAC is enabled in the cluster, so a *ServiceAccount* and custom *ClusterRole* is needed:
 ```
 kubectl apply -f service-account.yaml
 ```
+(Only need to do this once!)
 
-To deploy:
+To deploy the app:
 ```
 kubectl apply -f deploy.yaml
 ```

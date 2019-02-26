@@ -21,6 +21,7 @@
         <b-navbar-nav>
           <b-dropdown split :text="autoRefreshText" split-variant="light" variant="info">
             <b-dropdown-item @click="autoRefresh=0">Off</b-dropdown-item>
+            <!-- <b-dropdown-item @click="autoRefresh=2">2 secs</b-dropdown-item> -->
             <b-dropdown-item @click="autoRefresh=5">5 secs</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=10">10 secs</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=15">15 secs</b-dropdown-item>

@@ -335,10 +335,13 @@ export default {
         if(type == "Ingress")               icon = 'ing'
         if(type == "PersistentVolumeClaim") icon = 'pvc'
 
+        // Trim long names for labels, and get pod's hashed generated name suffix
         let label = node.metadata.name.substr(0, 24)
-        if(type == "Pod") 
-          label = node.metadata.labels['pod-template-hash'] || node.metadata.labels['controller-revision-hash'] || node.status.podIP || ""
-        
+        if(type == "Pod") {
+          let podName = node.metadata.name.replace(node.metadata.generateName, '')        
+          label = podName || node.status.podIP || ""
+        }
+
         //console.log(`### Adding: ${type} -> ${node.metadata.name || node.metadata.selfLink}`);
         cy.add({ data: { id: `${type}_${node.metadata.name}`, label: label, icon: icon, sourceObj: node, 
                          type: type, parent: groupId, status: status, name: node.metadata.name } })
