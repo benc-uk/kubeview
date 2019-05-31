@@ -46,7 +46,7 @@ metadata:
   name: kubeview
   annotations:
     # !CHANGE THIS! To your real DNS domain
-    external-dns.alpha.kubernetes.io/hostname: kubeview.56539f01234e4e00981e.westeurope.aksapp.io
+    external-dns.alpha.kubernetes.io/hostname: kubeview.f0dfafed36164c7faac0.westeurope.aksapp.io
     kubernetes.io/ingress.class: addon-http-application-routing
 spec:
   type: LoadBalancer
