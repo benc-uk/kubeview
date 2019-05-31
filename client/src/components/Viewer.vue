@@ -150,28 +150,34 @@ export default {
     calcStatus(kubeObj) {
       let status = 'grey'
       
-      if(kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/deployments/`)) {
-        status = 'red'
-        let cond = kubeObj.status.conditions.find(c => c.type == 'Available') || {}
-        if(cond.status == "True") status = 'green'
-      }
+      try {
+        if(kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/deployments/`)) {
+          status = 'red'
+          let cond = kubeObj.status.conditions.find(c => c.type == 'Available') || {}
+          if(cond.status == "True") status = 'green'
+        }
 
-      if(kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/replicasets/`) ||
-         kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/statefulsets/`)) {
-        status = 'green'
-        if(kubeObj.status.replicas != kubeObj.status.readyReplicas) status = 'red'
-      }
+        if(kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/replicasets/`) ||
+          kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/statefulsets/`)) {
+          status = 'green'
+          if(kubeObj.status.replicas != kubeObj.status.readyReplicas) status = 'red'
+        }
 
-      if(kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/daemonsets/`)) {
-        status = 'green'
-        if(kubeObj.status.numberReady != kubeObj.status.desiredNumberScheduled) status = 'red'
-      } 
+        if(kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/daemonsets/`)) {
+          status = 'green'
+          if(kubeObj.status.numberReady != kubeObj.status.desiredNumberScheduled) status = 'red'
+        } 
 
-      if(kubeObj.metadata.selfLink.startsWith(`/api/v1/namespaces/${this.namespace}/pods/`)) {
-        let cond = kubeObj.status.conditions.find(c => c.type == 'Ready') || {}
-        if(cond.status == "True") status = 'green'
-        if(kubeObj.status.phase == 'Failed' || kubeObj.status.phase == 'CrashLoopBackOff') status = 'red'
-        if(kubeObj.status.phase == 'Succeeded') status = 'green'
+        if(kubeObj.metadata.selfLink.startsWith(`/api/v1/namespaces/${this.namespace}/pods/`)) {
+          let cond = {}
+          if(kubeObj.status && kubeObj.status.conditions)
+            cond = kubeObj.status.conditions.find(c => c.type == 'Ready')
+          if(cond && cond.status == "True") status = 'green'
+          if(kubeObj.status.phase == 'Failed' || kubeObj.status.phase == 'CrashLoopBackOff') status = 'red'
+          if(kubeObj.status.phase == 'Succeeded') status = 'green'
+        }
+      } catch(err) {
+        console.log(`### Problem with calcStatus for ${kubeObj.metadata.selfLink}`);  
       }
 
       return status
@@ -181,6 +187,7 @@ export default {
     // Convience method to add ReplicaSets / DaemonSets / StatefulSets
     //
     addSet(type, kubeObjs) {
+      
       for(let obj of kubeObjs) {
         if(!this.filterShowNode(obj)) continue
         let objId = `${type}_${obj.metadata.name}`
@@ -193,6 +200,9 @@ export default {
 
         // Find all owning deployments of this set (if any)
         for(let ownerRef of obj.metadata.ownerReferences || []) {
+          // Skip owners that aren't deployments (like operators and custom objects)
+          if(ownerRef.kind.toLowerCase() !== 'deployment') continue;
+          
           // Link set up to the deployment
           this.addLink(objId, `${ownerRef.kind}_${ownerRef.name}`)
         }
