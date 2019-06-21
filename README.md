@@ -38,6 +38,8 @@ Currently displays:
 # Todo 
 ## Short Term
 - Filtering improvements (no refresh)
+- Support some CRDs? 
+- Display Nodes?
 
 ## Medium Term
 - Security
