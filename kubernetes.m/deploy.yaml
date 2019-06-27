@@ -25,8 +25,7 @@ spec:
       containers:
       - name: kubeview-containers
 
-        image: bencuk/kubeview:new
-        #image: bencuk/temp
+        image: bencuk/kubeview:latest
         imagePullPolicy: Always
 
         ports:

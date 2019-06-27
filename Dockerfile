@@ -1,51 +1,60 @@
-#
-# Build and bundle the Vue.js app with Vue CLI 3 https://cli.vuejs.org/
-#
-FROM node:10-alpine as spabuild
-ARG vue_root="client"
+# ================================================================================================
+# === Stage 1: Build and bundle the Vue.js app with Vue CLI 3 ====================================
+# ================================================================================================
+FROM node:10-alpine as vue-build
+ARG sourceDir="client"
 
 WORKDIR /build
 
 # Install all the Vue.js dev tools & CLI, and our app dependencies 
-COPY ${vue_root}/package*.json ./
+COPY ${sourceDir}/package*.json ./
 RUN npm install --silent
 
 # Copy in the Vue.js app source
-COPY ${vue_root}/.env.production .
-COPY ${vue_root}/.eslintrc.js .
-COPY ${vue_root}/public ./public
-COPY ${vue_root}/src ./src
+COPY ${sourceDir}/.env.production .
+COPY ${sourceDir}/.eslintrc.js .
+COPY ${sourceDir}/public ./public
+COPY ${sourceDir}/src ./src
 
 # Run Vue CLI build & bundle, and output to ./dist
-# Updated to run in modern mode https://cli.vuejs.org/guide/browser-compatibility.html#modern-mode
 RUN npm run build
 
-# ===================================================================== #
+# ================================================================================================
+# === Stage 2: Build Golang API server and host for Vue app ======================================
+# ================================================================================================
+FROM golang:1.11-alpine as go-build
+ARG sourceDir="server"
 
-#
-# Build Node.js Express server service, pulling in bundled output from previous step
-#
-FROM node:10-alpine
+# Enable Go modules
+ENV GO111MODULE=on
+WORKDIR /build
 
-LABEL version="0.0.9" 
-ARG basedir="server"
-ENV NODE_ENV production
+# Install system dependencies
+RUN apk update && apk add git gcc musl-dev
 
-# Place our app here
-WORKDIR /home/app
+# Fetch and cache Go modules
+COPY ${sourceDir}/go.mod .
+COPY ${sourceDir}/go.sum .
+RUN go mod download
 
-# Install bash inside container just for debugging 
-RUN apk update && apk add bash
+# Copy in Go source files
+COPY ${sourceDir}/ .
 
-# NPM install packages
-COPY ${basedir}/package*.json ./
-RUN npm install --production --silent
+# Now run the build
+# Disabling cgo results in a fully static binary that can run without C libs
+RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build -o server
 
-# NPM is done, now copy in the the whole project to the workdir
-COPY ${basedir}/ .
+# ================================================================================================
+# === Stage 3: Bundle server exe and Vue dist in runtime image ===================================
+# ================================================================================================
+FROM scratch
+WORKDIR /app 
+EXPOSE 8000
 
-# Copy in Vue.js app, uses previous build step 'spabuild' as source
-COPY --from=spabuild /build/dist .
+# Copy in output from Vue bundle (the dist)
+# Copy the server binary
+COPY --from=vue-build /build/dist ./frontend
+COPY --from=go-build /build/server . 
 
-EXPOSE 3000
-ENTRYPOINT [ "npm" , "start" ]
+# That's it! Just run the server with incluster mode enabled
+CMD [ "./server", "-incluster"]
