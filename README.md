@@ -23,13 +23,15 @@ Currently displays:
 
 ## Application Components
 - **Client SPA** - Vue.js single page app. All visualisation, mapping & logic done here
-- **API Server** - Scrapes Kubernetes API and presents it back out as a custom REST API. Also acts as HTTP server to the SPA
+- **API Server** - Scrapes Kubernetes API and presents it back out as a custom REST API. Also acts as HTTP serving host to the SPA. Written in Go
 
 
 # Repo Details
-- [server](./server) - Source of the Node.js Express API server
-- [client](./client) - Source of the Vue.js client app
-- [kubernetes](./kubernetes) - Kubernetes deployment manifests and instructions
+This projects follows the 'Standard Go Project Layout' directory structure and naming conventions as described [here](https://github.com/golang-standards/project-layout)
+
+- [/cmd/server](./cmd/server) - Source of the Node.js Express API server
+- [/web/client](./web/client) - Source of the Vue.js client app
+- [/deployments](./deployments) - Kubernetes deployment manifests and instructions
 
 ### Azure Pipelines CI Build
 [![Build Status](https://dev.azure.com/bencoleman/Experiments/_apis/build/status/Build%20KubeView?branchName=master)](https://dev.azure.com/bencoleman/Experiments/_build/latest?definitionId=53&branchName=master)

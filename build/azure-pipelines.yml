@@ -10,7 +10,7 @@ trigger:
 
 steps:
 - bash: |
-    docker build . -t $(docker-user)/kubeview:latest
+    docker build . -f build/Dockerfile -t $(docker-user)/kubeview
   displayName: 'Build image'
 
 - bash: |

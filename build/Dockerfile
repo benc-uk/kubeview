@@ -2,7 +2,7 @@
 # === Stage 1: Build and bundle the Vue.js app with Vue CLI 3 ====================================
 # ================================================================================================
 FROM node:10-alpine as vue-build
-ARG sourceDir="client"
+ARG sourceDir="web/client"
 
 WORKDIR /build
 
@@ -23,10 +23,9 @@ RUN npm run build
 # === Stage 2: Build Golang API server and host for Vue app ======================================
 # ================================================================================================
 FROM golang:1.11-alpine as go-build
-ARG sourceDir="server"
+ARG sourceDir="cmd/server"
 
 # Enable Go modules
-ENV GO111MODULE=on
 WORKDIR /build
 
 # Install system dependencies
@@ -38,7 +37,7 @@ COPY ${sourceDir}/go.sum .
 RUN go mod download
 
 # Copy in Go source files
-COPY ${sourceDir}/ .
+COPY ${sourceDir} .
 
 # Now run the build
 # Disabling cgo results in a fully static binary that can run without C libs
