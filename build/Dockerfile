@@ -23,7 +23,6 @@ RUN npm run build
 # === Stage 2: Build Golang API server and host for Vue app ======================================
 # ================================================================================================
 FROM golang:1.11-alpine as go-build
-ARG sourceDir="cmd/server"
 
 # Enable Go modules
 WORKDIR /build
@@ -32,16 +31,17 @@ WORKDIR /build
 RUN apk update && apk add git gcc musl-dev
 
 # Fetch and cache Go modules
-COPY ${sourceDir}/go.mod .
-COPY ${sourceDir}/go.sum .
+COPY go.mod .
+COPY go.sum .
 RUN go mod download
 
 # Copy in Go source files
-COPY ${sourceDir} .
+COPY cmd/ ./cmd
+COPY pkg/ ./pkg
 
 # Now run the build
 # Disabling cgo results in a fully static binary that can run without C libs
-RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build -o server
+RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build github.com/benc-uk/kubeview/cmd/server
 
 # ================================================================================================
 # === Stage 3: Bundle server exe and Vue dist in runtime image ===================================
@@ -56,4 +56,5 @@ COPY --from=vue-build /build/dist ./frontend
 COPY --from=go-build /build/server . 
 
 # That's it! Just run the server with incluster mode enabled
-CMD [ "./server", "-incluster"]
+ENV IN_CLUSTER=true
+CMD [ "./server"]
