@@ -3,6 +3,7 @@ module github.com/benc-uk/kubeview
 go 1.12
 
 require (
+	github.com/benc-uk/go-starter v0.0.0-20190702101445-076089dc09c5
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/google/gofuzz v1.0.0 // indirect

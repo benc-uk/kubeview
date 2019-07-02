@@ -245,7 +245,7 @@ export default {
 
         // Find all owning sets of this pod
         for(let ownerRef of pod.metadata.ownerReferences || []) {
-          // Link pod up to the set ownd
+          // Link pod up to the owning set/group
           this.addLink(`Pod_${pod.metadata.name}`, `${ownerRef.kind}_${ownerRef.name}`)
         }
       }
@@ -365,6 +365,8 @@ export default {
     //
     addLink(sourceId, targetId) {
       try {
+        // This is the syntax Cytoscape uses for creating links
+        // 
         cy.add({ data: { id: `${sourceId}___${targetId}`, source: sourceId, target: targetId } })
       } catch(e) {
         console.error(`### Unable to add link: ${sourceId} to ${targetId}`);
