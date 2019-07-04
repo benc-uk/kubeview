@@ -29,8 +29,8 @@ Currently displays:
 # Repo Details
 This projects follows the 'Standard Go Project Layout' directory structure and naming conventions as described [here](https://github.com/golang-standards/project-layout)
 
-- [/cmd/server](./cmd/server) - Source of the Node.js Express API server
-- [/web/client](./web/client) - Source of the Vue.js client app
+- [/cmd/server](./cmd/server) - Source of the API server, written in Go
+- [/web/client](./web/client) - Source of the client app, written in Vue.js
 - [/deployments](./deployments) - Kubernetes deployment manifests and instructions
 
 ### Azure Pipelines CI Build
