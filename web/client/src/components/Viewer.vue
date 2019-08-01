@@ -191,6 +191,11 @@ export default {
       for(let obj of kubeObjs) {
         if(!this.filterShowNode(obj)) continue
         let objId = `${type}_${obj.metadata.name}`
+
+        // This skips and hides sets without any replicas
+        if(obj.status) {
+          if(obj.status.replicas == 0) continue;
+        }
         
         // Add special "group" node for the set
         this.addGroup(type, obj.metadata.name)
