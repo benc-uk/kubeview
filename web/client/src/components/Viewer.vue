@@ -230,9 +230,15 @@ export default {
         if(!this.filterShowNode(pod)) continue
         
         // Add pods to containing group (ReplicaSet, DaemonSet, StatefulSet) that 'owns' them
-        let owner = pod.metadata.ownerReferences[0];
-        let groupId = `grp_${owner.kind}_${owner.name}`
-        this.addNode(pod, 'Pod', this.calcStatus(pod), groupId)
+        if(pod.metadata.ownerReferences) {
+          // Most pods have owning set (rs, ds, sts) so are in a group
+          let owner = pod.metadata.ownerReferences[0];
+          let groupId = `grp_${owner.kind}_${owner.name}`
+          this.addNode(pod, 'Pod', this.calcStatus(pod), groupId)
+        } else {
+          // Naked pods don't go into groups
+          this.addNode(pod, 'Pod', this.calcStatus(pod))
+        }
 
         // Add PVCs linked to Pod
         for(let vol of pod.spec.volumes || []) {
