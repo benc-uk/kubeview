@@ -191,6 +191,11 @@ export default {
       for(let obj of kubeObjs) {
         if(!this.filterShowNode(obj)) continue
         let objId = `${type}_${obj.metadata.name}`
+
+        // This skips and hides sets without any replicas
+        if(obj.status) {
+          if(obj.status.replicas == 0) continue;
+        }
         
         // Add special "group" node for the set
         this.addGroup(type, obj.metadata.name)
@@ -230,9 +235,15 @@ export default {
         if(!this.filterShowNode(pod)) continue
         
         // Add pods to containing group (ReplicaSet, DaemonSet, StatefulSet) that 'owns' them
-        let owner = pod.metadata.ownerReferences[0];
-        let groupId = `grp_${owner.kind}_${owner.name}`
-        this.addNode(pod, 'Pod', this.calcStatus(pod), groupId)
+        if(pod.metadata.ownerReferences) {
+          // Most pods have owning set (rs, ds, sts) so are in a group
+          let owner = pod.metadata.ownerReferences[0];
+          let groupId = `grp_${owner.kind}_${owner.name}`
+          this.addNode(pod, 'Pod', this.calcStatus(pod), groupId)
+        } else {
+          // Naked pods don't go into groups
+          this.addNode(pod, 'Pod', this.calcStatus(pod))
+        }
 
         // Add PVCs linked to Pod
         for(let vol of pod.spec.volumes || []) {
