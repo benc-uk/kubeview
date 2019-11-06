@@ -1,24 +1,13 @@
-# KubeView - Deployment Manifests
+# KubeView - Helm Chart
 
-These manifests deploy KuebView from public images pushed to DockerHub via the CI builds in Azure Pipelines
+Supplied is a Helm chart called `kubeview` to deploy and install KubeView into your cluster.
 
-We assume RBAC is enabled in the cluster, so a *ServiceAccount* and custom *ClusterRole* is needed:
-```
-kubectl apply -f service-account.yaml
-```
-(Only need to do this once!)
+Use the supplied sample `myvalues-sample.yaml` file (copy it to a new name, e.g. `myvalues.yaml`) to configure how to deploy KubeView. The main choice is if you want to expose the service via an ingress `ingress.enabled: true` or a load-balancer service `ingress.enabled: false`
 
-To deploy the app:
-```
-kubectl apply -f deploy.yaml
-```
+When using an Ingress additionaly configure the DNS hostname and TLS certs if you want to use HTTPS
 
-Deployment creates an external *LoadBalancer* IP by default, this can be changed of course to a *ClusterIP* should you wish:
+Install with the standatd Helm command:
 ```
-kubectl get svc kubeview
-```
-
-Get the external IP and access URL with following command, it might take a little while to be assigned:
-```
-kubectl get svc kubeview -o jsonpath='{"Access KubeView at: http://"}{.status.loadBalancer.ingress[0].ip}{"/ \n"}'
+cd deployments/helm
+helm install ./kubeview --name kubeview -f myvalues.yaml
 ```
