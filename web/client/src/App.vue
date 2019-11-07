@@ -3,7 +3,7 @@
     <b-navbar toggleable="md" type="dark" variant="dark">
       <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
 
-      <b-navbar-brand class="logoText"><img src="./assets/logo.png" class="logo"> &nbsp;KubeView</b-navbar-brand>
+      <b-navbar-brand class="logoText">CLVR Labs: Upgrades strategies and autoscaling</b-navbar-brand>
 
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav>
@@ -31,7 +31,7 @@
         <b-navbar-nav>
           <b-dropdown split :text="autoRefreshText" split-variant="light" variant="info">
             <b-dropdown-item @click="autoRefresh=0">Off</b-dropdown-item>
-            <!-- <b-dropdown-item @click="autoRefresh=2">2 secs</b-dropdown-item> -->
+            <b-dropdown-item @click="autoRefresh=2">2 secs</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=5">5 secs</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=10">10 secs</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=15">15 secs</b-dropdown-item>
@@ -48,10 +48,9 @@
 
     <viewer :namespace="namespace" :filter="filter" :autoRefresh="autoRefresh" ref="viewer"></viewer>
 
-    <b-modal id="aboutModal" title="About KubeView" header-bg-variant="info" header-text-variant="dark" ok-only>
+    <b-modal id="aboutModal" title="About" header-bg-variant="info" header-text-variant="dark" ok-only>
       <div class="text-center">
-      <img src="./assets/logo.png" width="100">
-      <p>v{{ version }} - Ben Coleman</p>
+      <p>This is based on Kubeview by Ben Coleman</p>
       <b-button href="https://github.com/benc-uk/kubeview" variant="success">GitHub Project</b-button>
       </div>
     </b-modal>
@@ -99,7 +98,7 @@ export default {
       this.namespaces = data
     })
 
-    this.autoRefresh = 10
+    this.autoRefresh = 2
   }
 }
 </script>
