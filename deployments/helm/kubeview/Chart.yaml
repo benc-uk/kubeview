@@ -1,0 +1,13 @@
+apiVersion: v1
+appVersion: "0.1.9"
+name: kubeview
+description: Kubernetes cluster visualiser and visual explorer
+version: 0.1.9
+
+icon: https://github.com/benc-uk/kubeview/blob/master/web/client/public/favicon.png
+home: https://github.com/benc-uk/kubeview
+sources:
+  - https://github.com/benc-uk/kubeview
+maintainers:
+  - name: Ben Coleman
+    url: benco.io

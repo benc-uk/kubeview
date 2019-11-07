@@ -7,10 +7,20 @@
 
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav>
-          <b-dropdown :text="namespace" variant="info">
+          <b-form-input 
+           @change="changeNS" 
+           @blur="$event.target.value = namespace"
+           @focus="$event.target.value = '';" 
+           list="ns-list" ref="ns" :text="namespace" :value="namespace"></b-form-input>
+
+          <!-- <b-dropdown :text="namespace" variant="info">
             <b-dropdown-header>Pick namespace to show</b-dropdown-header>
             <b-dropdown-item @click="filter = ''; namespace = ns.metadata.name" v-for="ns in namespaces" :key="ns.metadata.uid" >{{ ns.metadata.name }}</b-dropdown-item>
-          </b-dropdown>&nbsp;&nbsp;
+          </b-dropdown>&nbsp;&nbsp; -->
+
+            <datalist id="ns-list">
+              <option v-for="ns in namespaces" :key="ns.metadata.uid" >{{ ns.metadata.name }}</option>
+            </datalist>
         </b-navbar-nav>
 
         <b-navbar-nav>
@@ -72,6 +82,14 @@ export default {
       filter: "",
       version: require('../package.json').version,
       autoRefresh: -1
+    }
+  },
+
+  methods: {
+    changeNS: function(evt) {
+      this.filter = ''; 
+      this.namespace = evt;
+      this.$refs.ns.blur();
     }
   },
 

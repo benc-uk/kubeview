@@ -1,6 +1,6 @@
 {
   "name": "kubeview",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -8,9 +8,9 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "bootstrap-vue": "^2.0.0-rc.27",
+    "bootstrap-vue": "^2.0.4",
     "bootswatch": "^4.3.1",
-    "cytoscape": "^3.8.2",
+    "cytoscape": "^3.11.0",
     "vue": "^2.6.10",
     "vue-timers": "^2.0.2"
   },

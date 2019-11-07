@@ -194,7 +194,7 @@ export default {
 
         // This skips and hides sets without any replicas
         if(obj.status) {
-          if(obj.status.replicas == 0) continue;
+          if(obj.status.replicas == 0 || obj.status.desiredNumberScheduled == 0) continue;
         }
         
         // Add special "group" node for the set
