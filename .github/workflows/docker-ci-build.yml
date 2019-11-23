@@ -1,0 +1,28 @@
+name: Build Dockerhub Image
+
+on: 
+  push: 
+    branches: [master]
+  pull_request:
+    branches: [master]
+    
+env:
+  dockerUser: bencuk
+  imageName: kubeview
+  imageTag: latest
+  
+jobs:
+  buildJob:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+      
+    - name: Build the Docker image
+      run: docker build . --file ./build/Dockerfile --tag $dockerUser/$imageName:$imageTag
+    
+    - name: Login to Dockerhub
+      run: docker login -u $dockerUser -p ${{ secrets.dockerPassword }} 
+      
+    - name: Push to Dockerhub
+      run: docker push $dockerUser/$imageName:$imageTag
