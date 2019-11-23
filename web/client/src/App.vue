@@ -52,7 +52,7 @@
       <div class="text-center">
       <img src="./assets/logo.png" width="100">
       <p>v{{ version }} - Ben Coleman</p>
-      <b-button href="https://github.com/benc-uk/kubeview" variant="success">GitHub Project</b-button>
+      <b-button href="https://github.com/benc-uk/kubeview" target="_blank" variant="success">GitHub Project</b-button>
       </div>
     </b-modal>
   </div>
