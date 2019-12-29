@@ -55,7 +55,7 @@
         CLVR Kubernetes Visualization tool<br/>
         Based on Kubeview by Ben Coleman
       </p>
-      <b-button href="https://github.com/benc-uk/kubeview" variant="primary">GitHub Project</b-button>
+      <b-button href="https://github.com/benc-uk/kubeview" target="_blank" variant="primary">GitHub Project</b-button>
       </div>
     </b-modal>
   </div>
