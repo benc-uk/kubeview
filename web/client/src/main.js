@@ -5,7 +5,7 @@ import App from './App.vue'
 import BootstrapVue from 'bootstrap-vue'
 Vue.use(BootstrapVue);
 // Select Bootswatch Cosmo theme :)
-import 'bootswatch/dist/sketchy/bootstrap.css'
+import 'bootswatch/dist/superhero/bootstrap.min.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 Vue.config.productionTip = false

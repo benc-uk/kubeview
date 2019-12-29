@@ -9,7 +9,7 @@
     </transition>
 
     <b-modal centered :title="fullInfoTitle" ref="fullInfoModal" ok-only scrollable size="lg" body-class="fullInfoBody">
-      <pre>{{ fullInfoYaml }}</pre>
+      <pre style="color:#003b00;">{{ fullInfoYaml }}</pre>
     </b-modal>
 
   </div>
@@ -101,7 +101,6 @@ export default {
         if(soft) changed = this.detectChange(newData) 
 
         this.apiData = newData
-
         if(changed) {
           this.typeIndexes = []
           cy.remove("*")
@@ -149,7 +148,6 @@ export default {
     //
     calcStatus(kubeObj) {
       let status = 'grey'
-      
       try {
         if(kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/deployments/`)) {
           status = 'red'
@@ -161,6 +159,11 @@ export default {
           kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/statefulsets/`)) {
           status = 'green'
           if(kubeObj.status.replicas != kubeObj.status.readyReplicas) status = 'red'
+        }
+
+        if(kubeObj.metadata.selfLink.startsWith(`/apis/autoscaling/v1/namespaces/${this.namespace}/horizontalpodautoscalers/`)) {
+          status = 'green'
+          if(!kubeObj.status.currentCPUUtilizationPercentage) status = 'red'
         }
 
         if(kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/daemonsets/`)) {
@@ -221,7 +224,6 @@ export default {
       // Add deployments
       for(let deploy of this.apiData.deployments) {
         if(!this.filterShowNode(deploy)) continue
-
         this.addNode(deploy, 'Deployment', this.calcStatus(deploy))
       }
 
@@ -229,8 +231,7 @@ export default {
       this.addSet('ReplicaSet', this.apiData.replicasets)
       this.addSet('StatefulSet', this.apiData.statefulsets)
       this.addSet('DaemonSet', this.apiData.daemonsets)
-
-      // Add pods
+      
       for(let pod of this.apiData.pods) {
         if(!this.filterShowNode(pod)) continue
         
@@ -260,6 +261,16 @@ export default {
           this.addLink(`Pod_${pod.metadata.name}`, `${ownerRef.kind}_${ownerRef.name}`)
         }
       }
+
+      // Add HPA
+      for(let hpa of this.apiData.autoscalinggroups)
+        {
+          this.addNode(hpa,'AutoScalingGroups',this.calcStatus(hpa))
+          this.addLink(`AutoScalingGroups_${hpa.metadata.name}`,`Deployment_${hpa.spec.scaleTargetRef.name}`)
+          //this.addLink(`grp_ReplicaSet_nginx-f5f948997`,`AutoScalingGroups_${hpa.metadata.name}`)
+          
+        }
+
 
       // Find all services, we pull in info from the endpoint with matching name
       // Basicaly merge the service and endpoint objects together
@@ -355,12 +366,18 @@ export default {
         if(type == "IP")                    icon = 'ip'
         if(type == "Ingress")               icon = 'ing'
         if(type == "PersistentVolumeClaim") icon = 'pvc'
+        if(type == "AutoScalingGroups")     icon = 'hpa'
 
         // Trim long names for labels, and get pod's hashed generated name suffix
         let label = node.metadata.name.substr(0, 24)
         if(type == "Pod") {
           let podName = node.metadata.name.replace(node.metadata.generateName, '')        
           label = podName || node.status.podIP || ""
+        }
+
+        if(type == "AutoScalingGroups") {
+          let hpaName = "HPA: " + node.metadata.name + " CPU Usage:" + node.status.currentCPUUtilizationPercentage       
+          label = hpaName || "HPA" 
         }
 
         //console.log(`### Adding: ${type} -> ${node.metadata.name || node.metadata.selfLink}`);
@@ -479,8 +496,11 @@ export default {
   }
 
   .fullInfoBody {
-    color: #28c8e4;
-    background-color: #111;
+    color: #00AA00;
+    background-color: #FFFFFF;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+
   }
 
   .slide-fade-enter-active {
@@ -492,5 +512,5 @@ export default {
   .slide-fade-enter, .slide-fade-leave-to {
     transform: translateY(20px);
     opacity: 0;
-  }  
+  } 
 </style>

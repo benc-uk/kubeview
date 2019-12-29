@@ -1,9 +1,9 @@
 <template>
   <div class="app">
-    <b-navbar toggleable="md" type="dark" variant="dark">
+    <b-navbar toggleable="md" type="dark" variant="light">
       <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
 
-      <b-navbar-brand class="logoText">CLVR Labs: Upgrades strategies and autoscaling</b-navbar-brand>
+-     <b-navbar-brand class="logoText"><img src="./assets/logo.png" class="logo"> &nbsp;Labs</b-navbar-brand>
 
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav>
@@ -42,7 +42,7 @@
       </b-collapse>
 
       <b-navbar-nav class="ml-auto">
-        <b-button variant="success" v-b-modal.aboutModal>About</b-button>
+        <b-button variant="primary" v-b-modal.aboutModal>About</b-button>
       </b-navbar-nav>
     </b-navbar>
 
@@ -50,8 +50,12 @@
 
     <b-modal id="aboutModal" title="About" header-bg-variant="info" header-text-variant="dark" ok-only>
       <div class="text-center">
-      <p>This is based on Kubeview by Ben Coleman</p>
-      <b-button href="https://github.com/benc-uk/kubeview" variant="success">GitHub Project</b-button>
+        <img src="./assets/logo.png" width="100" />
+      <p>
+        CLVR Kubernetes Visualization tool<br/>
+        Based on Kubeview by Ben Coleman
+      </p>
+      <b-button href="https://github.com/benc-uk/kubeview" variant="primary">GitHub Project</b-button>
       </div>
     </b-modal>
   </div>
