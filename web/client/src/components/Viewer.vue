@@ -12,6 +12,10 @@
       <pre style="color:#003b00;">{{ fullInfoYaml }}</pre>
     </b-modal>
 
+    <transition name="slide-fade">
+      <cloudwiseBox v-if="cloudwiseData" :nodeData="cloudwiseData"  @fullInfo="cloudwiseData"></cloudwiseBox>
+    </transition>
+
   </div>
 </template>
 
@@ -19,6 +23,7 @@
 import apiMixin from "../mixins/api.js"
 import utils from "../mixins/utils.js"
 import InfoBox from "./InfoBox"
+import CloudwiseBox from "./CloudwiseBox"
 import Loading from "./Loading"
 
 import yaml from 'js-yaml'
@@ -33,6 +38,7 @@ export default {
 
   components: { 
     'infobox': InfoBox,
+    'cloudwiseBox':CloudwiseBox,
     'loading': Loading 
   },
 
@@ -42,6 +48,15 @@ export default {
     return {
       apiData: null,
       infoBoxData: null,
+      cloudwiseData: {cost: 80,
+        efficiency:15,
+        health:25,
+        hasReplicas: true,
+        hasResourceLimits:true,
+        hasDefaultNetworkPolicy: true,
+        OOMRisk: false,
+        hasLivenessProbes: true,
+        hasReadinessProbes: true},
       fullInfoYaml: null,
       fullInfoTitle: "",
       loading: false
@@ -271,7 +286,6 @@ export default {
           
         }
 
-
       // Find all services, we pull in info from the endpoint with matching name
       // Basicaly merge the service and endpoint objects together
       for(let svc of this.apiData.services) {
@@ -318,7 +332,7 @@ export default {
           // Fake Kubernetes object to display the IP
           let ipObj = { metadata: { name: lb.ip} }
           this.addNode(ipObj, 'IP')
-          this.addLink(`IP_${ipObj.metadata.name}`, `Ingress_${ingress.metadata.name}`)          
+          this.addLink(`IP_${ipObj.metadata.name}`, `Ingress_${ingress.metadata.name}`)
         }
 
         // Ingresses joined to Services by the rules
@@ -327,7 +341,7 @@ export default {
           for(let path of rule.http.paths || []) {
             let serviceName = path.backend.serviceName
             //this.addLink(ingress.metadata.uid, `endpoint_${serviceName}`) 
-            this.addLink(`Ingress_${ingress.metadata.name}`, `Service_${serviceName}`) 
+            this.addLink(`Ingress_${ingress.metadata.name}`,`Service_${serviceName}`) 
           }
         }
       }      
@@ -373,6 +387,11 @@ export default {
         if(type == "Pod") {
           let podName = node.metadata.name.replace(node.metadata.generateName, '')        
           label = podName || node.status.podIP || ""
+        }
+
+        if(type == "Ingress") {
+          let ingressName = node.spec.rules[0].host        
+          label = ingressName || node.metadata.name || ""
         }
 
         if(type == "AutoScalingGroups") {

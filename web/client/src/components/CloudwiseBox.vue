@@ -1,73 +1,24 @@
 <template>
-  <div class="infobox" @click="$emit('hideInfoBox')">
+  <!-- <div class="kubecost" @click="$emit('hideInfoBox')"> -->
+    <div class="cloudwise">
     <b-card :title="metadata.name" :sub-title="nodeData.type">
       <h6 class="text-muted" v-if="metadata.creationTimestamp">&bull; Created: {{ utilsDateFromISO8601(metadata.creationTimestamp).toLocaleString() }}</h6>
-      <div v-if="metadata && metadata.labels">
-        <h5>Labels</h5>
+      
+      <div>
+        <h5>Namespace Ratings</h5>
         <ul>
-          <li v-for="(label, key) of metadata.labels" :key="key"><b>{{key}}:</b> {{label}}</li>
-        </ul>
+          <!-- <li v-for="(label, key) in status" :key="key"><b>{{key}}:</b> {{label}}</li> -->
+          <li><b>Cost </b> $ 4.12/month</li>
+          <li><b>Efficiency </b> 36%</li>
+          <li><b>Health </b> 66%</li>
+          <li><b>Security </b> 78 of 193 checks</li>
+
+          </ul>
+        <img src="https://chart.googleapis.com/chart?cht=p&chd=t:98,2&chs=230x100&chl=OK|FAIL&chco=00FF00,FF0000"/>
       </div>
-
-      <div v-if="annotations">
-        <h5>Annotations</h5>
-        <ul>
-          <li v-for="(label, key) of annotations" :key="key"><b>{{key}}:</b> {{label}}</li>
-        </ul>
-      </div>
-
-      <div v-if="status">
-        <h5>Status</h5>
-        <ul>
-          <li v-for="(label, key) in status" :key="key"><b>{{key}}:</b> {{label}}</li>
-        </ul>
-      </div>
-
-      <div v-if="specContainers">
-        <h5>Containers</h5>
-        <ul>
-          <div v-for="container of specContainers" :key="container.name">
-            <li><b>name:</b> {{container.name}}</li>
-            <li><b>image:</b> {{container.image}}</li>
-            <li v-for="(port, index) of container.ports" :key="index"><b>port:</b> {{port.containerPort}} ({{port.protocol}})</li>
-          </div>
-        </ul>
-      </div>    
-
-      <div v-if="specInitContainers">
-        <h5>InitContainers</h5>
-        <ul>
-          <div v-for="container of specInitContainers" :key="container.name">
-            <li><b>name:</b> {{container.name}}</li>
-            <li><b>image:</b> {{container.image}}</li>
-            <li v-for="(port, index) in container.ports" :key="index"><b>port:</b> {{port.containerPort}} ({{port.protocol}})</li>
-          </div>
-        </ul>
-      </div>     
-
-      <div v-if="specPorts">
-        <h5>Ports</h5>
-        <ul>
-          <div v-for="(port, index) of specPorts" :key="`ports_${index}`">
-            <li><b>{{port.name || "port"}}:</b> {{port.port}} &rarr; {{port.targetPort}} ({{port.protocol}})</li>
-          </div>
-        </ul>
-      </div>     
-
-      <div v-if="subsets">
-        <h5>Endpoints</h5>
-        <ul>
-          <div v-for="(subset, index) of subsets" :key="`subsets_${index}`">
-            <li v-for="address of subset.addresses" :key="address.ip"><b>{{address.ip}}</b></li>
-            <li v-for="address of subset.notReadyAddresses" :key="address.ip"><b>{{address.ip}} (Not Ready)</b></li>
-          </div>
-        </ul>
-      </div>   
-
-      <b-button @click="$emit('fullInfo', nodeData)" variant="primary">Full Object Details</b-button>
-
+      <!-- <b-button variant="primary" href="https://cloudwise.clvr.cloud" target="_blank">See CloudWise for more info</b-button> -->
+      <b-button variant="primary" href="https://cloudwise.clvr.cloud" target="_blank">See CloudWise for more info</b-button>
     </b-card>
-    
   </div>
 </template>
 
@@ -99,20 +50,7 @@ export default {
         if(available) statusCopy.available = available.status
       }
 
-      // Fiddly ingress stuff
-      if(this.utilsCheckNested(statusCopy, 'loadBalancer', 'ingress')) {
-        statusCopy.loadBalancerIPs = ''
-        for(let ingress of statusCopy.loadBalancer.ingress) {
-          statusCopy.loadBalancerIPs += (ingress.ip.toString() + " ")
-        }
-      }
-
-      delete statusCopy.loadBalancer
-      delete statusCopy.containerStatuses
-      delete statusCopy.initContainerStatuses
-      delete statusCopy.conditions
-      delete statusCopy.qosClass
-
+      
       if(Object.keys(statusCopy).length <= 0) return false
       return statusCopy
     },
@@ -162,14 +100,14 @@ export default {
 </script>
 
 <style scoped>
-  .infobox {
+  .cloudwise {
     font-size: 90%;
     border: 1px solid rgb(0, 120, 215);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
     position: absolute;
     z-index: 8000;
     bottom: 20px;
-    right: 20px;
+    left: 20px;
     padding: 0px !important;
     word-wrap: break-word;
     font-size: 105%;

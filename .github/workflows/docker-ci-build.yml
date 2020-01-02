@@ -7,7 +7,7 @@ on:
     branches: [master]
     
 env:
-  dockerUser: bencuk
+  dockerUser: cristian04
   imageName: kubeview
   imageTag: latest
   
