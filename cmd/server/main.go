@@ -20,6 +20,8 @@ import (
   "k8s.io/client-go/tools/clientcmd"
   "github.com/gorilla/mux"
   _ "github.com/joho/godotenv/autoload" // Autoloads .env file if it exists
+  //Uncomment the following line to load the gcp plugin (only required to authenticate against GKE clusters).
+  _ "k8s.io/client-go/plugin/pkg/client/auth/gcp" 
 )
 
 var (
