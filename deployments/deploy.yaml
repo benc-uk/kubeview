@@ -1,0 +1,85 @@
+#
+# Deploy the back end data API microservice in Kubernetes
+# Basic version
+#
+
+# ------------------- Deployment ------------------- #
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: kubeview
+  name: kubeview
+  labels:
+    app: kubeview
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubeview
+  template:
+    metadata:
+      labels:
+        app: kubeview
+    spec:
+      serviceAccountName: kubeview
+      containers:
+      - name: kubeview-containers
+
+        image: bencuk/kubeview:latest
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 8000
+
+        resources:
+          limits:
+            memory: "128M"
+            cpu: "0.1"
+
+--- 
+
+# ------------------- Loadbalancer ------------------- #
+
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: kubeview
+  name: kubeview
+spec:
+  #type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+  selector:
+    app: kubeview
+
+---
+
+# ------------------- Ingress ------------------- #
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: kubeview
+  name: kubeview
+  annotations:
+    kubernetes.io/ingress.class: addon-http-application-routing
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+  - hosts:
+    # Change FQDN host as required to match your config
+    - view.kube.benco.io
+    secretName: kubeview-cert-prod
+  rules:
+    # !!! Change host as required to match your DNS configuration
+  - host: view.kube.benco.io
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: kubeview
+          servicePort: 80

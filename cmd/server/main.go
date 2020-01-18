@@ -15,8 +15,8 @@ import (
 
   "github.com/benc-uk/go-starter/pkg/envhelper"
   
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
+  "k8s.io/client-go/kubernetes"
+  "k8s.io/client-go/rest"
   "k8s.io/client-go/tools/clientcmd"
   "github.com/gorilla/mux"
   _ "github.com/joho/godotenv/autoload" // Autoloads .env file if it exists
@@ -74,8 +74,10 @@ func main() {
   // Application routes here
   router.HandleFunc("/healthz", routeHealthCheck)
   router.HandleFunc("/api/status", routeStatus)
-	router.HandleFunc("/api/namespaces", routeGetNamespaces)
-	router.HandleFunc("/api/scrape/{ns}", routeScrapeData)
+  router.HandleFunc("/api/namespaces", routeGetNamespaces)
+  router.HandleFunc("/api/scrape/{ns}", routeScrapeData)
+  router.HandleFunc("/api/deletePod/{ns}/{pod}", routeDeletePod)
+  router.HandleFunc("/api/getPodLogs/{ns}/{pod}", routeGetPodLogs)
 
   staticDirectory := envhelper.GetEnvString("STATIC_DIR", "./frontend")
   fileServer := http.FileServer(http.Dir(staticDirectory))

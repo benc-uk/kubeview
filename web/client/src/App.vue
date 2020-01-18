@@ -31,12 +31,19 @@
         <b-navbar-nav>
           <b-dropdown split :text="autoRefreshText" split-variant="light" variant="info">
             <b-dropdown-item @click="autoRefresh=0">Off</b-dropdown-item>
-            <!-- <b-dropdown-item @click="autoRefresh=2">2 secs</b-dropdown-item> -->
             <b-dropdown-item @click="autoRefresh=5">5 secs</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=10">10 secs</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=15">15 secs</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=30">30 secs</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=60">60 secs</b-dropdown-item>
+          </b-dropdown>
+        </b-navbar-nav>                  
+
+        <b-navbar-nav>
+          <b-dropdown split :text="displayModeText" split-variant="light" variant="info">
+            <b-dropdown-item @click="displayMode=0">Deployment</b-dropdown-item>
+            <b-dropdown-item @click="displayMode=1">Network</b-dropdown-item>
+            <b-dropdown-item @click="displayMode=2">Mixed</b-dropdown-item>
           </b-dropdown>
         </b-navbar-nav>                  
       </b-collapse>
@@ -46,7 +53,7 @@
       </b-navbar-nav>
     </b-navbar>
 
-    <viewer :namespace="namespace" :filter="filter" :autoRefresh="autoRefresh" ref="viewer"></viewer>
+    <viewer :namespace="namespace" :filter="filter" :autoRefresh="autoRefresh" :displayMode="displayMode" ref="viewer"></viewer>
 
     <b-modal id="aboutModal" title="About KubeView" header-bg-variant="info" header-text-variant="dark" ok-only>
       <div class="text-center">
@@ -71,7 +78,11 @@ export default {
 
   computed: {
     autoRefreshText() {
-      return this.autoRefresh ? `Auto Refresh: ${this.autoRefresh} secs` : "Auto Refresh: Off" 
+      return this.autoRefresh ? `Refresh: ${this.autoRefresh} secs` : "Refresh: Off" 
+    },
+    displayModeText() {
+      let mode = ['Deployment','Network', 'Mixed']
+      return `Mode: ${mode[this.displayMode]}`
     }
   },
 
@@ -81,7 +92,8 @@ export default {
       namespaces: [],
       filter: "",
       version: require('../package.json').version,
-      autoRefresh: -1
+      autoRefresh: -1,
+      displayMode: 0
     }
   },
 
@@ -100,6 +112,7 @@ export default {
     })
 
     this.autoRefresh = 10
+    this.displayMode = 0
   }
 }
 </script>

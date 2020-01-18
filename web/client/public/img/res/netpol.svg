@@ -26,7 +26,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="8"
-     inkscape:cx="-2.090004"
+     inkscape:cx="16.847496"
      inkscape:cy="23.752239"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -74,9 +74,20 @@
          style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:Sans;-inkscape-font-specification:Sans;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;baseline-shift:baseline;text-anchor:start;display:inline;overflow:visible;visibility:visible;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0;stroke-miterlimit:4;stroke-dasharray:none;marker:none;enable-background:accumulate"
          inkscape:connector-curvature="0" />
     </g>
+    <text
+       id="text2066"
+       y="16.811775"
+       x="10.017183"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:6.61458349px;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';text-align:center;writing-mode:lr-tb;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke-width:0.26458332px"
+         y="16.811775"
+         x="10.017183"
+         id="tspan2064"
+         sodipodi:role="line">netpol</tspan></text>
     <path
        style="fill:#ffffff;fill-opacity:1;stroke-width:0.4190996"
-       d="m 9.489284,5.3515205 c -2.3134298,0 -4.1909959,1.877567 -4.1909959,4.1909968 0,2.3134307 1.8775661,4.1909967 4.1909959,4.1909967 0.518788,0 1.013889,-0.09837 1.472578,-0.270944 l 0,-0.987172 c 0,-0.335904 0.274739,-0.900641 0.610641,-0.900646 l 0,-0.915959 c 0,-0.459262 0.684616,-1.2366037 1.527425,-1.2366037 0.205882,0 0.401081,0.04145 0.580353,0.11541 -0.0027,-2.3111508 -1.879219,-4.1860848 -4.190997,-4.1860848 z m 0.8382,1.466849 1.466847,1.4668488 -1.047748,0 0,1.676398 -0.8381984,0 0,-1.676398 -1.0477506,0 z m -2.095496,2.3050478 0.8382,0 0,1.6763997 1.04775,0 -1.466851,1.466848 -1.4668458,-1.466848 1.0477488,0 z m 4.973532,1.0395637 c -0.598162,0 -1.083765,0.485603 -1.083765,1.083768 l 0,0.64993 c -0.238401,0 -0.433013,0.194618 -0.433013,0.433015 l 0,1.734515 c 0,0.238401 0.194616,0.433017 0.433013,0.433017 l 2.167531,0 c 0.238398,0 0.433013,-0.194616 0.433013,-0.433017 l 0,-1.734515 c 0,-0.238397 -0.194615,-0.433015 -0.433013,-0.433015 l 0,-0.64993 c 0,-0.598165 -0.485602,-1.083768 -1.083766,-1.083768 z m 0,0.433014 c 0.359768,0 0.649933,0.290987 0.649933,0.650754 l 0,0.64993 -1.299865,0 0,-0.64993 c 0,-0.359767 0.290167,-0.650754 0.649932,-0.650754 z"
+       d="m 9.489284,4.611987 c -2.3134298,0 -4.1909959,1.877567 -4.1909959,4.1909968 0,2.3134302 1.8775661,4.1909962 4.1909959,4.1909962 0.518788,0 1.013889,-0.09837 1.472578,-0.270944 l 0,-0.987172 c 0,-0.335904 0.274739,-0.900641 0.610641,-0.900646 l 0,-0.9159582 c 0,-0.459262 0.684616,-1.236604 1.527425,-1.236604 0.205882,0 0.401081,0.04145 0.580353,0.11541 C 13.677581,6.486915 11.801062,4.611981 9.489284,4.611981 Z m 0.8382,1.466849 1.466847,1.4668488 -1.047748,0 0,1.676398 -0.8381984,0 0,-1.676398 -1.0477506,0 z m -2.095496,2.3050478 0.8382,0 0,1.6763992 1.04775,0 -1.466851,1.466848 -1.4668458,-1.466848 1.0477488,0 z m 4.973532,1.039564 c -0.598162,0 -1.083765,0.485603 -1.083765,1.0837672 l 0,0.64993 c -0.238401,0 -0.433013,0.194618 -0.433013,0.433015 l 0,1.734515 c 0,0.238401 0.194616,0.433017 0.433013,0.433017 l 2.167531,0 c 0.238398,0 0.433013,-0.194616 0.433013,-0.433017 l 0,-1.734515 c 0,-0.238397 -0.194615,-0.433015 -0.433013,-0.433015 l 0,-0.64993 c 0,-0.5981642 -0.485602,-1.0837672 -1.083766,-1.0837672 z m 0,0.433014 c 0.359768,0 0.649933,0.2909862 0.649933,0.6507532 l 0,0.64993 -1.299865,0 0,-0.64993 c 0,-0.359767 0.290167,-0.6507532 0.649932,-0.6507532 z"
        id="path7594"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ssscscsscsccccccccccccccccsscsssssscssssccss" />

@@ -5,7 +5,7 @@
     <loading v-if="loading"></loading>
 
     <transition name="slide-fade">
-      <infobox v-if="infoBoxData" :nodeData="infoBoxData" @hideInfoBox="infoBoxData = null" @fullInfo="showFullInfo"></infobox>
+      <infobox v-if="infoBoxData" :nodeData="infoBoxData" @hideInfoBox="infoBoxData = null" @fullInfo="showFullInfo" @showLogs="showLogs" @deletePod="deletePod"></infobox>
     </transition>
 
     <b-modal centered :title="fullInfoTitle" ref="fullInfoModal" ok-only scrollable size="lg" body-class="fullInfoBody">
@@ -36,7 +36,7 @@ export default {
     'loading': Loading 
   },
 
-  props: [ 'namespace', 'filter', 'autoRefresh', 'rootType' ],
+  props: [ 'namespace', 'filter', 'autoRefresh', 'rootType', 'displayMode' ],
 
   data() {
     return {
@@ -55,6 +55,10 @@ export default {
 
   watch: {
     namespace() { 
+      this.refreshData(false) 
+    },
+
+    displayMode() { 
       this.refreshData(false) 
     },
 
@@ -77,10 +81,24 @@ export default {
       this.$refs.fullInfoModal.show()
     },
 
+    showLogs() {
+      this.apiGetPodLogs(this.namespace, this.infoBoxData.sourceObj.metadata.name)
+      .then(newData => { 
+        this.fullInfoYaml = newData
+        this.fullInfoTitle = `${this.infoBoxData.type} Logs: ${this.infoBoxData.sourceObj.metadata.name}`
+        this.$refs.fullInfoModal.show()
+      })
+    },
+
     //
     // Called by the auto refresh timer, invokes a 'soft' refresh 
     //
     timerRefresh() {
+      this.refreshData(true)
+    },
+
+    deletePod(){
+      this.apiDeletePodForNamespace(this.namespace, this.infoBoxData.sourceObj.metadata.name)
       this.refreshData(true)
     },
 
@@ -189,7 +207,7 @@ export default {
     addSet(type, kubeObjs) {
       
       for(let obj of kubeObjs) {
-        if(!this.filterShowNode(obj)) continue
+        if(!this.filterShowNode(obj, type)) continue
         let objId = `${type}_${obj.metadata.name}`
 
         // This skips and hides sets without any replicas
@@ -220,7 +238,7 @@ export default {
     refreshNodes() {
       // Add deployments
       for(let deploy of this.apiData.deployments) {
-        if(!this.filterShowNode(deploy)) continue
+        if(!this.filterShowNode(deploy, 'Deployment')) continue
 
         this.addNode(deploy, 'Deployment', this.calcStatus(deploy))
       }
@@ -232,7 +250,7 @@ export default {
 
       // Add pods
       for(let pod of this.apiData.pods) {
-        if(!this.filterShowNode(pod)) continue
+        if(!this.filterShowNode(pod, 'Pod')) continue
         
         // Add pods to containing group (ReplicaSet, DaemonSet, StatefulSet) that 'owns' them
         if(pod.metadata.ownerReferences) {
@@ -261,10 +279,11 @@ export default {
         }
       }
 
+
       // Find all services, we pull in info from the endpoint with matching name
       // Basicaly merge the service and endpoint objects together
       for(let svc of this.apiData.services) {
-        if(!this.filterShowNode(svc)) continue
+        if(!this.filterShowNode(svc, 'Service')) continue
         let serviceId = `Service_${svc.metadata.name}`
 
         if(svc.metadata.name == 'kubernetes') continue
@@ -298,7 +317,7 @@ export default {
 
       // Add Ingresses and link to Services  
       for(var ingress of this.apiData.ingresses) {
-        if(!this.filterShowNode(ingress)) continue
+        if(!this.filterShowNode(ingress, 'Ingress')) continue
 
         this.addNode(ingress, 'Ingress')
 
@@ -321,6 +340,16 @@ export default {
         }
       }      
 
+      for( let node of this.apiData.nodes ){
+        if(!this.filterShowNode(node, 'Node')) continue
+        this.addNode(node, 'Node')
+        for( let pod of this.apiData.pods ) {
+           if( pod.spec.nodeName == node.metadata.name ){
+             this.addLink( `Pod_${pod.metadata.name}`, `Node_${node.metadata.name}`) 
+           }
+        }
+      }
+
       // Finially done! Call re-layout
       this.relayout()
     },
@@ -334,7 +363,7 @@ export default {
       // Use breadthfirst with Deployments or DaemonSets or StatefulSets at the root
       cy.layout({
         name: 'breadthfirst', 
-        roots: cy.nodes(`[type = "Deployment"],[type = "DaemonSet"],[type = "StatefulSet"]`),
+        roots: this.displayMode != 1 ? cy.nodes(`[type = "Deployment"],[type = "DaemonSet"],[type = "StatefulSet"]`):cy.nodes(`[type = "Node"]`),
         nodeDimensionsIncludeLabels: true,
         spacingFactor: 1
       }).run()
@@ -355,12 +384,18 @@ export default {
         if(type == "IP")                    icon = 'ip'
         if(type == "Ingress")               icon = 'ing'
         if(type == "PersistentVolumeClaim") icon = 'pvc'
+        if(type == "Node")                  icon = 'node'
+
 
         // Trim long names for labels, and get pod's hashed generated name suffix
-        let label = node.metadata.name.substr(0, 24)
+        let label = node.metadata.name.substr(0, 32)
         if(type == "Pod") {
           let podName = node.metadata.name.replace(node.metadata.generateName, '')        
           label = podName || node.status.podIP || ""
+        } else if ( type == "Node" ){
+          if( node.metadata.labels["node-role.kubernetes.io/master"] !== undefined ){
+             icon = 'master'
+          }
         }
 
         //console.log(`### Adding: ${type} -> ${node.metadata.name || node.metadata.selfLink}`);
@@ -398,7 +433,15 @@ export default {
     //
     // Filter out nodes, called before adding/processing them
     //
-    filterShowNode(node) {
+    filterShowNode(node, type) {
+      if( this.displayMode == 1 && ( type == "Pod" || type == "Node" || type == "Ingress" || type == "Service")){
+        return true
+      } else if ( this.displayMode == 1 ){
+        return false
+      }
+
+      if( this.displayMode == 0 &&  type == "Node") return false
+
       if(!this.filter || this.filter.length <= 0) return true
 
       let match = false
