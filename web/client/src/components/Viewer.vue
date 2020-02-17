@@ -13,7 +13,7 @@
     </b-modal>
 
     <transition name="slide-fade">
-      <cloudwiseBox v-if="cloudwiseData" :nodeData="cloudwiseData"  @fullInfo="cloudwiseData"></cloudwiseBox>
+      <cloudwiseBox v-if="cloudwiseData" :nodeData="cloudwiseData" @hideCloudwiseBox="cloudwiseData = null" @fullInfo="cloudwiseData"></cloudwiseBox>
     </transition>
 
   </div>
@@ -48,15 +48,7 @@ export default {
     return {
       apiData: null,
       infoBoxData: null,
-      cloudwiseData: {cost: 80,
-        efficiency:15,
-        health:25,
-        hasReplicas: true,
-        hasResourceLimits:true,
-        hasDefaultNetworkPolicy: true,
-        OOMRisk: false,
-        hasLivenessProbes: true,
-        hasReadinessProbes: true},
+      cloudwiseData: null,
       fullInfoYaml: null,
       fullInfoTitle: "",
       loading: false
@@ -142,6 +134,18 @@ export default {
         }
 
         this.loading = false
+
+        // this.cloudwiseData = {
+        //   cost: 80,
+        //   efficiency:15,
+        //   health:25,
+        //   hasReplicas: true,
+        //   hasResourceLimits:true,
+        //   hasDefaultNetworkPolicy: true,
+        //   OOMRisk: false,
+        //   hasLivenessProbes: true,
+        //   hasReadinessProbes: true
+        // }
       })
     },
 

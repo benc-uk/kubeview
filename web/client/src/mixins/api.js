@@ -46,6 +46,18 @@ export default {
         // eslint-disable-next-line
         console.log(`### API Error! ${err.toString()}`);
       })
+    },
+
+    apiGetKubecostData()
+    {
+      return fetch(`${API_ENDPOINT}/kubecost`)
+      .then(resp => {
+        return resp.json();
+      })
+      .catch(err => {
+        // eslint-disable-next-line
+        console.log(`### API Error! ${err.toString()}`);
+      })
     }
   }
 }
