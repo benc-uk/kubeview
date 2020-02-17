@@ -25,11 +25,11 @@
 
         <b-navbar-nav>
           <b-form-input v-model="filter" @keyup.enter="$refs.viewer.refreshData(false)" class="filterBox" placeholder="filter..."></b-form-input>&nbsp;&nbsp;
-          <b-button variant="info" @click="$refs.viewer.refreshData(false)">Refresh</b-button> &nbsp;&nbsp;
+          <b-button variant="primary" @click="$refs.viewer.refreshData(false)">Refresh</b-button> &nbsp;&nbsp;
         </b-navbar-nav>
 
         <b-navbar-nav>
-          <b-dropdown split :text="autoRefreshText" split-variant="light" variant="info">
+          <b-dropdown split :text="autoRefreshText" split-variant="light" variant="primary">
             <b-dropdown-item @click="autoRefresh=0">Off</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=2">2 secs</b-dropdown-item>
             <b-dropdown-item @click="autoRefresh=5">5 secs</b-dropdown-item>
