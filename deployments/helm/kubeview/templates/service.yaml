@@ -8,7 +8,7 @@ spec:
   {{ if .Values.ingress.enabled }}
   type: ClusterIP
   {{ else }}
-  type: LoadBalancer
+  type: NodePort
   {{ end }}
   ports:
     - port: 80

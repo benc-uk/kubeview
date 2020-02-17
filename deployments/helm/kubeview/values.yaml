@@ -5,9 +5,9 @@
 replicaCount: 1
 
 image:
-  repository: bencuk/kubeview
-  tag: latest
-  pullPolicy: IfNotPresent
+  repository: selidocker.lmera.ericsson.se/proj-ses-docker/ses/eric-ses-kubeview
+  tag: 1.0.0
+  pullPolicy: Always
 
 imagePullSecrets: []
 nameOverride: ""
