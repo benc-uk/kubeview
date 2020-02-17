@@ -64,7 +64,10 @@
         </ul>
       </div>   
 
-      <b-button @click="$emit('fullInfo', nodeData)" variant="info">Full Object Details</b-button>
+      <div>
+      <b-button @click="$emit('fullInfo', nodeData)" variant="info">Check Details</b-button>
+      <b-button v-if="nodeData.type == 'Pod'" @click="$emit('deletePod', nodeData)" variant="danger">Delete Pod</b-button>
+      </div>
 
     </b-card>
     
