@@ -36,8 +36,19 @@ This projects follows the 'Standard Go Project Layout' directory structure and n
 ### Azure Pipelines CI Build
 [![Build Status](https://dev.azure.com/bencoleman/Experiments/_apis/build/status/Build%20KubeView?branchName=master)](https://dev.azure.com/bencoleman/Experiments/_build/latest?definitionId=53&branchName=master)
 
+# Enhancement
+## replace the icons with labels provided by kubernetes community
+Here is the link for all these icons.
+I also changed the green/grey/red icons when needed.
+https://github.com/kubernetes/community/blob/master/icons/svg
 
-# Todo 
+## add the host/node topology views
+it is easy to check which node the pod is allocated.
+
+## improve the performane when query api server
+using go func can improve the performance of api query
+
+# Todo
 ## Short Term
 - Filtering improvements (no refresh)
 - Support some CRDs? 
