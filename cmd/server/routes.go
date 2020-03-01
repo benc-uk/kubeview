@@ -6,15 +6,15 @@ package main
 //
 
 import (
-  "encoding/json"
-  "net/http"
-  "os"
-	"runtime"
+	"encoding/json"
 	"log"
+	"net/http"
+	"os"
+	"runtime"
 
-  "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 
-  appsv1 "k8s.io/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	v1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,55 +24,55 @@ import (
 // Simple health check endpoint, returns 204 when healthy
 //
 func routeHealthCheck(resp http.ResponseWriter, req *http.Request) {
-  if healthy {
-    resp.WriteHeader(http.StatusNoContent)
-    return
-  }
-  resp.WriteHeader(http.StatusServiceUnavailable)
+	if healthy {
+		resp.WriteHeader(http.StatusNoContent)
+		return
+	}
+	resp.WriteHeader(http.StatusServiceUnavailable)
 }
 
 //
 // Return status information data - Remove if you like
 //
 func routeStatus(resp http.ResponseWriter, req *http.Request) {
-  type status struct {
-    Healthy    bool   `json:"healthy"`
-    Version    string `json:"version"`
-    BuildInfo  string `json:"buildInfo"`
-    Hostname   string `json:"hostname"`
-    OS         string `json:"os"`
-    Arch       string `json:"architecture"`
-    CPU        int    `json:"cpuCount"`
-    GoVersion  string `json:"goVersion"`
-    ClientAddr string `json:"clientAddress"`
-    ServerHost string `json:"serverHost"`
-  }
+	type status struct {
+		Healthy    bool   `json:"healthy"`
+		Version    string `json:"version"`
+		BuildInfo  string `json:"buildInfo"`
+		Hostname   string `json:"hostname"`
+		OS         string `json:"os"`
+		Arch       string `json:"architecture"`
+		CPU        int    `json:"cpuCount"`
+		GoVersion  string `json:"goVersion"`
+		ClientAddr string `json:"clientAddress"`
+		ServerHost string `json:"serverHost"`
+	}
 
-  hostname, err := os.Hostname()
-  if err != nil {
-    hostname = "hostname not available"
-  }
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "hostname not available"
+	}
 
-  currentStatus := status{
-    Healthy:    healthy,
-    Version:    version,
-    BuildInfo:  buildInfo,
-    Hostname:   hostname,
-    GoVersion:  runtime.Version(),
-    OS:         runtime.GOOS,
-    Arch:       runtime.GOARCH,
-    CPU:        runtime.NumCPU(),
-    ClientAddr: req.RemoteAddr,
-    ServerHost: req.Host,
-  }
+	currentStatus := status{
+		Healthy:    healthy,
+		Version:    version,
+		BuildInfo:  buildInfo,
+		Hostname:   hostname,
+		GoVersion:  runtime.Version(),
+		OS:         runtime.GOOS,
+		Arch:       runtime.GOARCH,
+		CPU:        runtime.NumCPU(),
+		ClientAddr: req.RemoteAddr,
+		ServerHost: req.Host,
+	}
 
-  statusJSON, err := json.Marshal(currentStatus)
-  if err != nil {
-    http.Error(resp, "Failed to get status", http.StatusInternalServerError)
-  }
+	statusJSON, err := json.Marshal(currentStatus)
+	if err != nil {
+		http.Error(resp, "Failed to get status", http.StatusInternalServerError)
+	}
 
-  resp.Header().Add("Content-Type", "application/json")
-  resp.Write(statusJSON)
+	resp.Header().Add("Content-Type", "application/json")
+	resp.Write(statusJSON)
 }
 
 // Data struct to hold our returned data
@@ -87,6 +87,8 @@ type scrapeData struct {
 	ReplicaSets            []appsv1.ReplicaSet           `json:"replicasets"`
 	StatefulSets           []appsv1.StatefulSet          `json:"statefulsets"`
 	Ingresses              []v1beta1.Ingress             `json:"ingresses"`
+	ConfigMaps             []apiv1.ConfigMap             `json:"configmaps"`
+	Secrets                []apiv1.Secret                `json:"secrets"`
 }
 
 // GetNamespaces - Return list of all namespaces in cluster
@@ -112,6 +114,8 @@ func routeScrapeData(w http.ResponseWriter, r *http.Request) {
 	endpoints, err := clientset.CoreV1().Endpoints(namespace).List(metav1.ListOptions{})
 	pvs, err := clientset.CoreV1().PersistentVolumes().List(metav1.ListOptions{})
 	pvcs, err := clientset.CoreV1().PersistentVolumeClaims(namespace).List(metav1.ListOptions{})
+	configmaps, err := clientset.CoreV1().ConfigMaps(namespace).List(metav1.ListOptions{})
+	secrets, err := clientset.CoreV1().Secrets(namespace).List(metav1.ListOptions{})
 
 	deployments, err := clientset.AppsV1().Deployments(namespace).List(metav1.ListOptions{})
 	daemonsets, err := clientset.AppsV1().DaemonSets(namespace).List(metav1.ListOptions{})
@@ -137,6 +141,8 @@ func routeScrapeData(w http.ResponseWriter, r *http.Request) {
 		ReplicaSets:            replicasets.Items,
 		StatefulSets:           statefulsets.Items,
 		Ingresses:              ingresses.Items,
+		ConfigMaps:             configmaps.Items,
+		Secrets:                secrets.Items,
 	}
 
 	scrapeResultJSON, _ := json.Marshal(scrapeResult)

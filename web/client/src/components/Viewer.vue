@@ -252,7 +252,27 @@ export default {
             this.addNode(pvc, 'PersistentVolumeClaim')
             this.addLink(`PersistentVolumeClaim_${vol.persistentVolumeClaim.claimName}`, `Pod_${pod.metadata.name}`)
           }
+
+          if(vol.configMap) {
+            let configmap = this.apiData.configmaps.find(p => p.metadata.name == vol.configMap.name);
+
+            if (!configmap) continue;
+
+            this.addNode(configmap, 'ConfigMap')
+            this.addLink(`ConfigMap_${vol.configMap.name}`, `Pod_${pod.metadata.name}`)
+          }
+
+          if(vol.secret) {
+            let secret = this.apiData.secrets.find(p => p.metadata.name == vol.secret.secretName);
+
+            if (!secret || secret.type == "kubernetes.io/service-account-token") continue;
+
+            this.addNode(secret, 'Secret')
+            this.addLink(`Secret_${vol.secret.secretName}`, `Pod_${pod.metadata.name}`)
+          }
         }
+
+        // FIXME: What about env linked secrets and configMaps
 
         // Find all owning sets of this pod
         for(let ownerRef of pod.metadata.ownerReferences || []) {
@@ -319,9 +339,16 @@ export default {
             this.addLink(`Ingress_${ingress.metadata.name}`, `Service_${serviceName}`) 
           }
         }
-      }      
 
-      // Finially done! Call re-layout
+        for(let tls of ingress.spec.tls || []) {
+          let secret = this.apiData.secrets.find(p => p.metadata.name == tls.secretName);
+
+          this.addNode(secret, 'Secret')
+          this.addLink(`Secret_${tls.secretName}`, `Ingress_${ingress.metadata.name}`)
+        }
+      }
+
+      // Finally done! Call re-layout
       this.relayout()
     },
 
@@ -355,6 +382,8 @@ export default {
         if(type == "IP")                    icon = 'ip'
         if(type == "Ingress")               icon = 'ing'
         if(type == "PersistentVolumeClaim") icon = 'pvc'
+        if(type == "ConfigMap")             icon = 'cm'
+        if(type == "Secret")                icon = 'secret'
 
         // Trim long names for labels, and get pod's hashed generated name suffix
         let label = node.metadata.name.substr(0, 24)
@@ -372,7 +401,7 @@ export default {
     },
 
     //
-    // Link two nodes togther
+    // Link two nodes together
     //
     addLink(sourceId, targetId) {
       try {
