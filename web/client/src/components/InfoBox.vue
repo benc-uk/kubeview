@@ -54,6 +54,15 @@
         </ul>
       </div>     
 
+      <div v-if="objectData">
+        <h5>Data</h5>
+        <ul>
+          <div v-for="(data, index) of objectData" :key="`data_${index}`">
+            <li>{{ data }}</li>
+          </div>
+        </ul>
+      </div>   
+
       <div v-if="subsets">
         <h5>Endpoints</h5>
         <ul>
@@ -89,7 +98,7 @@ export default {
     status() {
       if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'status')) return false
       let statusCopy = {}
-      Object.assign(statusCopy, this.nodeData.sourceObj.status);
+      Object.assign(statusCopy, this.nodeData.sourceObj.status)
 
       // Conditions contains a LOT of info, this is probably the most important
       if(statusCopy.conditions) {
@@ -120,12 +129,19 @@ export default {
     annotations() {
       if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'metadata', 'annotations')) return false
       let annoCopy = {}
-      Object.assign(annoCopy, this.metadata.annotations);
+      Object.assign(annoCopy, this.metadata.annotations)
 
       delete annoCopy['kubectl.kubernetes.io/last-applied-configuration']
 
       if(Object.keys(annoCopy).length <= 0) return false
       return annoCopy
+    },
+
+    objectData() {
+      if(!this.utilsCheckNested(this.nodeData, 'sourceObj', 'data')) return false
+
+      let dataKeys = Object.keys(this.nodeData.sourceObj.data)
+      return dataKeys
     },
 
     specContainers() {
@@ -180,6 +196,6 @@ export default {
     font-size: 90%;
   }
   b {
-    color: #5bc0de /* rgb(132, 190, 238) */
+    color: #5bc0de;
   }
 </style>
