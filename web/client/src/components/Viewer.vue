@@ -194,7 +194,7 @@ export default {
 
         // This skips and hides sets without any replicas
         if(obj.status) {
-          if(obj.status.replicas == 0 || obj.status.desiredNumberScheduled == 0) continue;
+          if(obj.status.replicas == 0 || obj.status.desiredNumberScheduled == 0) continue
         }
         
         // Add special "group" node for the set
@@ -206,7 +206,7 @@ export default {
         // Find all owning deployments of this set (if any)
         for(let ownerRef of obj.metadata.ownerReferences || []) {
           // Skip owners that aren't deployments (like operators and custom objects)
-          if(ownerRef.kind.toLowerCase() !== 'deployment') continue;
+          if(ownerRef.kind && ownerRef.kind.toLowerCase() !== 'deployment') continue
           
           // Link set up to the deployment
           this.addLink(objId, `${ownerRef.kind}_${ownerRef.name}`)
@@ -237,7 +237,7 @@ export default {
         // Add pods to containing group (ReplicaSet, DaemonSet, StatefulSet) that 'owns' them
         if(pod.metadata.ownerReferences) {
           // Most pods have owning set (rs, ds, sts) so are in a group
-          let owner = pod.metadata.ownerReferences[0];
+          let owner = pod.metadata.ownerReferences[0]
           let groupId = `grp_${owner.kind}_${owner.name}`
           this.addNode(pod, 'Pod', this.calcStatus(pod), groupId)
         } else {
@@ -245,27 +245,58 @@ export default {
           this.addNode(pod, 'Pod', this.calcStatus(pod))
         }
 
-        // Add PVCs linked to Pod
+        // Find linked Secrets and ConfigMaps referenced as env
+        for(let container of pod.spec.containers || []) {
+          // Loop over all env vars in each container
+          for(let env of container.env || []) {
+            // Find Secrets 
+            if(env.valueFrom && env.valueFrom.secretKeyRef) {
+              let secretName = env.valueFrom.secretKeyRef.name
+              let secret = this.apiData.secrets.find(p => p.metadata.name == secretName)
+              if(!secret) continue
+
+              this.addNode(secret, 'Secret')
+              this.addLink(`Secret_${secretName}`, `Pod_${pod.metadata.name}`)
+            }
+
+            // Find ConfigMaps
+            if(env.valueFrom && env.valueFrom.configMapKeyRef) {
+              let cmName = env.valueFrom.configMapKeyRef.name
+              let configmap = this.apiData.configmaps.find(p => p.metadata.name == cmName)
+              if(!configmap) continue
+
+              this.addNode(configmap, 'ConfigMap')
+              this.addLink(`ConfigMap_${cmName}`, `Pod_${pod.metadata.name}`)
+            }
+          }
+        }
+
+        // Add Volumes linked to Pod, could be PVC, Secret or ConfigMap
         for(let vol of pod.spec.volumes || []) {
+          if(!this.filterShowNode(vol)) continue
+
+          // Show PVCs
           if(vol.persistentVolumeClaim) {
             let pvc = this.apiData.persistentvolumeclaims.find(p => p.metadata.name == vol.persistentVolumeClaim.claimName)
             this.addNode(pvc, 'PersistentVolumeClaim')
             this.addLink(`PersistentVolumeClaim_${vol.persistentVolumeClaim.claimName}`, `Pod_${pod.metadata.name}`)
           }
 
+          // Show ConfigMap mounted as a volume
           if(vol.configMap) {
-            let configmap = this.apiData.configmaps.find(p => p.metadata.name == vol.configMap.name);
+            let configmap = this.apiData.configmaps.find(p => p.metadata.name == vol.configMap.name)
 
-            if (!configmap) continue;
+            if (!configmap) continue
 
             this.addNode(configmap, 'ConfigMap')
             this.addLink(`ConfigMap_${vol.configMap.name}`, `Pod_${pod.metadata.name}`)
           }
 
+          // Show Secret mounted as a volume
           if(vol.secret) {
-            let secret = this.apiData.secrets.find(p => p.metadata.name == vol.secret.secretName);
+            let secret = this.apiData.secrets.find(p => p.metadata.name == vol.secret.secretName)
 
-            if (!secret || secret.type == "kubernetes.io/service-account-token") continue;
+            if (!secret || secret.type == "kubernetes.io/service-account-token") continue
 
             this.addNode(secret, 'Secret')
             this.addLink(`Secret_${vol.secret.secretName}`, `Pod_${pod.metadata.name}`)
@@ -340,8 +371,9 @@ export default {
           }
         }
 
-        for(let tls of ingress.spec.tls || []) {
-          let secret = this.apiData.secrets.find(p => p.metadata.name == tls.secretName);
+        // Find linked secrets for TLS certs
+        for(let tls of ingress.spec.tls || []) {      
+          let secret = this.apiData.secrets.find(p => p.metadata.name == tls.secretName)
 
           this.addNode(secret, 'Secret')
           this.addLink(`Secret_${tls.secretName}`, `Ingress_${ingress.metadata.name}`)
@@ -392,11 +424,11 @@ export default {
           label = podName || node.status.podIP || ""
         }
 
-        //console.log(`### Adding: ${type} -> ${node.metadata.name || node.metadata.selfLink}`);
+        //console.log(`### Adding: ${type} -> ${node.metadata.name || node.metadata.selfLink}`)
         cy.add({ data: { id: `${type}_${node.metadata.name}`, label: label, icon: icon, sourceObj: node, 
                          type: type, parent: groupId, status: status, name: node.metadata.name } })
       } catch(e) {
-        console.error(`### Unable to add node: ${node.metadata.name || node.metadata.selfLink}`);
+        console.error(`### Unable to add node: ${node.metadata.name || node.metadata.selfLink}`)
       }
     },
 
@@ -409,7 +441,7 @@ export default {
         // 
         cy.add({ data: { id: `${sourceId}___${targetId}`, source: sourceId, target: targetId } })
       } catch(e) {
-        console.error(`### Unable to add link: ${sourceId} to ${targetId}`);
+        console.error(`### Unable to add link: ${sourceId} to ${targetId}`)
       }      
     },
 
@@ -420,7 +452,7 @@ export default {
       try {
         cy.add({ classes:['grp'], data: { id: `grp_${type}_${name}`, label: name, name: name} })
       } catch(e) {
-        console.error(`### Unable to add group: ${name}`);
+        console.error(`### Unable to add group: ${name}`)
       }      
     },
 
@@ -428,10 +460,14 @@ export default {
     // Filter out nodes, called before adding/processing them
     //
     filterShowNode(node) {
+      if(!node.metadata) return true
       if(!this.filter || this.filter.length <= 0) return true
 
-      let match = false
+      let match = false      
+      // Filter on object name
       if(node.metadata.name.includes(this.filter)) match = true
+
+      // Also filter on labels
       for(let labelName in node.metadata.labels) {
         if(labelName.includes(this.filter)) match = true
         if(node.metadata.labels[labelName].includes(this.filter)) match = true
@@ -454,16 +490,16 @@ export default {
     })
 
     // Styling cytoscape to look good, stylesheets are held as JSON external
-    cy.style().selector('node[icon]').style(require('../assets/styles/node.json'));
+    cy.style().selector('node[icon]').style(require('../assets/styles/node.json'))
     cy.style().selector('node[icon]').style("background-image", function(ele) { 
       return ele.data('status') ? `img/res/${ele.data('icon')}-${ele.data('status')}.svg` : `img/res/${ele.data('icon')}.svg`
     })
-    cy.style().selector('.grp').style(require('../assets/styles/grp.json'));
-    cy.style().selector('edge').style(require('../assets/styles/edge.json'));
+    cy.style().selector('.grp').style(require('../assets/styles/grp.json'))
+    cy.style().selector('edge').style(require('../assets/styles/edge.json'))
     cy.style().selector('node:selected').style({
       'border-width': '4',
       'border-color': 'rgb(0, 120, 215)'
-    });
+    })
 
     // Click/select event opens the infobox
     cy.on('select', evt => {
@@ -471,7 +507,7 @@ export default {
       if(evt.target.isNode()) {
         // Force selection of single nodes only
         if(cy.$('node:selected').length > 1) {
-          cy.$('node:selected')[0].unselect();
+          cy.$('node:selected')[0].unselect()
         }
         
         if(evt.target.hasClass('grp'))
@@ -484,7 +520,7 @@ export default {
     // Only sensible way I could find to hide the info box when unselecting
     cy.on('click tap', evt => {
       if(!evt.target.length && this.infoBoxData) {
-        this.infoBoxData = false;
+        this.infoBoxData = false
       }
     })
 
@@ -496,7 +532,7 @@ export default {
 
 <style>
   #viewwrap {
-    height: calc(100% - 67px)
+    height: calc(100% - 67px);
   }
 
   /* Style the cytoscape canvas */
