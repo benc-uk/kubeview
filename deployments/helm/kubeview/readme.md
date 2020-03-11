@@ -6,6 +6,8 @@ Use the supplied sample `myvalues-sample.yaml` file (copy it to a new name, e.g.
 
 When using an Ingress additionally configure the DNS hostname and TLS certs if you want to use HTTPS
 
+Supports deployment in a single namespace, set `limitNamespace: true`. In this mode, KubeView will be limited to displaying only the namespace it is deployed into (via the helm `--namespace` flag), and the namespace picker will not be shown in the UI. The ServiceAccount/Role/Binding will be scoped to this namespace too, rather than cluster wide
+
 Install with the standard Helm command:
 ```
 cd deployments/helm

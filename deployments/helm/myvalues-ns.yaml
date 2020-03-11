@@ -1,0 +1,18 @@
+limitNamespace: true
+
+image:
+  pullPolicy: Always
+  tag: test
+  
+ingress:
+  enabled: true
+  annotations: 
+    kubernetes.io/ingress.class: addon-http-application-routing
+  hosts:
+    - host: viewns.kube.benco.io
+      paths: 
+        - /
+  tls:
+   - secretName: kube-benco-io-cert
+     hosts:
+       - viewns.kube.benco.io
