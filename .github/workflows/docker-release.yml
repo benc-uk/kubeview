@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v1
       
     - name: Build the Docker image
-      run: docker build . --file ./build/Dockerfile --tag $dockerUser/$imageName:${{ github.event.release.tag_name }}
+      run: docker build . --file ./build/Dockerfile --build-arg buildInfo="GitHub release build v${{ github.event.release.tag_name }} dated:$(date -I)" --tag $dockerUser/$imageName:${{ github.event.release.tag_name }}
     
     - name: Login to Dockerhub
       run: docker login -u $dockerUser -p ${{ secrets.dockerPassword }} 

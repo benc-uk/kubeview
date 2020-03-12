@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v1
       
     - name: Build the Docker image
-      run: docker build . --file ./build/Dockerfile --tag $dockerUser/$imageName:$imageTag
+      run: docker build . --file ./build/Dockerfile --build-arg buildInfo="GitHub CI build $GITHUB_RUN_ID, of $GITHUB_REF on $(date -I)" --tag $dockerUser/$imageName:$imageTag
     
     - name: Login to Dockerhub
       if: github.repository == 'benc-uk/kubeview' && github.event_name == 'push'
