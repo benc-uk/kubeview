@@ -18,9 +18,9 @@ Currently displays the following Kubernetes objects:
 - ConfigMaps
 
 ### Status 
-![](https://img.shields.io/github/workflow/status/benc-uk/kubeview/Build%20Dockerhub%20Image)
-![](https://img.shields.io/github/last-commit/benc-uk/kubeview)
-![](https://img.shields.io/github/v/release/benc-uk/kubeview)
+[![](https://img.shields.io/github/workflow/status/benc-uk/kubeview/Build%20Dockerhub%20Image?style=for-the-badge&logo=github)](https://github.com/benc-uk/kubeview/actions?query=workflow%3A%22Build+Dockerhub+Image%22)
+[![](https://img.shields.io/github/last-commit/benc-uk/kubeview?style=for-the-badge&logo=github)](https://github.com/benc-uk/kubeview/commits/master)
+[![](https://img.shields.io/github/v/release/benc-uk/kubeview?style=for-the-badge&logo=github)](https://github.com/benc-uk/kubeview/releases)
 
 
 ## Demo & Screenshots
@@ -49,12 +49,13 @@ This projects follows the 'Standard Go Project Layout' directory structure and n
 
 
 # Docker Image
-Builds of the Docker image are hosted public on DockerHub here: https://hub.docker.com/repository/docker/bencuk/kubeview
+Builds of the Docker image are hosted publicly on DockerHub here: [hub.docker.com/repository/docker/bencuk/kubeview](https://hub.docker.com/repository/docker/bencuk/kubeview)
 
 - The `latest` tag is likely to be unstable   
 - Versioned tags are build and pushed in sync with released versions of this repo, e.g. `bencuk/kubeview:0.1.11`
 
-![](https://img.shields.io/github/workflow/status/benc-uk/kubeview/Release%20Dockerhub%20Image?label=last%20release)
+[![](https://img.shields.io/github/workflow/status/benc-uk/kubeview/Release%20Dockerhub%20Image?label=last%20release&style=for-the-badge&logo=docker)](https://hub.docker.com/repository/docker/bencuk/kubeview/tags?page=1)
+
 # Project Meta
 ## Known Issues 
 - Filtering only applies to certain objects such as pods and controllers
