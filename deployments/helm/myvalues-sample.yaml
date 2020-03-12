@@ -1,5 +1,8 @@
 limitNamespace: false
 
+image:
+  tag: "0.1.11"
+
 ingress:
   enabled: false
   # annotations: 

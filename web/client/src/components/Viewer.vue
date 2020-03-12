@@ -88,6 +88,8 @@ export default {
     // Called to reload data from the API and display it
     //
     refreshData(soft = false) {
+      if(!this.namespace) return
+
       // Soft refresh will not redraw/refresh nodes if no changes
       if(!soft) { 
         cy.remove("*")
