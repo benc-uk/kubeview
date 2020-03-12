@@ -2,4 +2,5 @@ node_modules/
 cmd/server/server
 /server
 .env
-myvalues.yaml
+**/myvalues*.yaml
+!**/myvalues-sample.yaml

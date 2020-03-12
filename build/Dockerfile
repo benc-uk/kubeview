@@ -1,7 +1,7 @@
 # ================================================================================================
 # === Stage 1: Build and bundle the Vue.js app with Vue CLI 3 ====================================
 # ================================================================================================
-FROM node:10-alpine as vue-build
+FROM node:12-alpine as vue-build
 ARG sourceDir="web/client"
 
 WORKDIR /build
@@ -17,12 +17,13 @@ COPY ${sourceDir}/public ./public
 COPY ${sourceDir}/src ./src
 
 # Run Vue CLI build & bundle, and output to ./dist
+RUN npm run lint
 RUN npm run build
 
 # ================================================================================================
 # === Stage 2: Build Golang API server and host for Vue app ======================================
 # ================================================================================================
-FROM golang:1.12-alpine as go-build
+FROM golang:1.13-alpine as go-build
 WORKDIR /build
 ARG goPackage="github.com/benc-uk/kubeview/cmd/server"
 ARG version="0.1.7"
@@ -40,7 +41,6 @@ RUN go mod download
 
 # Copy in Go source files
 COPY cmd/ ./cmd
-#COPY pkg/ ./pkg
 
 # Now run the build
 # Disabling cgo results in a fully static binary that can run without C libs
