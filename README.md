@@ -46,8 +46,15 @@ This projects follows the 'Standard Go Project Layout' directory structure and n
 - [/web/client](./web/client) - Source of the client app, written in Vue.js. See the readme in there for more details
 - [/deployments/helm](./deployments/helm) - Helm chart for simplifying deployment. See the readme in there for more details
 - [/build](./build) - Build artifacts such as the Dockerfile
-  
 
+
+# Docker Image
+Builds of the Docker image are hosted public on DockerHub here: https://hub.docker.com/repository/docker/bencuk/kubeview
+
+- The `latest` tag is likely to be unstable   
+- Versioned tags are build and pushed in sync with released versions of this repo, e.g. `bencuk/kubeview:0.1.11`
+
+![](https://img.shields.io/github/workflow/status/benc-uk/kubeview/Release%20Dockerhub%20Image?label=last%20release)
 # Project Meta
 ## Known Issues 
 - Filtering only applies to certain objects such as pods and controllers
