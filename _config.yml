@@ -1,1 +1,21 @@
+#
+# This file might sound important but...
+# It is only used by the hosting on GitHub Pages, it has no other importance to the Smilr project
+#
+
+title: "KubeView"
 remote_theme: benc-uk/theme-msdark
+favicon: /web/client/src/assets/logo.png
+buttons:
+  - b0:
+    text: Main Docs
+    href: /
+  - b1:
+    text: Server
+    href: /cmd/server
+  - b2:
+    text: Frontend
+    href: /web/client
+  - b3:
+    text: Deployment
+    href: /deployments/helm/

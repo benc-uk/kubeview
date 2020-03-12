@@ -1,4 +1,5 @@
 # KubeView
+<img src="web/client/src/assets/logo.png" style="float:right">
 Kubernetes cluster visualiser and visual explorer
 
 KubeView displays what is happening inside a Kubernetes cluster (or single namespace), it maps out the API objects and how they are interconnected. Data is fetched real-time from the Kubernetes API. The status of some objects (Pods, ReplicaSets, Deployments) is colour coded red/green to represent their status and health
