@@ -19,9 +19,12 @@
             </datalist>
         </b-navbar-nav>
 
+        <div style="width:0.2rem"/>
+
         <b-navbar-nav>
           <b-form-input v-model="filter" @keyup.enter="$refs.viewer.refreshData(false)" class="filterBox" placeholder="filter..."></b-form-input>&nbsp;&nbsp;
-          <b-button variant="info" @click="$refs.viewer.refreshData(false)">Refresh</b-button> &nbsp;&nbsp;
+          <div style="width:0.3rem"/>
+          <b-button variant="info" @click="$refs.viewer.refreshData(false)">Refresh</b-button>
         </b-navbar-nav>
 
         <b-navbar-nav>
@@ -73,10 +76,10 @@ export default {
 
   data() {
     return {
-      namespace: "",
-      changeNamespace: true,
-      namespaces: [],
-      filter: "",
+      namespace: "",          // Selected namespace
+      changeNamespace: true,  // Can user change namespace and picker shown?
+      namespaces: [],         // List of all namespaces (if changeNamespace == true)
+      filter: "",             // Filter to be applied to node names
       version: require('../package.json').version,
       autoRefresh: -1
     }
@@ -92,13 +95,10 @@ export default {
 
   async mounted() {
     let conf
-    try {
-      conf = await this.apiGetConfig()
-    } catch(err) {
-      conf = undefined
-    }
+    conf = await this.apiGetConfig()
     
     this.namespace = "default"
+    this.autoRefresh = 10
 
     if(conf && conf.NamespaceScope) {
       // Asterisk is default behaviour meaning users can pick any NS
@@ -112,8 +112,6 @@ export default {
     if(this.changeNamespace) {
       this.namespaces = await this.apiGetNamespaces()
     }
-
-    this.autoRefresh = 10
   }
 }
 </script>

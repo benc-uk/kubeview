@@ -1,11 +1,11 @@
 # KubeView
 Kubernetes cluster visualiser and visual explorer
 
-KubeView displays what is happening inside a Kubernetes cluster, it maps out the API objects and how they are interconnected. Data is fetched real-time from the Kubernetes API. The status of some objects (Pods, ReplicaSets, Deployments) is colour coded red/green to represent their status and health
+KubeView displays what is happening inside a Kubernetes cluster (or single namespace), it maps out the API objects and how they are interconnected. Data is fetched real-time from the Kubernetes API. The status of some objects (Pods, ReplicaSets, Deployments) is colour coded red/green to represent their status and health
 
-The app auto refreshes and dynamically updates the view as new data comes in or changes
+The app auto refreshes and dynamically updates the view as new data comes in or when it changes
 
-Currently displays:
+Currently displays the following Kubernetes objects:
 - Deployments
 - ReplicaSets / StatefulSets / DaemonSets
 - Pods
@@ -13,37 +13,50 @@ Currently displays:
 - Ingresses
 - LoadBalancer IPs
 - PersistentVolumeClaims
+- Secrets
+- ConfigMaps
 
-**Note.** This is a work in progress ☢
+### Status 
+![](https://img.shields.io/github/workflow/status/benc-uk/kubeview/Build%20Dockerhub%20Image)
+![](https://img.shields.io/github/last-commit/benc-uk/kubeview)
+![](https://img.shields.io/github/v/release/benc-uk/kubeview)
+
 
 ## Demo & Screenshots
-### [Short video demo 🡕 ](https://www.youtube.com/watch?v=ukF6aLIUu58)
+#### Short video demo
 
+[![](https://user-images.githubusercontent.com/14982936/76506327-ec1a7f00-6442-11ea-95ad-2ced7bb17114.png)](https://www.youtube.com/watch?v=ukF6aLIUu58)
+
+#### Screenshots
 ![demo](https://user-images.githubusercontent.com/14982936/53411103-87b68a00-39bd-11e9-81b2-df2fb9cd7b28.png)
+![demo2](https://user-images.githubusercontent.com/14982936/76505968-46671000-6442-11ea-8cda-1c62fbd26958.png)
 
 ## Application Components
-- **Client SPA** - Vue.js single page app. All visualisation, mapping & logic done here
+The app consists of two separate but connected elements, in the standard pattern of backend REST API and JS client frontend
+
+- **Client SPA** - Vue.js single page app. All visualisation, mapping & object connection logic is done client side
 - **API Server** - Scrapes Kubernetes API and presents it back out as a custom REST API. Also acts as HTTP serving host to the SPA. Written in Go
 
 
 # Repo Details
 This projects follows the 'Standard Go Project Layout' directory structure and naming conventions as described [here](https://github.com/golang-standards/project-layout)
 
-- [/cmd/server](./cmd/server) - Source of the API server, written in Go
-- [/web/client](./web/client) - Source of the client app, written in Vue.js
-- [/deployments](./deployments) - Helm chart for  deployment and instructions
+- [/cmd/server](./cmd/server) - Source of the API server, written in Go. See the readme there for more details
+- [/web/client](./web/client) - Source of the client app, written in Vue.js. See the readme in there for more details
+- [/deployments/helm](./deployments/helm) - Helm chart for simplifying deployment. See the readme in there for more details
+- [/build](./build) - Build artifacts such as the Dockerfile
+  
 
-### Azure Pipelines CI Build
-[![Build Status](https://dev.azure.com/bencoleman/Experiments/_apis/build/status/Build%20KubeView?branchName=master)](https://dev.azure.com/bencoleman/Experiments/_build/latest?definitionId=53&branchName=master)
+# Project Meta
+## Known Issues 
+- Filtering only applies to certain objects such as pods and controllers
+- On Firefox, the namespace picker doesn't show a drop down list, you have to start typing a name for the list to appear. This is Firefox behavior not a bug
 
-
-# Todo 
-## Short Term
+## Todo / Roadmap
+- Support some CRDs
+- Display Nodes
 - Filtering improvements (no refresh)
-- Support some CRDs? 
-- Display Nodes?
+- Settings with detail levels
 
-## Medium Term
-- Security
-- Add AI
-- Profit
+## Change Log
+[See releases](https://github.com/benc-uk/kubeview/releases)

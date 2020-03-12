@@ -26,7 +26,7 @@ RUN npm run build
 FROM golang:1.13-alpine as go-build
 WORKDIR /build
 ARG goPackage="github.com/benc-uk/kubeview/cmd/server"
-ARG version="0.1.7"
+ARG version="0.1.11"
 ARG buildInfo="Local Docker build"
 
 ENV PORT 8000
@@ -55,13 +55,13 @@ RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build \
 # ================================================================================================
 FROM scratch
 WORKDIR /app 
-EXPOSE 8000
 
 # Copy in output from Vue bundle (the dist)
-# Copy the server binary
 COPY --from=vue-build /build/dist ./frontend
+# Copy the Go server binary
 COPY --from=go-build /build/server . 
 
-# That's it! Just run the server with incluster mode enabled
-ENV IN_CLUSTER=true
+EXPOSE 8000
+
+# That's it! Just run the server 
 CMD [ "./server"]
