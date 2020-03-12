@@ -52,7 +52,7 @@ This projects follows the 'Standard Go Project Layout' directory structure and n
 Builds of the Docker image are hosted publicly on DockerHub here: [hub.docker.com/repository/docker/bencuk/kubeview](https://hub.docker.com/repository/docker/bencuk/kubeview)
 
 - The `latest` tag is likely to be unstable   
-- Versioned tags are build and pushed in sync with released versions of this repo, e.g. `bencuk/kubeview:0.1.11`
+- Versioned tags are build and pushed in sync with released versions of this repo, e.g. `bencuk/kubeview:0.1.12`
 
 [![](https://img.shields.io/github/workflow/status/benc-uk/kubeview/Release%20Dockerhub%20Image?label=last%20release&style=for-the-badge&logo=docker)](https://hub.docker.com/repository/docker/bencuk/kubeview/tags?page=1)
 

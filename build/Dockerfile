@@ -26,8 +26,8 @@ RUN npm run build
 FROM golang:1.13-alpine as go-build
 WORKDIR /build
 ARG goPackage="github.com/benc-uk/kubeview/cmd/server"
-ARG version="0.1.11"
-ARG buildInfo="Local Docker build"
+ARG version="0.1.12"
+ARG buildInfo="Local manual build"
 
 ENV PORT 8000
 
