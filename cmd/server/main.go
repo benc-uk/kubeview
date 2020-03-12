@@ -41,27 +41,27 @@ func main() {
 	inCluster := envhelper.GetEnvBool("IN_CLUSTER", false)
 
 	log.Println("### Connecting to Kubernetes...")
-	var config *rest.Config
+	var kubeConfig *rest.Config
 	var err error
 
 	// In cluster connect using in-cluster "magic", else build config from .kube/config file
 	if inCluster {
 		log.Println("### Creating client in cluster mode")
-		config, err = rest.InClusterConfig()
+		kubeConfig, err = rest.InClusterConfig()
 	} else {
-		var kubeconfig = filepath.Join(os.Getenv("HOME"), ".kube", "config")
-		log.Println("### Creating client with config file:", kubeconfig)
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+		var kubeconfigFile = filepath.Join(os.Getenv("HOME"), ".kube", "config")
+		log.Println("### Creating client with config file:", kubeconfigFile)
+		kubeConfig, err = clientcmd.BuildConfigFromFlags("", kubeconfigFile)
 	}
 
 	// We have to give up if we can't connect to Kubernetes
 	if err != nil {
 		panic(err.Error())
 	}
-	log.Println("### Connected to:", config.Host)
+	log.Println("### Connected to:", kubeConfig.Host)
 
 	// Create the clientset, which is our main interface to the Kubernetes API
-	clientset, err = kubernetes.NewForConfig(config)
+	clientset, err = kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -71,13 +71,14 @@ func main() {
 	// Add middleware for logging and CORS
 	router.Use(starterMiddleware)
 
-	// Application routes here
+	// Application API routes here
 	router.HandleFunc("/healthz", routeHealthCheck)
 	router.HandleFunc("/api/status", routeStatus)
 	router.HandleFunc("/api/namespaces", routeGetNamespaces)
 	router.HandleFunc("/api/scrape/{ns}", routeScrapeData)
 	router.HandleFunc("/api/config", routeConfig)
 
+	// Serve the frontend Vue.js SPA
 	staticDirectory := envhelper.GetEnvString("STATIC_DIR", "./frontend")
 	fileServer := http.FileServer(http.Dir(staticDirectory))
 	router.PathPrefix("/js").Handler(http.StripPrefix("/", fileServer))

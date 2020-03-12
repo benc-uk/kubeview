@@ -153,7 +153,7 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 }
 
 //
-// Simple config endpoint
+// Simple config endpoint, returns NAMESPACE_SCOPE var to front end
 //
 type Config struct {
   NamespaceScope	string
