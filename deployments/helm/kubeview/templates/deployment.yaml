@@ -27,7 +27,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: IN_CLUSTER
-              value: true
+              value: "true"
           {{ if .Values.limitNamespace }}
             - name: NAMESPACE_SCOPE
               value: {{ .Release.Namespace }}
