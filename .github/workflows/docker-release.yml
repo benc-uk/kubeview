@@ -19,9 +19,7 @@ jobs:
       run: docker build . --file ./build/Dockerfile --tag $dockerUser/$imageName:${{ github.event.release.tag_name }}
     
     - name: Login to Dockerhub
-      if: github.repository == 'benc-uk/kubeview' && github.event_name == 'push'
       run: docker login -u $dockerUser -p ${{ secrets.dockerPassword }} 
       
     - name: Push to Dockerhub
-      if: github.repository == 'benc-uk/kubeview' && github.event_name == 'push'
       run: docker push $dockerUser/$imageName:${{ github.event.release.tag_name }}
