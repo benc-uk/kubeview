@@ -24,7 +24,7 @@ import (
 
 var (
 	healthy   = true                // Simple health flag
-	version   = "0.1.7"             // App version number, set at build time with -ldflags "-X main.version=1.2.3"
+	version   = "0.1.8"             // App version number, set at build time with -ldflags "-X main.version=1.2.3"
 	buildInfo = "No build details"  // Build details, set at build time with -ldflags "-X main.buildInfo='Foo bar'"
 	clientset *kubernetes.Clientset // Clientset is global because I don't care
 )
@@ -76,6 +76,7 @@ func main() {
 	router.HandleFunc("/api/status", routeStatus)
 	router.HandleFunc("/api/namespaces", routeGetNamespaces)
 	router.HandleFunc("/api/scrape/{ns}", routeScrapeData)
+	router.HandleFunc("/api/config", routeConfig)
 
 	staticDirectory := envhelper.GetEnvString("STATIC_DIR", "./frontend")
 	fileServer := http.FileServer(http.Dir(staticDirectory))

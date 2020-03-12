@@ -13,6 +13,7 @@ import (
 	"runtime"
 
 	"github.com/gorilla/mux"
+	"github.com/benc-uk/go-starter/pkg/envhelper"
 
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
@@ -92,21 +93,21 @@ type scrapeData struct {
 }
 
 // GetNamespaces - Return list of all namespaces in cluster
-func routeGetNamespaces(w http.ResponseWriter, r *http.Request) {
+func routeGetNamespaces(resp http.ResponseWriter, req *http.Request) {
 	namespaces, err := clientset.CoreV1().Namespaces().List(metav1.ListOptions{})
 	if err != nil {
 		log.Println("### Kubernetes API error", err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
 	}
 	namespacesJSON, _ := json.Marshal(namespaces.Items)
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(namespacesJSON)
+	resp.Header().Set("Access-Control-Allow-Origin", "*")
+	resp.Header().Add("Content-Type", "application/json")
+	resp.Write(namespacesJSON)
 }
 
 // ScrapeData - Return aggregated data from loads of different Kubernetes object types
-func routeScrapeData(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
+func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
 	namespace := params["ns"]
 
 	pods, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
@@ -126,7 +127,7 @@ func routeScrapeData(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Println("### Kubernetes API error", err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -146,7 +147,23 @@ func routeScrapeData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	scrapeResultJSON, _ := json.Marshal(scrapeResult)
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Content-Type", "application/json")
-	w.Write([]byte(scrapeResultJSON))
+	resp.Header().Set("Access-Control-Allow-Origin", "*")
+	resp.Header().Add("Content-Type", "application/json")
+	resp.Write([]byte(scrapeResultJSON))
+}
+
+//
+// Simple config endpoint
+//
+type Config struct {
+  NamespaceScope	string
+}
+func routeConfig(resp http.ResponseWriter, req *http.Request) {
+	nsScope := envhelper.GetEnvString("NAMESPACE_SCOPE", "*")
+	conf := Config{NamespaceScope: nsScope}
+
+	configJSON, _ := json.Marshal(conf)
+	resp.Header().Set("Access-Control-Allow-Origin", "*")
+	resp.Header().Add("Content-Type", "application/json")
+	resp.Write([]byte(configJSON))
 }

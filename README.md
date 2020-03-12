@@ -31,7 +31,7 @@ This projects follows the 'Standard Go Project Layout' directory structure and n
 
 - [/cmd/server](./cmd/server) - Source of the API server, written in Go
 - [/web/client](./web/client) - Source of the client app, written in Vue.js
-- [/deployments](./deployments) - Kubernetes deployment manifests and instructions
+- [/deployments](./deployments) - Helm chart for  deployment and instructions
 
 ### Azure Pipelines CI Build
 [![Build Status](https://dev.azure.com/bencoleman/Experiments/_apis/build/status/Build%20KubeView?branchName=master)](https://dev.azure.com/bencoleman/Experiments/_build/latest?definitionId=53&branchName=master)
