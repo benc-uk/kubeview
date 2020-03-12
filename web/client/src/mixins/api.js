@@ -5,6 +5,7 @@ export default {
     apiGetDataForNamespace(ns) {
       return fetch(`${API_ENDPOINT}/scrape/${ns}`)
       .then(resp => {
+        if (!resp.ok) throw Error(resp.statusText);
         return resp.json();
       })
       .catch(err => {
@@ -16,6 +17,19 @@ export default {
     apiGetNamespaces() {
       return fetch(`${API_ENDPOINT}/namespaces`)
       .then(resp => {
+        if (!resp.ok) throw Error(resp.statusText);
+        return resp.json();
+      })
+      .catch(err => {
+        // eslint-disable-next-line
+        console.log(`### API Error! ${err.toString()}`);
+      })
+    },
+
+    apiGetConfig() {
+      return fetch(`${API_ENDPOINT}/config`)
+      .then(resp => {
+        if (!resp.ok) throw Error(resp.statusText);
         return resp.json();
       })
       .catch(err => {

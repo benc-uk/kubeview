@@ -8,15 +8,11 @@
       <b-collapse is-nav id="nav_collapse">
         <b-navbar-nav>
           <b-form-input 
+           v-if="changeNamespace"
            @change="changeNS" 
            @blur="$event.target.value = namespace"
            @focus="$event.target.value = '';" 
            list="ns-list" ref="ns" :text="namespace" :value="namespace"></b-form-input>
-
-          <!-- <b-dropdown :text="namespace" variant="info">
-            <b-dropdown-header>Pick namespace to show</b-dropdown-header>
-            <b-dropdown-item @click="filter = ''; namespace = ns.metadata.name" v-for="ns in namespaces" :key="ns.metadata.uid" >{{ ns.metadata.name }}</b-dropdown-item>
-          </b-dropdown>&nbsp;&nbsp; -->
 
             <datalist id="ns-list">
               <option v-for="ns in namespaces" :key="ns.metadata.uid" >{{ ns.metadata.name }}</option>
@@ -77,7 +73,8 @@ export default {
 
   data() {
     return {
-      namespace: "default",
+      namespace: "",
+      changeNamespace: true,
       namespaces: [],
       filter: "",
       version: require('../package.json').version,
@@ -93,11 +90,28 @@ export default {
     }
   },
 
-  mounted() {
-    this.apiGetNamespaces()
-    .then(data => {
-      this.namespaces = data
-    })
+  async mounted() {
+    let conf
+    try {
+      conf = await this.apiGetConfig()
+    } catch(err) {
+      conf = undefined
+    }
+    
+    this.namespace = "default"
+
+    if(conf && conf.NamespaceScope) {
+      // Asterisk is default behaviour meaning users can pick any NS
+      // Any other value here limits the NS to that string value 
+      if(conf.NamespaceScope !== "*") {
+        this.namespace = conf.NamespaceScope
+        this.changeNamespace = false
+      }
+    }
+    
+    if(this.changeNamespace) {
+      this.namespaces = await this.apiGetNamespaces()
+    }
 
     this.autoRefresh = 10
   }
