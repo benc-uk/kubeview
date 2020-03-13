@@ -18,6 +18,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
+    - run: echo "::error file=app.js,line=10,col=15::Something went wrong"
+    
     # - name: Check code with gofmt
     #   run: gofmt -d cmd/server && ! gofmt -d cmd/server 2>&1 | read
     - name: Check code with gofmt
