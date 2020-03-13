@@ -5,9 +5,9 @@
 # Will show up as GitHub Action annotations in the workflow
 # Ben Coleman
 #
-
+set -e
 out=$(gofmt -l $1)
-linecount=$(echo "$out" | wc -l)
+linecount=$(echo "$out" | sed '/^\s*$/d' | wc -l)
 
 if (( $linecount > 0 )); then
   while IFS= read -r line; do

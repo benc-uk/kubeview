@@ -22,7 +22,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-     var (
+var (
 	healthy   = true                // Simple health flag
 	version   = "0.0.0"             // App version number, set at build time with -ldflags "-X main.version=1.2.3"
 	buildInfo = "No build details"  // Build details, set at build time with -ldflags "-X main.buildInfo='Foo bar'"
