@@ -18,9 +18,15 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
+    # - name: Check code with gofmt
+    #   run: gofmt -d cmd/server && ! gofmt -d cmd/server 2>&1 | read
     - name: Check code with gofmt
-      run: gofmt -d cmd/server && ! gofmt -d cmd/server 2>&1 | read
-      
+      uses: grandcolline/golang-github-actions@v1.1.0
+      with:
+        run: fmt
+        token: ${{ secrets.GITHUB_TOKEN }}
+        directory: cmd/server
+
     - name: Build the Docker image
       run: docker build . --file ./build/Dockerfile --build-arg buildInfo="GitHub CI build $GITHUB_RUN_ID, of $GITHUB_REF on $(date -I)" --tag $dockerUser/$imageName:$imageTag
     
