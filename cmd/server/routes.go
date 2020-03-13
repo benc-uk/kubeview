@@ -134,7 +134,7 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 	ingresses, err := clientset.ExtensionsV1beta1().Ingresses(namespace).List(metav1.ListOptions{})
 
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+    log.Println("### Kubernetes API error", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -165,7 +165,7 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 	scrapeResultJSON, _ := json.Marshal(scrapeResult)
 	resp.Header().Set("Access-Control-Allow-Origin", "*")
 	resp.Header().Add("Content-Type", "application/json")
-	resp.Write([]byte(scrapeResultJSON))
+	  resp.Write([]byte(scrapeResultJSON))
 }
 
 //
