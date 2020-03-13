@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"fmt"
 
 	"github.com/benc-uk/go-starter/pkg/envhelper"
 	"github.com/gorilla/mux"
