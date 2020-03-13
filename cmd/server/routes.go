@@ -1,7 +1,7 @@
 package main
 
 //
-// Basic REST API microservice, template/reference code
+// Route handlers for the API, does the actual k8s data scraping
 // Ben Coleman, July 2019, v1
 //
 
@@ -12,14 +12,35 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/gorilla/mux"
 	"github.com/benc-uk/go-starter/pkg/envhelper"
+	"github.com/gorilla/mux"
 
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	v1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// Config is simple structure returned by routeConfig
+type Config struct {
+	NamespaceScope string
+}
+
+// Data struct to hold our returned data
+type scrapeData struct {
+	Pods                   []apiv1.Pod                   `json:"pods"`
+	Services               []apiv1.Service               `json:"services"`
+	Endpoints              []apiv1.Endpoints             `json:"endpoints"`
+	PersistentVolumes      []apiv1.PersistentVolume      `json:"persistentvolumes"`
+	PersistentVolumeClaims []apiv1.PersistentVolumeClaim `json:"persistentvolumeclaims"`
+	Deployments            []appsv1.Deployment           `json:"deployments"`
+	DaemonSets             []appsv1.DaemonSet            `json:"daemonsets"`
+	ReplicaSets            []appsv1.ReplicaSet           `json:"replicasets"`
+	StatefulSets           []appsv1.StatefulSet          `json:"statefulsets"`
+	Ingresses              []v1beta1.Ingress             `json:"ingresses"`
+	ConfigMaps             []apiv1.ConfigMap             `json:"configmaps"`
+	Secrets                []apiv1.Secret                `json:"secrets"`
+}
 
 //
 // Simple health check endpoint, returns 204 when healthy
@@ -33,7 +54,7 @@ func routeHealthCheck(resp http.ResponseWriter, req *http.Request) {
 }
 
 //
-// Return status information data - Remove if you like
+// Return status information data
 //
 func routeStatus(resp http.ResponseWriter, req *http.Request) {
 	type status struct {
@@ -76,23 +97,9 @@ func routeStatus(resp http.ResponseWriter, req *http.Request) {
 	resp.Write(statusJSON)
 }
 
-// Data struct to hold our returned data
-type scrapeData struct {
-	Pods                   []apiv1.Pod                   `json:"pods"`
-	Services               []apiv1.Service               `json:"services"`
-	Endpoints              []apiv1.Endpoints             `json:"endpoints"`
-	PersistentVolumes      []apiv1.PersistentVolume      `json:"persistentvolumes"`
-	PersistentVolumeClaims []apiv1.PersistentVolumeClaim `json:"persistentvolumeclaims"`
-	Deployments            []appsv1.Deployment           `json:"deployments"`
-	DaemonSets             []appsv1.DaemonSet            `json:"daemonsets"`
-	ReplicaSets            []appsv1.ReplicaSet           `json:"replicasets"`
-	StatefulSets           []appsv1.StatefulSet          `json:"statefulsets"`
-	Ingresses              []v1beta1.Ingress             `json:"ingresses"`
-	ConfigMaps             []apiv1.ConfigMap             `json:"configmaps"`
-	Secrets                []apiv1.Secret                `json:"secrets"`
-}
-
-// GetNamespaces - Return list of all namespaces in cluster
+//
+// Return list of all namespaces in cluster
+//
 func routeGetNamespaces(resp http.ResponseWriter, req *http.Request) {
 	namespaces, err := clientset.CoreV1().Namespaces().List(metav1.ListOptions{})
 	if err != nil {
@@ -105,7 +112,9 @@ func routeGetNamespaces(resp http.ResponseWriter, req *http.Request) {
 	resp.Write(namespacesJSON)
 }
 
-// ScrapeData - Return aggregated data from loads of different Kubernetes object types
+//
+// Return aggregated data from loads of different Kubernetes object types
+//
 func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	namespace := params["ns"]
@@ -117,7 +126,6 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 	pvcs, err := clientset.CoreV1().PersistentVolumeClaims(namespace).List(metav1.ListOptions{})
 	configmaps, err := clientset.CoreV1().ConfigMaps(namespace).List(metav1.ListOptions{})
 	secrets, err := clientset.CoreV1().Secrets(namespace).List(metav1.ListOptions{})
-
 	deployments, err := clientset.AppsV1().Deployments(namespace).List(metav1.ListOptions{})
 	daemonsets, err := clientset.AppsV1().DaemonSets(namespace).List(metav1.ListOptions{})
 	replicasets, err := clientset.AppsV1().ReplicaSets(namespace).List(metav1.ListOptions{})
@@ -131,6 +139,14 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Obfuscate & remove secret values
+	for _, secret := range secrets.Items {
+		for key := range secret.Data {
+			secret.Data[key] = []byte("__VALUE REDACTED__")
+		}
+	}
+
+	// Dump of results
 	scrapeResult := scrapeData{
 		Pods:                   pods.Items,
 		Services:               services.Items,
@@ -155,9 +171,6 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 //
 // Simple config endpoint, returns NAMESPACE_SCOPE var to front end
 //
-type Config struct {
-  NamespaceScope	string
-}
 func routeConfig(resp http.ResponseWriter, req *http.Request) {
 	nsScope := envhelper.GetEnvString("NAMESPACE_SCOPE", "*")
 	conf := Config{NamespaceScope: nsScope}
