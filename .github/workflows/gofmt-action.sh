@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#
+# Hacky bash script to run gofmt and report any files with problems 
+# Will show up as GitHub Action annotations in the workflow
+# Ben Coleman
+#
+
 out=$(gofmt -l $1)
 linecount=$(echo "$out" | wc -l)
 

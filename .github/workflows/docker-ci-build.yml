@@ -19,8 +19,7 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Check code with gofmt
-      run: bash ./gofmt-action.sh cmd/server
-      #gofmt -d cmd/server && ! gofmt -d cmd/server 2>&1 | read
+      run: bash .github/workflows/gofmt-action.sh cmd/server
 
     - name: Build the Docker image
       run: docker build . --file ./build/Dockerfile --build-arg buildInfo="GitHub CI build $GITHUB_RUN_ID, of $GITHUB_REF on $(date -I)" --tag $dockerUser/$imageName:$imageTag
