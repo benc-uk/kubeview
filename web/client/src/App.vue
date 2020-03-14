@@ -59,7 +59,7 @@
 
 <script>
 import Viewer from './components/Viewer.vue'
-import apiMixin from "./mixins/api.js";
+import apiMixin from "./mixins/api.js"
 
 export default {
   mixins: [ apiMixin ],
@@ -70,7 +70,7 @@ export default {
 
   computed: {
     autoRefreshText() {
-      return this.autoRefresh ? `Auto Refresh: ${this.autoRefresh} secs` : "Auto Refresh: Off" 
+      return this.autoRefresh ? `Auto Refresh: ${this.autoRefresh} secs` : "Auto Refresh: Off"
     }
   },
 
@@ -87,9 +87,9 @@ export default {
 
   methods: {
     changeNS: function(evt) {
-      this.filter = ''; 
-      this.namespace = evt;
-      this.$refs.ns.blur();
+      this.filter = ''
+      this.namespace = evt
+      this.$refs.ns.blur()
     }
   },
 

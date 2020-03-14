@@ -26,7 +26,7 @@ import VueTimers from 'vue-timers/mixin'
 import cytoscape from 'cytoscape'
 
 // Urgh, gotta have this here, putting into data, causes weirdness
-var cy
+let cy
 
 export default {
   mixins: [ apiMixin, utils, VueTimers ],
@@ -97,22 +97,22 @@ export default {
       }
 
       this.apiGetDataForNamespace(this.namespace)
-      .then(newData => {
-        if(!newData) return
-        let changed = true
-        if(soft) changed = this.detectChange(newData) 
+        .then(newData => {
+          if(!newData) return
+          let changed = true
+          if(soft) changed = this.detectChange(newData) 
 
-        this.apiData = newData
+          this.apiData = newData
 
-        if(changed) {
-          this.typeIndexes = []
-          cy.remove("*")
-          this.infoBoxData = false          
-          this.refreshNodes()
-        }
+          if(changed) {
+            this.typeIndexes = []
+            cy.remove("*")
+            this.infoBoxData = false          
+            this.refreshNodes()
+          }
 
-        this.loading = false
-      })
+          this.loading = false
+        })
     },
 
     //
@@ -179,7 +179,7 @@ export default {
           if(kubeObj.status.phase == 'Succeeded') status = 'green'
         }
       } catch(err) {
-        console.log(`### Problem with calcStatus for ${kubeObj.metadata.selfLink}`);  
+        console.log(`### Problem with calcStatus for ${kubeObj.metadata.selfLink}`)
       }
 
       return status
@@ -350,7 +350,7 @@ export default {
       }
 
       // Add Ingresses and link to Services  
-      for(var ingress of this.apiData.ingresses) {
+      for(let ingress of this.apiData.ingresses) {
         if(!this.filterShowNode(ingress)) continue
 
         this.addNode(ingress, 'Ingress')
@@ -428,7 +428,7 @@ export default {
 
         //console.log(`### Adding: ${type} -> ${node.metadata.name || node.metadata.selfLink}`)
         cy.add({ data: { id: `${type}_${node.metadata.name}`, label: label, icon: icon, sourceObj: node, 
-                         type: type, parent: groupId, status: status, name: node.metadata.name } })
+          type: type, parent: groupId, status: status, name: node.metadata.name } })
       } catch(e) {
         console.error(`### Unable to add node: ${node.metadata.name || node.metadata.selfLink}`)
       }
