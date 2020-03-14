@@ -3,7 +3,7 @@ import App from './App.vue'
 
 // Bootstrap and theme
 import BootstrapVue from 'bootstrap-vue'
-Vue.use(BootstrapVue);
+Vue.use(BootstrapVue)
 import 'bootswatch/dist/superhero/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 

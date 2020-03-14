@@ -8,8 +8,11 @@ module.exports = {
     'eslint:recommended'
   ],
   rules: {
-    'no-console': 0, //process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
+    'no-console': 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'semi': ['error', 'never'],
+    'indent': ['error', 2],
+    'no-var': 'error'
   },
   parserOptions: {
     parser: 'babel-eslint'

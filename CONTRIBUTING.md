@@ -11,6 +11,6 @@ Contributions to this project are welcome of course, otherwise I wouldn't have p
 A few pointers
 
 - If you're thinking of adding a feature via a PR please create an issue first and we can discuss it.
-- Please keep PRs small and focused on a single feature or change, with discreet commits. Multiple PRs if need be .
+- Please keep PRs small and focused on a single feature or change, with discreet commits. Multiple PRs if need be.
 
 Thanks!
