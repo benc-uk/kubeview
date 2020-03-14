@@ -10,7 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	 "runtime"
+	"runtime"
 
 	"github.com/benc-uk/go-starter/pkg/envhelper"
 	"github.com/gorilla/mux"
