@@ -1,7 +1,7 @@
 limitNamespace: false
 
 image:
-  tag: "0.1.12"
+  tag: "0.1.13"
 
 ingress:
   enabled: false
