@@ -8,7 +8,7 @@ WORKDIR /build
 
 # Install all the Vue.js dev tools & CLI, and our app dependencies 
 COPY ${sourceDir}/package*.json ./
-RUN npm install --silent
+RUN npm install --production --silent
 
 # Copy in the Vue.js app source
 COPY ${sourceDir}/.env.production .

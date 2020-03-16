@@ -1,9 +1,11 @@
+// Hello
+
 export default {
   methods: {
 
     utilsHashStr(s) {
       let hash = 0, i, chr
-      if (s.length === 0) return hash
+      if (s.length === 0) { return hash }
       for (i = 0; i < s.length; i++) {
         chr   = s.charCodeAt(i)
         hash  = ((hash << 5) - hash) + chr
@@ -14,14 +16,14 @@ export default {
 
     utilsCheckNested(obj /*, level1, level2, ... levelN*/) {
       let args = Array.prototype.slice.call(arguments, 1)
-    
+
       for (let i = 0; i < args.length; i++) {
         if (!obj || !Object.prototype.hasOwnProperty.call(obj, args[i])) {
           return false
         }
         obj = obj[args[i]]
       }
-      
+
       return true
     },
 
