@@ -16,8 +16,9 @@ COPY ${sourceDir}/.eslintrc.js .
 COPY ${sourceDir}/public ./public
 COPY ${sourceDir}/src ./src
 
-# Run Vue CLI build & bundle, and output to ./dist
+# Run ESLint checks
 RUN npm run lint
+# Now main Vue CLI build & bundle, this will output to ./dist
 RUN npm run build
 
 # ================================================================================================
