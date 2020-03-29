@@ -17,7 +17,6 @@ COPY ${sourceDir}/public ./public
 COPY ${sourceDir}/src ./src
 
 # Run Vue CLI build & bundle, and output to ./dist
-RUN npm run lint
 RUN npm run build
 
 # ================================================================================================
