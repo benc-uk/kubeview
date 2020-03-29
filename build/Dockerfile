@@ -8,7 +8,7 @@ WORKDIR /build
 
 # Install all the Vue.js dev tools & CLI, and our app dependencies 
 COPY ${sourceDir}/package*.json ./
-RUN npm install --production --silent
+RUN npm install --silent
 
 # Copy in the Vue.js app source
 COPY ${sourceDir}/.env.production .
@@ -16,7 +16,9 @@ COPY ${sourceDir}/.eslintrc.js .
 COPY ${sourceDir}/public ./public
 COPY ${sourceDir}/src ./src
 
-# Run Vue CLI build & bundle, and output to ./dist
+# Run ESLint checks
+RUN npm run lint
+# Now main Vue CLI build & bundle, this will output to ./dist
 RUN npm run build
 
 # ================================================================================================

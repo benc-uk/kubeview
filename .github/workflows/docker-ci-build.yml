@@ -21,10 +21,6 @@ jobs:
     - name: Check server code with gofmt
       run: bash .github/workflows/gofmt-action.sh cmd/server
 
-    - name: Check UI code with ESLint
-      run: npm install --silent && npm run lint
-      working-directory: web/client
-
     - name: Build the Docker image
       run: docker build . --file ./build/Dockerfile --build-arg buildInfo="GitHub CI build $GITHUB_RUN_ID, of $GITHUB_REF on $(date -I)" --tag $dockerUser/$imageName:$imageTag
     
