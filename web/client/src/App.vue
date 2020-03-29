@@ -112,7 +112,7 @@ export default {
     conf = await this.apiGetConfig()
 
     this.namespace = 'default'
-    this.auto_Refresh = 10
+    this.autoRefresh = 10
 
     if (conf && conf.NamespaceScope) {
       // Asterisk is default behaviour meaning users can pick any NS
