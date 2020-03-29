@@ -24,7 +24,8 @@ import yaml from 'js-yaml'
 import VueTimers from 'vue-timers/mixin'
 import cytoscape from 'cytoscape'
 
-// Urgh, gotta have this here, putting into data, causes weirdness
+// Had to place this here, putting into data causes weirdness
+// It's not reactive so it's fine
 let cy
 
 export default {
@@ -33,16 +34,16 @@ export default {
     'infobox': InfoBox,
     'loading': Loading
   },
+
   mixins: [ apiMixin, utils, VueTimers ],
 
-  //props: [ 'namespace', 'filter', 'autoRefresh', 'rootType' ],
   props: {
     namespace: {
       type: String,
       required: true
     },
     filter: {
-      type: Object,
+      type: String,
       required: true
     },
     autoRefresh: {
@@ -543,7 +544,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
   #viewwrap {
     height: calc(100% - 67px);
   }

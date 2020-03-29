@@ -3,6 +3,9 @@
 export default {
   methods: {
 
+    //
+    // Calculate the hash of a string, used for creating node ids
+    //
     utilsHashStr(s) {
       let hash = 0, i, chr
       if (s.length === 0) { return hash }
@@ -14,6 +17,9 @@ export default {
       return hash
     },
 
+    //
+    // I got tired of checking if multiple nested properties existed in objects
+    //
     utilsCheckNested(obj /*, level1, level2, ... levelN*/) {
       let args = Array.prototype.slice.call(arguments, 1)
 
@@ -27,6 +33,9 @@ export default {
       return true
     },
 
+    //
+    // Date formatting, always a hoot
+    //
     utilsDateFromISO8601(isostr) {
       let parts = isostr.match(/\d+/g)
       return new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5])

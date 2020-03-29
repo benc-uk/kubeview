@@ -12,7 +12,7 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 .container {
   height: 100vh;
   width: 100vw;
