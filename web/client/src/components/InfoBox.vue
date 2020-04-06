@@ -133,7 +133,9 @@ export default {
       if (this.utilsCheckNested(statusCopy, 'loadBalancer', 'ingress')) {
         statusCopy.loadBalancerIPs = ''
         for (let ingress of statusCopy.loadBalancer.ingress) {
-          statusCopy.loadBalancerIPs += (ingress.ip.toString() + ' ')
+          if (ingress.ip && ingress.ip.length > 0) {
+            statusCopy.loadBalancerIPs += (ingress.ip.toString() + ' ')
+          }
         }
       }
 
