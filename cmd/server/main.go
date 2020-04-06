@@ -85,10 +85,12 @@ func main() {
 	router.PathPrefix("/css").Handler(http.StripPrefix("/", fileServer))
 	router.PathPrefix("/img").Handler(http.StripPrefix("/", fileServer))
 	router.PathPrefix("/favicon.png").Handler(http.StripPrefix("/", fileServer))
+
 	// EVERYTHING else redirect to index.html
 	router.NotFoundHandler = http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		http.ServeFile(resp, req, staticDirectory+"/index.html")
 	})
+
 	log.Printf("### Serving static content from '%v'\n", staticDirectory)
 
 	// Start server
