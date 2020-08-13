@@ -6,6 +6,7 @@ package main
 //
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -102,7 +103,8 @@ func routeStatus(resp http.ResponseWriter, req *http.Request) {
 // Return list of all namespaces in cluster
 //
 func routeGetNamespaces(resp http.ResponseWriter, req *http.Request) {
-	namespaces, err := clientset.CoreV1().Namespaces().List(metav1.ListOptions{})
+	ctx := context.Background()
+	namespaces, err := clientset.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		log.Println("### Kubernetes API error", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
@@ -120,19 +122,20 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	namespace := params["ns"]
 
-	pods, err := clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
-	services, err := clientset.CoreV1().Services(namespace).List(metav1.ListOptions{})
-	endpoints, err := clientset.CoreV1().Endpoints(namespace).List(metav1.ListOptions{})
-	pvs, err := clientset.CoreV1().PersistentVolumes().List(metav1.ListOptions{})
-	pvcs, err := clientset.CoreV1().PersistentVolumeClaims(namespace).List(metav1.ListOptions{})
-	configmaps, err := clientset.CoreV1().ConfigMaps(namespace).List(metav1.ListOptions{})
-	secrets, err := clientset.CoreV1().Secrets(namespace).List(metav1.ListOptions{})
-	deployments, err := clientset.AppsV1().Deployments(namespace).List(metav1.ListOptions{})
-	daemonsets, err := clientset.AppsV1().DaemonSets(namespace).List(metav1.ListOptions{})
-	replicasets, err := clientset.AppsV1().ReplicaSets(namespace).List(metav1.ListOptions{})
-	statefulsets, err := clientset.AppsV1().StatefulSets(namespace).List(metav1.ListOptions{})
+	ctx := context.Background()
+	pods, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
+	services, err := clientset.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
+	endpoints, err := clientset.CoreV1().Endpoints(namespace).List(ctx, metav1.ListOptions{})
+	pvs, err := clientset.CoreV1().PersistentVolumes().List(ctx, metav1.ListOptions{})
+	pvcs, err := clientset.CoreV1().PersistentVolumeClaims(namespace).List(ctx, metav1.ListOptions{})
+	configmaps, err := clientset.CoreV1().ConfigMaps(namespace).List(ctx, metav1.ListOptions{})
+	secrets, err := clientset.CoreV1().Secrets(namespace).List(ctx, metav1.ListOptions{})
+	deployments, err := clientset.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{})
+	daemonsets, err := clientset.AppsV1().DaemonSets(namespace).List(ctx, metav1.ListOptions{})
+	replicasets, err := clientset.AppsV1().ReplicaSets(namespace).List(ctx, metav1.ListOptions{})
+	statefulsets, err := clientset.AppsV1().StatefulSets(namespace).List(ctx, metav1.ListOptions{})
 
-	ingresses, err := clientset.ExtensionsV1beta1().Ingresses(namespace).List(metav1.ListOptions{})
+	ingresses, err := clientset.ExtensionsV1beta1().Ingresses(namespace).List(ctx, metav1.ListOptions{})
 
 	if err != nil {
 		log.Println("### Kubernetes API error", err.Error())

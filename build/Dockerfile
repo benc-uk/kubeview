@@ -24,10 +24,10 @@ RUN npm run build
 # ================================================================================================
 # === Stage 2: Build Golang API server and host for Vue app ======================================
 # ================================================================================================
-FROM golang:1.14-alpine as go-build
+FROM golang:1.15-alpine as go-build
 WORKDIR /build
 ARG goPackage="github.com/benc-uk/kubeview/cmd/server"
-ARG version="0.1.15"
+ARG version="0.1.16"
 ARG buildInfo="Local manual build"
 
 ENV PORT 8000
