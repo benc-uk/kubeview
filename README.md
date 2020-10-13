@@ -49,12 +49,30 @@ This projects follows the 'Standard Go Project Layout' directory structure and n
 
 
 # Docker Image
-Builds of the Docker image are hosted publicly on DockerHub here: [hub.docker.com/repository/docker/bencuk/kubeview](https://hub.docker.com/repository/docker/bencuk/kubeview)
+Builds of the Docker image are hosted publicly on GitHub Container Registry here: https://github.com/users/benc-uk/packages/container/package/kubeview
 
 - The `latest` tag is likely to be unstable   
-- Versioned tags are build and pushed in sync with released versions of this repo, e.g. `bencuk/kubeview:0.1.13`
+- Versioned tags are build and pushed in sync with released versions of this repo, e.g. `ghcr.io/benc-uk/kubeview:latest:0.1.17`
 
-[![](https://img.shields.io/github/workflow/status/benc-uk/kubeview/Release%20Dockerhub%20Image?label=last%20release&style=for-the-badge&logo=docker)](https://hub.docker.com/repository/docker/bencuk/kubeview/tags?page=1)
+
+# Helm Chart
+Helm chart called 'kubeview' is provided in the [charts](./charts) directory to help deploy and install KubeView into your cluster. The chart is also available in packaged form, [in the releases section](https://github.com/benc-uk/kubeview/releases)
+
+Use the supplied sample `myvalues-sample.yaml` file (copy it to a new name, e.g. `myvalues.yaml`) to configure how to deploy KubeView. The main choice is if you want to expose the service via an ingress `ingress.enabled: true` or a load-balancer service `ingress.enabled: false`
+
+When using an Ingress additionally configure the DNS hostname and TLS certs if you want to use HTTPS
+
+### Cluster or Namespaced Deployment
+the chart supports deployment in a single namespace, set `limitNamespace: true`. In this mode, KubeView will be limited to displaying only the namespace it is deployed into (via the helm `--namespace` flag), and the namespace picker will not be shown in the UI. The ServiceAccount/Role/Binding will be scoped to this namespace too, rather than cluster wide.  
+
+This is passed to the server via the `NAMESPACE_SCOPE` env variable
+
+### Usage
+Deploy with the standard Helm install command:
+```
+cd charts
+helm install kubeview ./kubeview -f myvalues.yaml
+```
 
 # Project Meta
 ## Known Issues 
