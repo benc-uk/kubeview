@@ -52,7 +52,7 @@ This projects follows the 'Standard Go Project Layout' directory structure and n
 Builds of the Docker image are hosted publicly on GitHub Container Registry here: https://github.com/users/benc-uk/packages/container/package/kubeview
 
 - The `latest` tag is likely to be unstable   
-- Versioned tags are build and pushed in sync with released versions of this repo, e.g. `ghcr.io/benc-uk/kubeview:latest:0.1.17`
+- Versioned tags are build and pushed in sync with released versions of this repo, e.g. `docker pull ghcr.io/benc-uk/kubeview:0.1.17`
 
 
 # Helm Chart
