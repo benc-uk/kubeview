@@ -5,7 +5,7 @@
     <loading v-if="loading" />
 
     <transition name="slide-fade">
-      <infobox v-if="infoBoxData" :node-data="infoBoxData" @hideInfoBox="infoBoxData = null" @fullInfo="showFullInfo" />
+      <infobox v-if="infoBoxData" :node-data="infoBoxData" @hide-info-box="infoBoxData = null" @full-info="showFullInfo" />
     </transition>
 
     <b-modal ref="fullInfoModal" centered :title="fullInfoTitle" ok-only scrollable size="lg" body-class="fullInfoBody">

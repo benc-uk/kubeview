@@ -21,7 +21,7 @@ module.exports = {
     'arrow-parens': 'error',
 
     // Style
-    'brace-style': ['error', '1tbs', { 'allowSingleLine': true } ],
+    'brace-style': ['error', '1tbs', { 'allowSingleLine': true }],
     'semi': ['error', 'never'],
     'indent': ['error', 2],
     'quotes': ['error', 'single'],
@@ -34,7 +34,7 @@ module.exports = {
     'no-trailing-spaces': 'error',
     'no-whitespace-before-property': 'error',
     'comma-spacing': 'error',
-    'keyword-spacing':  'error',
+    'keyword-spacing': 'error',
 
     // Vue
     'vue/html-closing-bracket-newline': 'off',
