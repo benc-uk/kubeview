@@ -16,25 +16,25 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      # - name: Build the Docker image
-      #   run: docker build . --file ./build/Dockerfile --build-arg version="${{ github.event.release.tag_name }}" --build-arg buildInfo="GitHub release build dated:$(date -I)" --tag $dockerUser/$imageName:${{ github.event.release.tag_name }}
+      - name: Build the Docker image
+        run: docker build . --file ./build/Dockerfile --build-arg version="${{ github.event.release.tag_name }}" --build-arg buildInfo="GitHub release build dated:$(date -I)" --tag ghcr.io/$GITHUB_ACTOR/$imageName:${{ github.event.release.tag_name }}
 
-      # - name: Login to Dockerhub
-      #   run: docker login -u $dockerUser -p ${{ secrets.dockerPassword }}
-
-      # - name: Push to Dockerhub
-      #   run: docker push $dockerUser/$imageName:${{ github.event.release.tag_name }}
+      - name: Push to Github registry
+        run: |
+          echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+          docker push ghcr.io/$GITHUB_ACTOR/$imageName:${{ github.event.release.tag_name }}
 
       - name: Package Helm chart
         run: helm package kubeview --version 0.0.0
         working-directory: ./deployments/helm
-      # - name: Upload extension package to release
-      #   id: upload-release-asset
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ github.event.release.upload_url }}
-      #     asset_path: ./deployments/helm/kubeview-${{ github.event.release.tag_name }}.tgz
-      #     asset_name: kubeview-${{ github.event.release.tag_name }}.tgz
-      #     asset_content_type: application/octet-stream
+
+      - name: Upload Helm chart to release
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./deployments/helm/kubeview-0.0.0.tgz
+          asset_name: kubeview-${{ github.event.release.tag_name }}.tgz
+          asset_content_type: application/octet-stream
