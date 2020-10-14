@@ -3,11 +3,11 @@ entries:
   kubeview:
   - apiVersion: v2
     appVersion: 0.1.17
-    created: "2020-10-13T17:42:50.0490055+01:00"
+    created: "2020-10-14T09:00:23.4842012+01:00"
     description: Kubernetes cluster visualiser and visual explorer
-    digest: 94dc879e36d808cba68fd97c3b0ce74d3fec6ee34b31f44d7a7d38a9521abca4
+    digest: c4fb7f57615497039606feefaa3b5dd0ae53bc0c2383bb4209b55bff5f1d6800
     home: https://github.com/benc-uk/kubeview
-    icon: https://github.com/benc-uk/kubeview/blob/master/web/client/public/favicon.png
+    icon: https://raw.githubusercontent.com/benc-uk/kubeview/master/web/client/public/favicon.png
     maintainers:
     - name: Ben Coleman
       url: https://benc.dev
@@ -17,4 +17,4 @@ entries:
     urls:
     - kubeview-0.1.17.tgz
     version: 0.1.17
-generated: "2020-10-13T17:42:50.0484091+01:00"
+generated: "2020-10-14T09:00:23.4836799+01:00"
