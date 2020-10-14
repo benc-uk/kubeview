@@ -26,7 +26,7 @@ jobs:
 
       - name: Package Helm chart
         run: helm package kubeview --version 0.0.0
-        working-directory: ./deployments/helm
+        working-directory: ./charts
 
       - name: Upload Helm chart to release
         id: upload-release-asset
@@ -35,6 +35,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./deployments/helm/kubeview-0.0.0.tgz
+          asset_path: ./charts/kubeview-0.0.0.tgz
           asset_name: kubeview-${{ github.event.release.tag_name }}.tgz
           asset_content_type: application/octet-stream
