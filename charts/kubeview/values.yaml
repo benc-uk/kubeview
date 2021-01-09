@@ -25,6 +25,8 @@ ingress:
       paths: [ "/" ]
   tls: []
 
+loadBalancerIP: ""
+
 resources: 
   limits:
     cpu: 100m
