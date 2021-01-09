@@ -18,3 +18,6 @@ spec:
   selector:
     app.kubernetes.io/name: {{ include "kubeview.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Values.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.loadBalancerIP }}
+{{- end }}
