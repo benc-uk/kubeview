@@ -6,27 +6,33 @@ on:
   pull_request:
     branches: [master]
 
-env:
-  imageName: kubeview
-  imageTag: latest
-
 # Note. CI build only builds 'latest' image, not the semver release
+env:
+  IMAGE_NAME: kubeview
+  IMAGE_TAG: latest
 
 jobs:
-  build:
-    name: Check and CI build
+  ci-build:
+    name: Code Check & CI build
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v1
 
-      - name: Check server code with gofmt
-        run: bash .github/workflows/gofmt-action.sh cmd/server
+      # Validate code
+      - name: Check code for linting and format errors
+        run: make format lint
+        #bash .github/workflows/gofmt-action.sh cmd/server
 
+      # Build image
       - name: Build the Docker image
-        run: docker build . --file ./build/Dockerfile --build-arg buildInfo="GitHub CI build $GITHUB_RUN_ID, of $GITHUB_REF on $(date -I)" --tag ghcr.io/$GITHUB_ACTOR/$imageName:$imageTag
+        run: make image BUILD_INFO="GitHub CI build $GITHUB_RUN_ID, of $GITHUB_REF on $(date -I)"
+        #run: docker build . --file ./build/Dockerfile --build-arg buildInfo="GitHub CI build $GITHUB_RUN_ID, of $GITHUB_REF on $(date -I)" --tag ghcr.io/$GITHUB_ACTOR/$IMAGE_NAME:$IMAGE_TAG
 
+      # Only when pushing to master push to GHCR
       - name: Push to Github registry
+        if: github.ref == 'refs/heads/master'
         run: |
           echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
-          docker push ghcr.io/$GITHUB_ACTOR/$imageName:$imageTag
+          make push
+        #docker push ghcr.io/$GITHUB_ACTOR/$IMAGE_NAME:$IMAGE_TAG
