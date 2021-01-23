@@ -1,16 +1,23 @@
 {
   "name": "kubeview",
-  "version": "0.1.19",
+  "version": "0.1.20",
+  "author": {
+    "name": "Ben Coleman"
+  },
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "lint-ci": "vue-cli-service lint --no-fix",
+    "format": "prettier --write src",
+    "format-ci": "prettier --check src"
   },
   "dependencies": {
     "bootstrap-vue": "^2.21.2",
     "bootswatch": "^4.6.0",
     "cytoscape": "^3.18.0",
+    "prettier": "^2.2.1",
     "vue": "^2.6.12",
     "vue-timers": "^2.0.4"
   },
