@@ -1,0 +1,9 @@
+linters-settings:
+  golint:
+    min-confidence: 0
+linters:
+  enable:
+    - golint
+issues:
+  include:
+    - EXC0002

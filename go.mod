@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/benc-uk/go-starter v1.0.0
+	github.com/golangci/golangci-lint v1.35.2 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.3.0
