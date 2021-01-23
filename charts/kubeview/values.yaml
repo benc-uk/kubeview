@@ -10,22 +10,22 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/benc-uk/kubeview
-  tag: 0.1.19
+  tag: 0.1.20
   pullPolicy: Always
 
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: ''
+fullnameOverride: ''
 
 ingress:
   enabled: false
   annotations: {}
   hosts:
     - host: chart-example.local
-      paths: ["/"]
+      paths: ['/']
   tls: []
 
-loadBalancerIP: ""
+loadBalancerIP: ''
 
 resources:
   limits:
