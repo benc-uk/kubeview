@@ -1,7 +1,7 @@
 name: kubeview
 apiVersion: v2
-version: 0.1.18
-appVersion: "0.1.18"
+version: 0.1.19
+appVersion: "0.1.19"
 
 description: Kubernetes cluster visualiser and visual explorer
 maintainers:

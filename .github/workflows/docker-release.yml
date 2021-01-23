@@ -10,7 +10,8 @@ env:
   imageName: kubeview
 
 jobs:
-  releaseJob:
+  release:
+    name: Release image & chart
     runs-on: ubuntu-latest
 
     steps:
@@ -27,6 +28,15 @@ jobs:
       - name: Package Helm chart
         run: helm package kubeview
         working-directory: ./charts
+
+      - name: Update chart index
+        run: helm repo index .
+        working-directory: ./charts
+
+      - name: Update repo with output
+        uses: mikeal/publish-to-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Helm chart to release
         id: upload-release-asset

@@ -10,8 +10,11 @@ env:
   imageName: kubeview
   imageTag: latest
 
+# Note. CI build only builds 'latest' image, not the semver release
+
 jobs:
-  buildJob:
+  build:
+    name: Check and CI build
     runs-on: ubuntu-latest
 
     steps:
