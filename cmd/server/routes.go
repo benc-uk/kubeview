@@ -1,3 +1,4 @@
+// Default package
 package main
 
 //
@@ -96,7 +97,10 @@ func routeStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	resp.Header().Add("Content-Type", "application/json")
-	resp.Write(statusJSON)
+	_, err = resp.Write(statusJSON)
+	if err != nil {
+		log.Println("Unable to write")
+	}
 }
 
 //
@@ -112,7 +116,10 @@ func routeGetNamespaces(resp http.ResponseWriter, req *http.Request) {
 	namespacesJSON, _ := json.Marshal(namespaces.Items)
 	resp.Header().Set("Access-Control-Allow-Origin", "*")
 	resp.Header().Add("Content-Type", "application/json")
-	resp.Write(namespacesJSON)
+	_, err = resp.Write(namespacesJSON)
+	if err != nil {
+		log.Println("Unable to write")
+	}
 }
 
 //
@@ -123,20 +130,85 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 	namespace := params["ns"]
 
 	ctx := context.Background()
+
 	pods, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	services, err := clientset.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	endpoints, err := clientset.CoreV1().Endpoints(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	pvs, err := clientset.CoreV1().PersistentVolumes().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	pvcs, err := clientset.CoreV1().PersistentVolumeClaims(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	configmaps, err := clientset.CoreV1().ConfigMaps(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	secrets, err := clientset.CoreV1().Secrets(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	deployments, err := clientset.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	daemonsets, err := clientset.AppsV1().DaemonSets(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	replicasets, err := clientset.AppsV1().ReplicaSets(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	statefulsets, err := clientset.AppsV1().StatefulSets(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		log.Println("### Kubernetes API error", err.Error())
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	ingresses, err := clientset.ExtensionsV1beta1().Ingresses(namespace).List(ctx, metav1.ListOptions{})
-
 	if err != nil {
 		log.Println("### Kubernetes API error", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
@@ -180,7 +252,10 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 	scrapeResultJSON, _ := json.Marshal(scrapeResult)
 	resp.Header().Set("Access-Control-Allow-Origin", "*")
 	resp.Header().Add("Content-Type", "application/json")
-	resp.Write([]byte(scrapeResultJSON))
+	_, err = resp.Write([]byte(scrapeResultJSON))
+	if err != nil {
+		log.Println("Unable to write")
+	}
 }
 
 //
@@ -193,7 +268,10 @@ func routeConfig(resp http.ResponseWriter, req *http.Request) {
 	configJSON, _ := json.Marshal(conf)
 	resp.Header().Set("Access-Control-Allow-Origin", "*")
 	resp.Header().Add("Content-Type", "application/json")
-	resp.Write([]byte(configJSON))
+	_, err := resp.Write([]byte(configJSON))
+	if err != nil {
+		log.Println("Unable to write")
+	}
 }
 
 //

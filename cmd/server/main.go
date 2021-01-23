@@ -1,3 +1,4 @@
+// Default package
 package main
 
 //

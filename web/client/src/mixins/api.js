@@ -43,6 +43,6 @@ export default {
         // eslint-disable-next-line
         console.log(`### ERROR! Failed to call API ${API_ENDPOINT}/${urlSuffix}, ${err}`)
       }
-    }
-  }
+    },
+  },
 }

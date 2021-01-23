@@ -1,10 +1,7 @@
 <template>
   <div class="infobox" @click="$emit('hide-info-box')">
     <b-card :title="metadata.name" :sub-title="nodeData.type">
-      <h6
-        v-if="metadata.creationTimestamp"
-        class="text-muted"
-      >
+      <h6 v-if="metadata.creationTimestamp" class="text-muted">
         &bull; Created: {{ utilsDateFromISO8601(metadata.creationTimestamp).toLocaleString() }}
       </h6>
       <div v-if="metadata && metadata.labels">
@@ -82,7 +79,7 @@
         <ul>
           <div v-for="(port, index) of specPorts" :key="`ports_${index}`">
             <li>
-              <b>{{ port.name || "port" }}:</b>
+              <b>{{ port.name || 'port' }}:</b>
               {{ port.port }} &rarr; {{ port.targetPort }} ({{ port.protocol }})
             </li>
           </div>
@@ -112,9 +109,7 @@
         </ul>
       </div>
 
-      <b-button variant="info" @click="$emit('full-info', nodeData)">
-        Full Object Details
-      </b-button>
+      <b-button variant="info" @click="$emit('full-info', nodeData)"> Full Object Details </b-button>
     </b-card>
   </div>
 </template>
@@ -153,9 +148,7 @@ export default {
         if (ready) {
           statusCopy.ready = ready.status
         }
-        let available = statusCopy.conditions.find(
-          (c) => c.type == 'Available'
-        )
+        let available = statusCopy.conditions.find((c) => c.type == 'Available')
         if (available) {
           statusCopy.available = available.status
         }
@@ -184,14 +177,7 @@ export default {
     },
 
     annotations() {
-      if (
-        !this.utilsCheckNested(
-          this.nodeData,
-          'sourceObj',
-          'metadata',
-          'annotations'
-        )
-      ) {
+      if (!this.utilsCheckNested(this.nodeData, 'sourceObj', 'metadata', 'annotations')) {
         return false
       }
       let annoCopy = {}
@@ -215,9 +201,7 @@ export default {
     },
 
     specContainers() {
-      if (
-        !this.utilsCheckNested(this.nodeData, 'sourceObj', 'spec', 'containers')
-      ) {
+      if (!this.utilsCheckNested(this.nodeData, 'sourceObj', 'spec', 'containers')) {
         return false
       }
 
@@ -226,14 +210,7 @@ export default {
     },
 
     specInitContainers() {
-      if (
-        !this.utilsCheckNested(
-          this.nodeData,
-          'sourceObj',
-          'spec',
-          'initContainers'
-        )
-      ) {
+      if (!this.utilsCheckNested(this.nodeData, 'sourceObj', 'spec', 'initContainers')) {
         return false
       }
 
