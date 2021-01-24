@@ -8,10 +8,8 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "lint-ci": "vue-cli-service lint --no-fix",
-    "format": "prettier --write src",
-    "format-ci": "prettier --check src"
+    "lint-fix": "vue-cli-service lint && prettier --write src",
+    "lint": "vue-cli-service lint --no-fix && prettier --check src"
   },
   "dependencies": {
     "bootstrap-vue": "^2.21.2",

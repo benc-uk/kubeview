@@ -4,6 +4,7 @@ linters-settings:
 linters:
   enable:
     - golint
+    - gofmt
 issues:
   include:
     - EXC0002

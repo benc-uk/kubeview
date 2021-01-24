@@ -1,9 +1,9 @@
 #
 # This file might sound important but...
-# It is only used by the hosting on GitHub Pages, it has no other importance to the Smilr project
+# It is only used by the hosting on GitHub Pages, it has no other importance to the project
 #
 
-title: "KubeView"
+title: 'KubeView'
 remote_theme: benc-uk/theme-msdark
 favicon: /web/client/src/assets/logo.png
 buttons:

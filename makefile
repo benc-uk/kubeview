@@ -8,62 +8,49 @@ VERSION := 0.1.20
 BUILD_INFO := Manual build from makefile
 
 # Most likely want to override these when calling `make image`
-DOCKER_REG ?= ghcr.io
-DOCKER_REPO ?= benc-uk/kubeview
-DOCKER_TAG ?= latest
-DOCKER_PREFIX := $(DOCKER_REG)/$(DOCKER_REPO)
+IMAGE_REG ?= ghcr.io
+IMAGE_REPO ?= benc-uk/kubeview
+IMAGE_TAG ?= latest
+IMAGE_PREFIX := $(IMAGE_REG)/$(IMAGE_REPO)
 
-.PHONY: image push build-frontend build-server lint lint-ci format format-ci
+.PHONY: help image push build-frontend build-server lint lint-fix
+.DEFAULT_GOAL := help
+
 
 ################################################################################
-# Lint - check everything
+help:  ## This help message :)
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+
 ################################################################################
-lint: $(FRONTEND_DIR)/node_modules
+lint: $(FRONTEND_DIR)/node_modules  ## Lint & format, will not fix but sets exit code on error
 	go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	golangci-lint run $(SERVER_DIR)/...
-	cd $(FRONTEND_DIR); npm run lint-ci
-
-################################################################################
-# Lint - will try to fix errors & modify code
-################################################################################
-lint-fix: $(FRONTEND_DIR)/node_modules
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint
-	golangci-lint run $(SERVER_DIR)/... --fix 
 	cd $(FRONTEND_DIR); npm run lint
 
-################################################################################
-# Format - check everything
-################################################################################
-format: $(FRONTEND_DIR)/node_modules
-	@test -z `gofmt -l $(SERVER_DIR)` || (gofmt -d $(SERVER_DIR) && exit 1)
-	cd $(FRONTEND_DIR); npm run format-ci
 
 ################################################################################
-# Format - will try to fix errors & modify code
-################################################################################
-format-fix: $(FRONTEND_DIR)/node_modules
-	gofmt -w $(SERVER_DIR)
-	cd $(FRONTEND_DIR); npm run format
+lint-fix: $(FRONTEND_DIR)/node_modules  ## Lint & format, will try to fix errors and modify code
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	golangci-lint run $(SERVER_DIR)/... --fix 
+	cd $(FRONTEND_DIR); npm run lint-fix
+
 
 ################################################################################
-# Build combined Docker image (API server plus frontend)
-################################################################################
-image:
+image:  ## Build combined container image (API server plus frontend)
 	docker build  --file ./build/Dockerfile \
-	--build-arg buildInfo="$(BUILD_INFO)" \
-	--build-arg version="$(VERSION)" \
-	--tag $(DOCKER_REG)/$(DOCKER_REPO):$(DOCKER_TAG) . 
+	--build-arg BUILD_INFO="$(BUILD_INFO)" \
+	--build-arg VERSION="$(VERSION)" \
+	--tag $(IMAGE_PREFIX):$(IMAGE_TAG) . 
+
 
 ################################################################################
-# Push combined Docker image
-################################################################################
-push:
-	docker push $(DOCKER_REG)/$(DOCKER_REPO):$(DOCKER_TAG)
+push:  ## Push combined container image
+	docker push $(IMAGE_PREFIX):$(IMAGE_TAG)
+
 
 ################################################################################
-# Build & bundle Frontend / Vue.js
-################################################################################
-build-frontend: $(FRONTEND_DIR)/node_modules
+build-frontend: $(FRONTEND_DIR)/node_modules  ## Build & bundle Frontend / Vue.js
 	cd $(FRONTEND_DIR); npm run build
 
 $(FRONTEND_DIR)/node_modules: $(FRONTEND_DIR)/package.json
@@ -73,10 +60,9 @@ $(FRONTEND_DIR)/node_modules: $(FRONTEND_DIR)/package.json
 $(FRONTEND_DIR)/package.json: 
 	@echo "package.json was modified"
 
+
 ################################################################################
-# Build server
-################################################################################
-build-server: 
+build-server:  ## Build Go API server
 	GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build \
 	-ldflags "-X main.version=\"$(VERSION)\" -X 'main.buildInfo=\"$(BUILD_INFO)\"'" \
 	-o server $(SERVER_DIR)/...

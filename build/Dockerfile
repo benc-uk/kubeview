@@ -16,9 +16,7 @@ COPY ${sourceDir}/.eslintrc.js .
 COPY ${sourceDir}/public ./public
 COPY ${sourceDir}/src ./src
 
-# Run ESLint checks
-RUN npm run lint
-# Now main Vue CLI build & bundle, this will output to ./dist
+# Carry out Vue CLI build & bundle, this will output to ./dist
 RUN npm run build
 
 # ================================================================================================
@@ -26,9 +24,9 @@ RUN npm run build
 # ================================================================================================
 FROM golang:1.15-alpine as go-build
 WORKDIR /build
-ARG goPackage="github.com/benc-uk/kubeview/cmd/server"
-ARG version="0.0.0"
-ARG buildInfo="Not set"
+ARG GO_PACKAGE="github.com/benc-uk/kubeview/cmd/server"
+ARG VERSION="0.0.0"
+ARG BUILD_INFO="Not set"
 
 ENV PORT 8000
 
@@ -47,9 +45,9 @@ COPY cmd/ ./cmd
 # Disabling cgo results in a fully static binary that can run without C libs
 # Also inject version and build details 
 RUN GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build \
-    -ldflags "-X main.version=$version -X 'main.buildInfo=$buildInfo'" \
+    -ldflags "-X main.version=$VERSION -X 'main.buildInfo=$BUILD_INFO'" \
     -o server \
-    $goPackage
+    $GO_PACKAGE
 
 # ================================================================================================
 # === Stage 3: Bundle server exe and Vue dist in runtime image ===================================
