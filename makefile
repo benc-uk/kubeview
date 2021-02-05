@@ -24,8 +24,7 @@ help:  ## This help message :)
 
 ################################################################################
 lint: $(FRONTEND_DIR)/node_modules  ## Lint & format, will not fix but sets exit code on error
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint
-	golangci-lint run $(SERVER_DIR)/...
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint; golangci-lint run $(SERVER_DIR)/...
 	cd $(FRONTEND_DIR); npm run lint
 
 

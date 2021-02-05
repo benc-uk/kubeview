@@ -24,6 +24,7 @@ ingress:
     - host: chart-example.local
       paths: ['/']
   tls: []
+  className:
 
 loadBalancerIP: ''
 
