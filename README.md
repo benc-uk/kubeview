@@ -4,7 +4,9 @@ Kubernetes cluster visualiser and visual explorer
 
 KubeView displays what is happening inside a Kubernetes cluster (or single namespace), it maps out the API objects and how they are interconnected. Data is fetched real-time from the Kubernetes API. The status of some objects (Pods, ReplicaSets, Deployments) is colour coded red/green to represent their status and health
 
-The app auto refreshes and dynamically updates the view as new data comes in or when it changes
+The app auto refreshes and dynamically updates the view as new data comes in or when it changes.
+
+Note. No secrets are exposed by the Kubeview API, values are redacted and replaced with `__VALUE REDACTED__` before being sent.
 
 Currently displays the following Kubernetes objects:
 - Deployments
