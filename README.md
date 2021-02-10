@@ -6,8 +6,6 @@ KubeView displays what is happening inside a Kubernetes cluster (or single names
 
 The app auto refreshes and dynamically updates the view as new data comes in or when it changes.
 
-Note. No secrets are exposed by the Kubeview API, values are redacted and replaced with `__VALUE REDACTED__` before being sent.
-
 Currently displays the following Kubernetes objects:
 - Deployments
 - ReplicaSets / StatefulSets / DaemonSets
@@ -24,6 +22,7 @@ Currently displays the following Kubernetes objects:
 [![](https://img.shields.io/github/last-commit/benc-uk/kubeview?style=for-the-badge&logo=github)](https://github.com/benc-uk/kubeview/commits/master)
 [![](https://img.shields.io/github/v/release/benc-uk/kubeview?style=for-the-badge&logo=github)](https://github.com/benc-uk/kubeview/releases)
 
+Note. No secrets are exposed by the Kubeview API, values are redacted and replaced with `__VALUE REDACTED__` before being sent.
 
 ## Demo & Screenshots
 #### Short video demo
