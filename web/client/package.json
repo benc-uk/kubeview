@@ -20,10 +20,10 @@
     "vue-timers": "^2.0.4"
   },
   "devDependencies": {
-    "@vue/cli-plugin-eslint": "^4.5.11",
+    "@vue/cli-plugin-eslint": "^4.5.12",
     "@vue/cli-service": "^4.5.11",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.18.0",
+    "eslint": "^6.0.0",
     "eslint-plugin-vue": "^7.5.0",
     "vue-template-compiler": "^2.6.12"
   }
