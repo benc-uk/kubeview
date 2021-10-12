@@ -4,7 +4,7 @@
 
 SERVER_DIR := ./cmd
 FRONTEND_DIR := ./web/client
-VERSION := 0.1.20
+VERSION := 0.1.21
 BUILD_INFO := Manual build from makefile
 
 # Most likely want to override these when calling `make image`
@@ -70,4 +70,4 @@ $(FRONTEND_DIR)/package.json:
 build-server:  ## Build Go API server
 	GO111MODULE=on CGO_ENABLED=0 GOOS=linux go build \
 	-ldflags "-X main.version=\"$(VERSION)\" -X 'main.buildInfo=\"$(BUILD_INFO)\"'" \
-	-o server $(SERVER_DIR)/...
+	-o bin/server $(SERVER_DIR)/...
