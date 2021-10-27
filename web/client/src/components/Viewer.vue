@@ -8,7 +8,7 @@
       <infobox v-if="infoBoxData" :node-data="infoBoxData" @hide-info-box="infoBoxData = null" @full-info="showFullInfo" />
     </transition>
 
-    <b-modal ref="fullInfoModal" centered :title="fullInfoTitle" ok-only scrollable size="lg" body-class="fullInfoBody">
+    <b-modal ref="fullInfoModal" :title="fullInfoTitle" body-class="fullInfoBody" centered ok-only scrollable size="lg">
       <pre>{{ fullInfoYaml }}</pre>
     </b-modal>
   </div>
@@ -228,11 +228,12 @@ export default {
     //
     // Some objects are colour coded by status
     //
-    calcStatus(kubeObj) {
+    calcStatus(kubeObj, objType) {
+      console.log(objType)
       let status = 'grey'
 
       try {
-        if (kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/deployments/`)) {
+        if (objType==='Deployment') {
           status = 'red'
           let cond = kubeObj.status.conditions.find((c) => c.type == 'Available') || {}
           if (cond.status == 'True') {
@@ -240,24 +241,21 @@ export default {
           }
         }
 
-        if (
-          kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/replicasets/`) ||
-          kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/statefulsets/`)
-        ) {
+        if (objType === 'ReplicaSet' || objType === 'StatefulSet') {
           status = 'green'
           if (kubeObj.status.replicas != kubeObj.status.readyReplicas) {
             status = 'red'
           }
         }
 
-        if (kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/daemonsets/`)) {
+        if (objType === 'DaemonSet') {
           status = 'green'
           if (kubeObj.status.numberReady != kubeObj.status.desiredNumberScheduled) {
             status = 'red'
           }
         }
 
-        if (kubeObj.metadata.selfLink.startsWith(`/api/v1/namespaces/${this.namespace}/pods/`)) {
+        if (objType === 'Pod') {
           let cond = {}
           if (kubeObj.status && kubeObj.status.conditions) {
             cond = kubeObj.status.conditions.find((c) => c.type == 'Ready')
@@ -299,7 +297,7 @@ export default {
         // Add special "group" node for the set
         this.addGroup(type, obj.metadata.name)
         // Add set node and link it to the group
-        this.addNode(obj, type, this.calcStatus(obj))
+        this.addNode(obj, type, this.calcStatus(obj, type))
         //this.addLink(`grp_ReplicaSet_${rs.metadata.name}`, rsId)
 
         // Find all owning deployments of this set (if any)
@@ -325,7 +323,7 @@ export default {
           continue
         }
 
-        this.addNode(deploy, 'Deployment', this.calcStatus(deploy))
+        this.addNode(deploy, 'Deployment', this.calcStatus(deploy, 'Deployment'))
       }
 
       // The 'sets' - ReplicaSets / DaemonSets / StatefulSets
@@ -344,10 +342,10 @@ export default {
           // Most pods have owning set (rs, ds, sts) so are in a group
           let owner = pod.metadata.ownerReferences[0]
           let groupId = `grp_${owner.kind}_${owner.name}`
-          this.addNode(pod, 'Pod', this.calcStatus(pod), groupId)
+          this.addNode(pod, 'Pod', this.calcStatus(pod, 'Pod'), groupId)
         } else {
           // Naked pods don't go into groups
-          this.addNode(pod, 'Pod', this.calcStatus(pod))
+          this.addNode(pod, 'Pod', this.calcStatus(pod, 'Pod'))
         }
 
         // Find linked Secrets and ConfigMaps referenced as env
@@ -668,9 +666,11 @@ export default {
 .slide-fade-enter-active {
   transition: all 0.3s ease;
 }
+
 .slide-fade-leave-active {
   transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
 }
+
 .slide-fade-enter,
 .slide-fade-leave-to {
   transform: translateY(20px);
