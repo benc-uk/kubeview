@@ -22,13 +22,13 @@ help: ## ❓ This help message :)
 
 lint: $(FRONTEND_DIR)/node_modules ## 🔍 Lint & format, will not fix but sets exit code on error
 	@$(GOLINT_PATH) > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh
-	cd $(SERVER_DIR)/server; $(GOLINT_PATH) run --modules-download-mode=mod *.go
+	cd $(SERVER_DIR)/server; $(GOLINT_PATH) run --modules-download-mode=mod --timeout 3m *.go 
 	cd $(FRONTEND_DIR); npm run lint
 	go mod tidy
 
 lint-fix: $(FRONTEND_DIR)/node_modules ## ✒️  Lint & format, will try to fix errors and modify code
 	@$(GOLINT_PATH) > /dev/null || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh
-	cd $(SERVER_DIR)/server; golangci-lint run --modules-download-mode=mod *.go --fix
+	cd $(SERVER_DIR)/server; golangci-lint run --modules-download-mode=mod --timeout 3m *.go --fix
 	cd $(FRONTEND_DIR); npm run lint-fix
 	go mod tidy
 
