@@ -1,6 +1,6 @@
 {
   "name": "kubeview",
-  "version": "0.1.20",
+  "version": "0.1.30",
   "author": {
     "name": "Ben Coleman"
   },
@@ -13,18 +13,18 @@
   },
   "dependencies": {
     "bootstrap-vue": "^2.21.2",
-    "bootswatch": "^4.6.0",
-    "cytoscape": "^3.18.0",
-    "vue": "^2.6.12",
+    "bootswatch": "^4.0.0",
+    "cytoscape": "^3.20.0",
+    "vue": "^2.6.14",
     "vue-timers": "^2.0.4"
   },
   "devDependencies": {
-    "prettier": "^2.2.1",
-    "@vue/cli-plugin-eslint": "^4.5.12",
-    "@vue/cli-service": "^4.5.11",
+    "prettier": "^2.4.1",
+    "@vue/cli-plugin-eslint": "^4.5.15",
+    "@vue/cli-service": "^4.5.15",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.0.0",
-    "eslint-plugin-vue": "^7.5.0",
-    "vue-template-compiler": "^2.6.12"
+    "eslint-plugin-vue": "^6.0.0",
+    "vue-template-compiler": "^2.6.14"
   }
 }
