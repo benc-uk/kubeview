@@ -10,6 +10,9 @@ env:
   DOCKER_USER: bencuk
   IMAGE_NAME: kubeview
 
+permissions:
+  packages: write
+
 jobs:
   release:
     name: Release image & chart
