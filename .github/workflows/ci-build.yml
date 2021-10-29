@@ -2,7 +2,6 @@ name: CI Build
 
 # This is a generic CI pipeline that assumes project is to be built as a container image
 # Note. CI build only builds 'latest' image, not a versioned release
-# Note. REGISTRY_PASSWORD must be set and change the IMAGE_NAME
 
 on:
   push:
@@ -14,6 +13,9 @@ env:
   IMAGE_REG: ghcr.io
   IMAGE_NAME: kubeview
   IMAGE_TAG: latest
+
+permissions:
+  packages: write
 
 jobs:
   ci-build:
@@ -28,7 +30,7 @@ jobs:
       # Ensures Go is configured properly
       - uses: actions/setup-go@v2
         with:
-          go-version: '^1.15.7'
+          go-version: "^1.17.2"
 
       # Validate code
       - name: Check code for linting and format errors
@@ -42,5 +44,5 @@ jobs:
       - name: Push to container registry
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         run: |
-          echo ${{ secrets.REGISTRY_PASSWORD }} | docker login $IMAGE_REG -u $GITHUB_ACTOR --password-stdin
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login $IMAGE_REG -u $GITHUB_ACTOR --password-stdin
           make push IMAGE_REPO=$GITHUB_ACTOR/$IMAGE_NAME

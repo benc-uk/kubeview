@@ -4,3 +4,4 @@ cmd/server/server
 .env
 **/myvalues*.yaml
 !**/myvalues-sample.yaml
+bin/**

@@ -20,7 +20,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
-	v1beta1 "k8s.io/api/extensions/v1beta1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -40,7 +40,7 @@ type scrapeData struct {
 	DaemonSets             []appsv1.DaemonSet            `json:"daemonsets"`
 	ReplicaSets            []appsv1.ReplicaSet           `json:"replicasets"`
 	StatefulSets           []appsv1.StatefulSet          `json:"statefulsets"`
-	Ingresses              []v1beta1.Ingress             `json:"ingresses"`
+	Ingresses              []networkingv1.Ingress        `json:"ingresses"`
 	ConfigMaps             []apiv1.ConfigMap             `json:"configmaps"`
 	Secrets                []apiv1.Secret                `json:"secrets"`
 }
@@ -202,13 +202,14 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	statefulsets, err := clientset.AppsV1().StatefulSets(namespace).List(ctx, metav1.ListOptions{})
+	//t := statefulsets.Items
 	if err != nil {
 		log.Println("### Kubernetes API error", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	ingresses, err := clientset.ExtensionsV1beta1().Ingresses(namespace).List(ctx, metav1.ListOptions{})
+	ingresses, err := clientset.NetworkingV1().Ingresses(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		log.Println("### Kubernetes API error", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)

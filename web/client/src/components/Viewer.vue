@@ -24,6 +24,11 @@ import yaml from 'js-yaml'
 import VueTimers from 'vue-timers/mixin'
 import cytoscape from 'cytoscape'
 
+const TYPE_DEPLOYMENT = 0
+const TYPE_POD = 1
+const TYPE_REPLICA_SET = 2
+const TYPE_DAEMON_SET = 3
+
 // Had to place this here, putting into data causes weirdness
 // It's not reactive so it's fine
 let cy
@@ -200,12 +205,12 @@ export default {
       for (let type in data) {
         for (let obj of data[type]) {
           // We have to skip these objects, the resourceVersion is constantly shifting
-          if (obj.metadata.selfLink == '/api/v1/namespaces/kube-system/endpoints/kube-controller-manager') {
-            continue
-          }
-          if (obj.metadata.selfLink == '/api/v1/namespaces/kube-system/endpoints/kube-scheduler') {
-            continue
-          }
+          // if (obj.metadata.selfLink == '/api/v1/namespaces/kube-system/endpoints/kube-controller-manager') {
+          //   continue
+          // }
+          // if (obj.metadata.selfLink == '/api/v1/namespaces/kube-system/endpoints/kube-scheduler') {
+          //   continue
+          // }
 
           let oldObj = this.apiData[type].find((o) => o.metadata.uid == obj.metadata.uid)
           if (!oldObj || oldObj.metadata.resourceVersion != obj.metadata.resourceVersion) {
@@ -228,11 +233,11 @@ export default {
     //
     // Some objects are colour coded by status
     //
-    calcStatus(kubeObj) {
+    calcStatus(kubeObj, type = TYPE_POD) {
       let status = 'grey'
 
       try {
-        if (kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/deployments/`)) {
+        if (type === TYPE_DEPLOYMENT) {
           status = 'red'
           let cond = kubeObj.status.conditions.find((c) => c.type == 'Available') || {}
           if (cond.status == 'True') {
@@ -240,24 +245,21 @@ export default {
           }
         }
 
-        if (
-          kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/replicasets/`) ||
-          kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/statefulsets/`)
-        ) {
-          status = 'green'
-          if (kubeObj.status.replicas != kubeObj.status.readyReplicas) {
-            status = 'red'
+        if (type === TYPE_REPLICA_SET) {
+          status = 'red'
+          if (kubeObj.status.replicas == kubeObj.status.readyReplicas) {
+            status = 'green'
           }
         }
 
-        if (kubeObj.metadata.selfLink.startsWith(`/apis/apps/v1/namespaces/${this.namespace}/daemonsets/`)) {
-          status = 'green'
-          if (kubeObj.status.numberReady != kubeObj.status.desiredNumberScheduled) {
-            status = 'red'
+        if (type === TYPE_DAEMON_SET) {
+          status = 'red'
+          if (kubeObj.status.numberReady == kubeObj.status.desiredNumberScheduled) {
+            status = 'green'
           }
         }
 
-        if (kubeObj.metadata.selfLink.startsWith(`/api/v1/namespaces/${this.namespace}/pods/`)) {
+        if (type === TYPE_POD) {
           let cond = {}
           if (kubeObj.status && kubeObj.status.conditions) {
             cond = kubeObj.status.conditions.find((c) => c.type == 'Ready')
@@ -273,7 +275,7 @@ export default {
           }
         }
       } catch (err) {
-        console.log(`### Problem with calcStatus for ${kubeObj.metadata.selfLink}`)
+        console.log(`### Problem with calcStatus for ${kubeObj.metadata.name}`)
       }
 
       return status
@@ -299,7 +301,7 @@ export default {
         // Add special "group" node for the set
         this.addGroup(type, obj.metadata.name)
         // Add set node and link it to the group
-        this.addNode(obj, type, this.calcStatus(obj))
+        this.addNode(obj, type, this.calcStatus(obj, type.toLowerCase() == 'daemonset' ? TYPE_DAEMON_SET : TYPE_REPLICA_SET))
         //this.addLink(`grp_ReplicaSet_${rs.metadata.name}`, rsId)
 
         // Find all owning deployments of this set (if any)
@@ -325,13 +327,13 @@ export default {
           continue
         }
 
-        this.addNode(deploy, 'Deployment', this.calcStatus(deploy))
+        this.addNode(deploy, 'Deployment', this.calcStatus(deploy, TYPE_DEPLOYMENT))
       }
 
       // The 'sets' - ReplicaSets / DaemonSets / StatefulSets
-      this.addSet('ReplicaSet', this.apiData.replicasets)
-      this.addSet('StatefulSet', this.apiData.statefulsets)
-      this.addSet('DaemonSet', this.apiData.daemonsets)
+      this.addSet('ReplicaSet', this.apiData.replicasets, TYPE_REPLICA_SET)
+      this.addSet('StatefulSet', this.apiData.statefulsets, TYPE_REPLICA_SET)
+      this.addSet('DaemonSet', this.apiData.daemonsets, TYPE_DAEMON_SET)
 
       // Add pods
       for (let pod of this.apiData.pods) {
@@ -344,10 +346,10 @@ export default {
           // Most pods have owning set (rs, ds, sts) so are in a group
           let owner = pod.metadata.ownerReferences[0]
           let groupId = `grp_${owner.kind}_${owner.name}`
-          this.addNode(pod, 'Pod', this.calcStatus(pod), groupId)
+          this.addNode(pod, 'Pod', this.calcStatus(pod, TYPE_POD), groupId)
         } else {
           // Naked pods don't go into groups
-          this.addNode(pod, 'Pod', this.calcStatus(pod))
+          this.addNode(pod, 'Pod', this.calcStatus(pod, TYPE_POD))
         }
 
         // Find linked Secrets and ConfigMaps referenced as env
@@ -573,7 +575,6 @@ export default {
           label = podName || node.status.podIP || ''
         }
 
-        //console.log(`### Adding: ${type} -> ${node.metadata.name || node.metadata.selfLink}`)
         cy.add({
           data: {
             id: `${type}_${node.metadata.name}`,
@@ -587,7 +588,11 @@ export default {
           },
         })
       } catch (e) {
-        console.error(`### Unable to add node: ${node.metadata.name || node.metadata.selfLink}`)
+        if (e.toString().includes('create second element')) {
+          // ignore
+        } else {
+          console.warn(`### Unable to add node: ${node.metadata.name}`)
+        }
       }
     },
 
@@ -597,10 +602,13 @@ export default {
     addLink(sourceId, targetId) {
       try {
         // This is the syntax Cytoscape uses for creating links
-        //
         cy.add({ data: { id: `${sourceId}___${targetId}`, source: sourceId, target: targetId } })
       } catch (e) {
-        console.error(`### Unable to add link: ${sourceId} to ${targetId}`)
+        if (e.toString().includes('create second element')) {
+          // ignore
+        } else {
+          console.warn(`### Unable to add link: ${sourceId} to ${targetId}`)
+        }
       }
     },
 
@@ -611,7 +619,11 @@ export default {
       try {
         cy.add({ classes: ['grp'], data: { id: `grp_${type}_${name}`, label: name, name: name } })
       } catch (e) {
-        console.error(`### Unable to add group: ${name}`)
+        if (e.toString().includes('create second element')) {
+          // ignore
+        } else {
+          console.warn(`### Unable to add group: ${name}`)
+        }
       }
     },
 
