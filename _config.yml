@@ -3,7 +3,7 @@
 # It is only used by the hosting on GitHub Pages, it has no other importance to the project
 #
 
-title: 'KubeView'
+title: "KubeView"
 remote_theme: benc-uk/theme-msdark
 favicon: /web/client/src/assets/logo.png
 buttons:
@@ -17,5 +17,5 @@ buttons:
     text: Frontend
     href: /web/client
   - b3:
-    text: Deployment
-    href: /deployments/helm/
+    text: Helm
+    href: /charts
