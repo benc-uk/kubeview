@@ -29,11 +29,12 @@ spec:
     - host: {{ .host | quote }}
       http:
         paths:
-        {{- range .paths }}
-          - path: {{ . }}
+          - path: /
+            pathType: Prefix
             backend:
-              serviceName: {{ $fullName }}
-              servicePort: 80
-        {{- end }}
+              service:
+                name: {{ $fullName }}
+                port: 
+                  number: 80
   {{- end }}
 {{- end }}
