@@ -2,7 +2,6 @@ name: CI Build
 
 # This is a generic CI pipeline that assumes project is to be built as a container image
 # Note. CI build only builds 'latest' image, not a versioned release
-# Note. REGISTRY_PASSWORD must be set and change the IMAGE_NAME
 
 on:
   push:
@@ -31,7 +30,7 @@ jobs:
       # Ensures Go is configured properly
       - uses: actions/setup-go@v2
         with:
-          go-version: '^1.17.2'
+          go-version: "^1.17.2"
 
       # Validate code
       - name: Check code for linting and format errors
