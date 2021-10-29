@@ -27,7 +27,6 @@ lint: $(FRONTEND_DIR)/node_modules  ## Lint & format, will not fix but sets exit
 	@$(GOLINT_PATH) > /dev/null || cd $(SRC_DIR); go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	go get github.com/golangci/golangci-lint/cmd/golangci-lint; golangci-lint run --modules-download-mode=mod $(SERVER_DIR)/...
 	cd $(FRONTEND_DIR); npm run lint
-	# un-f**k the mod file after golangci-lint has mangled it
 	go mod tidy
 
 
@@ -37,7 +36,6 @@ lint-fix: $(FRONTEND_DIR)/node_modules  ## Lint & format, will try to fix errors
 	go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	golangci-lint run --modules-download-mode=mod --fix $(SERVER_DIR)/...
 	cd $(FRONTEND_DIR); npm run lint-fix
-	# un-f**k the mod file after golangci-lint has mangled it
 	go mod tidy
 
 
