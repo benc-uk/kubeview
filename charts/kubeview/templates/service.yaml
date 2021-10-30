@@ -7,7 +7,7 @@ metadata:
 spec:
   {{ if .Values.ingress.enabled }}
   type: ClusterIP
-  {{ else }}
+  {{ else if .Values.loadBalancer.enabled }}
   type: LoadBalancer
   {{ end }}
   ports:
@@ -18,6 +18,6 @@ spec:
   selector:
     app.kubernetes.io/name: {{ include "kubeview.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-{{- if .Values.loadBalancerIP }}
-  loadBalancerIP: {{ .Values.loadBalancerIP }}
+{{- if (and .Values.loadBalancer.enabled .Values.loadBalancer.IP) }}
+  loadBalancerIP: {{ .Values.loadBalancer.IP }}
 {{- end }}

@@ -13,3 +13,8 @@ ingress:
   #  - secretName: my-cert
   #    hosts:
   #      - kubeview.example.net
+
+loadBalancer:
+  enabled: true
+
+  IP: '1.2.3.4'

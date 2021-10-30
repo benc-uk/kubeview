@@ -26,7 +26,10 @@ ingress:
   tls: []
   className:
 
-loadBalancerIP: ''
+loadBalancer:
+  IP: ''
+
+  enabled: true
 
 resources:
   limits:
