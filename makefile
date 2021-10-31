@@ -2,7 +2,7 @@
 # Variables
 SERVER_DIR := ./cmd
 FRONTEND_DIR := ./web/client
-VERSION := 0.1.30
+VERSION := 0.1.31
 BUILD_INFO := Manual build from makefile
 # Things you don't want to change
 REPO_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))

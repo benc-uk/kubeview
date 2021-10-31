@@ -109,7 +109,7 @@
         </ul>
       </div>
 
-      <b-button variant="info" @click="$emit('full-info', nodeData)"> Full Object Details </b-button>
+      <b-button variant="info" @click="$emit('show-full-info', nodeData)"> Full Object Details </b-button>
     </b-card>
   </div>
 </template>

@@ -1,11 +1,12 @@
 {
   "name": "kubeview",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "author": {
     "name": "Ben Coleman"
   },
   "private": true,
   "scripts": {
+    "start": "npm run serve",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint-fix": "vue-cli-service lint && prettier --write src",

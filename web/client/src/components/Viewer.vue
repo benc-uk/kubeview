@@ -5,7 +5,7 @@
     <loading v-if="loading" />
 
     <transition name="slide-fade">
-      <infobox v-if="infoBoxData" :node-data="infoBoxData" @hide-info-box="infoBoxData = null" @full-info="showFullInfo" />
+      <infobox v-if="infoBoxData" :node-data="infoBoxData" @hide-info-box="infoBoxData = null" @show-full-info="showFullInfo" />
     </transition>
 
     <b-modal ref="fullInfoModal" centered :title="fullInfoTitle" ok-only scrollable size="lg" body-class="fullInfoBody">
@@ -145,7 +145,10 @@ export default {
     // Display the detail info dialog with YAML version of the selected object
     //
     showFullInfo() {
-      this.fullInfoYaml = yaml.safeDump(this.infoBoxData.sourceObj)
+      let objectCopy = { ...this.infoBoxData.sourceObj }
+      // Hide managedFields as it is not useful and noisy
+      objectCopy.metadata.managedFields = {}
+      this.fullInfoYaml = yaml.safeDump(objectCopy)
       this.fullInfoTitle = `${this.infoBoxData.type}: ${this.infoBoxData.sourceObj.metadata.name}`
       this.$refs.fullInfoModal.show()
     },

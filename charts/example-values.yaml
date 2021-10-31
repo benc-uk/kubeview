@@ -1,20 +1,24 @@
-#
-# If true install in single namespace mode
-#
+# ==============================================================
+# Example YAML values for typical kubeview deployment scenarios
+# ==============================================================
+
+# If true the app will function in single namespace mode
 limitNamespace: false
 
+# Networking - expose using an ingress
+# Note. If both ingress and loadbalancer are disabled, an internal ClusterIP service will be created
 ingress:
   enabled: false
+  # className: nginx
   # hosts:
   #   - host: kubeview.example.net
-  #     paths:
-  #       - /
   # tls:
   #  - secretName: my-cert
   #    hosts:
   #      - kubeview.example.net
 
+# Networking - expose using simple load balancer
 loadBalancer:
   enabled: true
-
-  IP: '1.2.3.4'
+  # If you have an existing IP you can set it here
+  # IP: "1.2.3.4"
