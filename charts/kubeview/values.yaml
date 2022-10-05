@@ -48,3 +48,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+dropcapabilities: {}
+runasnonroot: {}
