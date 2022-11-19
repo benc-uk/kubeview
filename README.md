@@ -76,6 +76,7 @@ helm install kubeview ./kubeview -f myvalues.yaml
 ```
 
 # Project Meta
+
 ## Known Issues 
 - Filtering only applies to certain objects such as pods and controllers
 - On Firefox, the namespace picker doesn't show a drop down list, you have to start typing a name for the list to appear. This is Firefox behavior not a bug
