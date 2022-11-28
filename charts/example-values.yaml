@@ -22,3 +22,6 @@ loadBalancer:
   enabled: true
   # If you have an existing IP you can set it here
   # IP: "1.2.3.4"
+
+runasnonroot: true
+dropcapabilities: true

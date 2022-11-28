@@ -46,9 +46,21 @@ spec:
               port: 8000
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{ if .Values.dropcapabilities }}
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
+              - CAP_NET_RAW
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{ if .Values.runasnonroot }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
       {{- end }}
     {{- with .Values.affinity }}
       affinity:
