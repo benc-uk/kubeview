@@ -12,8 +12,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"runtime"
-	"strings"
 
 	"github.com/benc-uk/go-rest-api/pkg/env"
 	"github.com/gorilla/mux"
@@ -45,9 +45,58 @@ type scrapeData struct {
 	Secrets                []apiv1.Secret                `json:"secrets"`
 }
 
-//
+// Redact any certificate data from the input byte slice
+func redactCertificates(data []byte) []byte {
+	certRegex := regexp.MustCompile(`(?i)-----+BEGIN\s+CERTIFICATE-----+[^\-]+-----+END\s+CERTIFICATE-----+`)
+	return certRegex.ReplaceAll(data, []byte("__CERTIFICATE REDACTED__"))
+}
+
+// Redact certificates from any JSON-like structure recursively
+func redactCertificatesInJSON(data interface{}) interface{} {
+	switch v := data.(type) {
+	case map[string]interface{}:
+		for key, val := range v {
+			v[key] = redactCertificatesInJSON(val)
+		}
+		return v
+	case []interface{}:
+		for i, val := range v {
+			v[i] = redactCertificatesInJSON(val)
+		}
+		return v
+	case string:
+		return string(redactCertificates([]byte(v)))
+	default:
+		return data
+	}
+}
+
+// Redact certificates from secrets
+func redactSecrets(secrets []apiv1.Secret) []apiv1.Secret {
+	for i, secret := range secrets {
+		// Redact from secret data
+		for key, value := range secret.Data {
+			secret.Data[key] = redactCertificates(value)
+		}
+
+		// Redact from annotations
+		for key, value := range secret.Annotations {
+			secret.Annotations[key] = string(redactCertificates([]byte(value)))
+		}
+
+		// Handle JSON-like fields
+		for key, value := range secret.StringData {
+			redactedValue := redactCertificates([]byte(value))
+			secret.StringData[key] = string(redactedValue)
+		}
+
+		// Reassign redacted secret back
+		secrets[i] = secret
+	}
+	return secrets
+}
+
 // Simple health check endpoint, returns 204 when healthy
-//
 func routeHealthCheck(resp http.ResponseWriter, req *http.Request) {
 	if healthy {
 		resp.WriteHeader(http.StatusNoContent)
@@ -56,9 +105,7 @@ func routeHealthCheck(resp http.ResponseWriter, req *http.Request) {
 	resp.WriteHeader(http.StatusServiceUnavailable)
 }
 
-//
 // Return status information data
-//
 func routeStatus(resp http.ResponseWriter, req *http.Request) {
 	type status struct {
 		Healthy    bool   `json:"healthy"`
@@ -103,9 +150,7 @@ func routeStatus(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-//
 // Return list of all namespaces in cluster
-//
 func routeGetNamespaces(resp http.ResponseWriter, req *http.Request) {
 	ctx := context.Background()
 	namespaces, err := clientset.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
@@ -122,119 +167,113 @@ func routeGetNamespaces(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-//
 // Return aggregated data from loads of different Kubernetes object types
-//
 func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	namespace := params["ns"]
 
 	ctx := context.Background()
 
+	// Fetch Kubernetes resources
 	pods, err := clientset.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	services, err := clientset.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	endpoints, err := clientset.CoreV1().Endpoints(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	pvs, err := clientset.CoreV1().PersistentVolumes().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	pvcs, err := clientset.CoreV1().PersistentVolumeClaims(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	configmaps, err := clientset.CoreV1().ConfigMaps(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	secrets, err := clientset.CoreV1().Secrets(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	deployments, err := clientset.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	daemonsets, err := clientset.AppsV1().DaemonSets(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	replicasets, err := clientset.AppsV1().ReplicaSets(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	statefulsets, err := clientset.AppsV1().StatefulSets(namespace).List(ctx, metav1.ListOptions{})
-	//t := statefulsets.Items
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	ingresses, err := clientset.NetworkingV1().Ingresses(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		log.Println("### Kubernetes API error", err.Error())
+		log.Println("### Kubernetes API error:", err.Error())
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Remove and hide Helm v3 release secrets, we're never going to show them
-	secrets.Items = filterSecrets(secrets.Items, func(v apiv1.Secret) bool {
-		return !strings.HasPrefix(v.ObjectMeta.Name, "sh.helm.release")
-	})
+	// Redact certificates in secrets
+	secrets.Items = redactSecrets(secrets.Items)
 
-	// Obfuscate & remove secret values
-	for _, secret := range secrets.Items {
-		// Inside 'last-applied-configuration'
-		if secret.ObjectMeta.Annotations["kubectl.kubernetes.io/last-applied-configuration"] != "" {
-			secret.ObjectMeta.Annotations["kubectl.kubernetes.io/last-applied-configuration"] = "__VALUE REDACTED__"
+	// Redact any certificate data from ConfigMaps
+	for _, configmap := range configmaps.Items {
+		for key, value := range configmap.Data {
+			configmap.Data[key] = string(redactCertificates([]byte(value)))
 		}
 
-		// And the data values of course
-		for key := range secret.Data {
-			secret.Data[key] = []byte("__VALUE REDACTED__")
+		for key, value := range configmap.BinaryData {
+			configmap.BinaryData[key] = redactCertificates(value)
 		}
 	}
 
-	// Dump of results
+	// Dump of results into the scrapeData struct
 	scrapeResult := scrapeData{
 		Pods:                   pods.Items,
 		Services:               services.Items,
@@ -250,18 +289,23 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 		Secrets:                secrets.Items,
 	}
 
-	scrapeResultJSON, _ := json.Marshal(scrapeResult)
+	// Marshal the results into JSON
+	scrapeResultJSON, err := json.Marshal(scrapeResult)
+	if err != nil {
+		log.Println("### Failed to marshal scrape result: ", err)
+		http.Error(resp, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Set headers and write response
 	resp.Header().Set("Access-Control-Allow-Origin", "*")
 	resp.Header().Add("Content-Type", "application/json")
-	_, err = resp.Write([]byte(scrapeResultJSON))
-	if err != nil {
+	if _, err := resp.Write(scrapeResultJSON); err != nil {
 		log.Println("Unable to write")
 	}
 }
 
-//
 // Simple config endpoint, returns NAMESPACE_SCOPE var to front end
-//
 func routeConfig(resp http.ResponseWriter, req *http.Request) {
 	nsScope := env.GetEnvString("NAMESPACE_SCOPE", "*")
 	conf := Config{NamespaceScope: nsScope}
@@ -275,9 +319,7 @@ func routeConfig(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-//
 // Filter a slice of Secrets
-//
 func filterSecrets(secretList []apiv1.Secret, f func(apiv1.Secret) bool) []apiv1.Secret {
 	newSlice := make([]apiv1.Secret, 0)
 	for _, secret := range secretList {
