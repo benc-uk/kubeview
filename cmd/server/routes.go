@@ -15,7 +15,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/benc-uk/go-starter/pkg/envhelper"
+	"github.com/benc-uk/go-rest-api/pkg/env"
 	"github.com/gorilla/mux"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -263,7 +263,7 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 // Simple config endpoint, returns NAMESPACE_SCOPE var to front end
 //
 func routeConfig(resp http.ResponseWriter, req *http.Request) {
-	nsScope := envhelper.GetEnvString("NAMESPACE_SCOPE", "*")
+	nsScope := env.GetEnvString("NAMESPACE_SCOPE", "*")
 	conf := Config{NamespaceScope: nsScope}
 
 	configJSON, _ := json.Marshal(conf)
