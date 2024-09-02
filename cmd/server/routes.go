@@ -14,6 +14,7 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"strings"
 
 	"github.com/benc-uk/go-rest-api/pkg/env"
 	"github.com/gorilla/mux"
@@ -71,7 +72,6 @@ func redactCertificatesInJSON(data interface{}) interface{} {
 	}
 }
 
-// Redact certificates from secrets
 func redactSecrets(secrets []apiv1.Secret) []apiv1.Secret {
 	for i, secret := range secrets {
 		// Redact from secret data
@@ -79,18 +79,24 @@ func redactSecrets(secrets []apiv1.Secret) []apiv1.Secret {
 			secret.Data[key] = redactCertificates(value)
 		}
 
-		// Redact from annotations
+		// Redact from annotations, including kubectl.kubernetes.io/last-applied-configuration
 		for key, value := range secret.Annotations {
-			secret.Annotations[key] = string(redactCertificates([]byte(value)))
+			if key == "kubectl.kubernetes.io/last-applied-configuration" {
+				// Redact sensitive data within the last-applied-configuration JSON
+				secret.Annotations[key] = string(redactCertificates([]byte(value)))
+			} else {
+				// Redact certificates from other annotations as well
+				secret.Annotations[key] = string(redactCertificates([]byte(value)))
+			}
 		}
 
-		// Handle JSON-like fields
+		// Handle StringData field as well
 		for key, value := range secret.StringData {
 			redactedValue := redactCertificates([]byte(value))
 			secret.StringData[key] = string(redactedValue)
 		}
 
-		// Reassign redacted secret back
+		// Reassign the redacted secret back to the slice
 		secrets[i] = secret
 	}
 	return secrets
@@ -259,7 +265,12 @@ func routeScrapeData(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Redact certificates in secrets
+	// Remove and hide Helm v3 release secrets, we're never going to show them
+	secrets.Items = filterSecrets(secrets.Items, func(v apiv1.Secret) bool {
+		return !strings.HasPrefix(v.ObjectMeta.Name, "sh.helm.release")
+	})
+
+	// Redact sensitive data within secrets, including in kubectl.kubernetes.io/last-applied-configuration
 	secrets.Items = redactSecrets(secrets.Items)
 
 	// Redact any certificate data from ConfigMaps
