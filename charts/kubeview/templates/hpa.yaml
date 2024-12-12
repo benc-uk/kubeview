@@ -1,0 +1,29 @@
+{{- if eq .Values.hpa.enabled true }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "kubeview.fullname" . }}-hpa
+  labels:
+    app: {{ include "kubeview.fullname" . }}-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "kubeview.fullname" . }}
+  minReplicas: {{ .Values.hpa.min_replicas }}
+  maxReplicas: {{ .Values.hpa.max_replicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.target_cpu_utilization }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.target_memory_utilization }}
+{{- end }}
