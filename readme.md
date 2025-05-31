@@ -44,12 +44,12 @@ A `clientID` is used to identify the client and send updates for the resources t
 - `/public/*`: Serves static files such as HTML, CSS, JavaScript, and images used by the frontend application.
 - `/`: Serves the main HTML page (index.html) that loads the KubeView application.
 
-## 🔐 Security and Kubernetes Auth
+## 🔐 Security and Kubernetes API Authentication
 
 The KubeView backend connects to the Kubernetes API via two methods, depending on where it is running:
 
-- **Outside a Kubernetes cluster:** In this mode, it locates the local Kubernetes configuration file (usually located at `$HOME/.kube/config`) to authenticate and access the cluster. This is suitable for local development or when running KubeView on a machine that has access to the Kubernetes cluster.
-- **Inside a Kubernetes cluster:** When running inside a cluster, KubeView uses a service account associated with the pod to authenticate and access the cluster. This service account should be assigned a role that grants it read-only access to the resources you want to visualize. This is the recommended way to run KubeView, and the Helm chart provides a service account, role & role-binding that can be used to set this up easily.
+- **Outside a Kubernetes cluster:** On startup it locates the users local Kubernetes configuration file (usually located at `$HOME/.kube/config`) to authenticate and access the cluster. This is suitable for local development or when running KubeView on a machine that has access to a Kubernetes cluster.
+- **Inside a Kubernetes cluster:** When running inside a Kubernetes cluster, KubeView uses a service account associated with the pod to authenticate and access the cluster. This service account should be assigned a role that grants it read-only access to the resources you want to visualize. This is the recommended way to run KubeView, and the Helm chart provides a service account, role & role-binding that can be used to set this up easily.
 
 The application itself does not enforce any authentication or authorization, it relies on the Kubernetes API server to handle access control. This means that the permissions granted to the service account or user in the Kubernetes cluster will determine what resources KubeView can access and display.
 
@@ -61,14 +61,14 @@ Pre-reqs:
 - A Kubernetes cluster to connect to (can be local or remote)
 - A valid Kubernetes configuration file, if you using kubectl, chances are you already have this set up.
 
-Running it via Docker is the easiest way to get started. You can quickly run KubeView locally with the following command:
+Running it via Podman or Docker is the easiest way to get started. You can quickly run KubeView locally with the following command:
 
 ```bash
 docker run --rm -it --volume "$HOME/.kube:/root/.kube" \
  -p 8000:8000 ghcr.io/benc-uk/kubeview:latest
 ```
 
-This mounts your local Kubernetes configuration directory `$HOME/.kube` into the container, allowing KubeView to access your cluster. The app will be accessible at `http://localhost:8000`. If your config file is located elsewhere, you need to adjust the volume mount accordingly.
+This mounts your local Kubernetes configuration directory `$HOME/.kube` into the container, allowing KubeView to access your cluster. The app will be accessible at `http://localhost:8000`. If your config file is located elsewhere, you'll need to adjust the volume mount accordingly.
 
 ### Configuration
 
@@ -82,11 +82,11 @@ In addition the standard `KUBE_CONFIG` environment variable can be used to speci
 
 ## ❇️ Deploying to Kubernetes
 
-Use the [provided Helm chart](deploy/helm) and [GitHub published images](https://github.com/benc-uk?tab=packages&repo_name=kubeview) to deploy KubeView to your Kubernetes cluster. The chart is designed to be simple and easy to use, with a range of configuration options.
+Use the [provided Helm chart](deploy/helm/readme.md) and [GitHub published images](https://github.com/benc-uk?tab=packages&repo_name=kubeview) to deploy KubeView to your Kubernetes cluster. The chart is designed to be simple and easy to use, with a range of configuration options.
 
 ## 🧑‍💻 Developer Guide
 
-If you wish to contribute to KubeView, or make changes, it is suggested to use the dev container provided in the repo. This will ensure you have all the dependencies installed and configured correctly.
+If you wish to contribute to this project, or make code changes, it is suggested to use the dev container provided in the repo. This will ensure you have all the dependencies installed and configured correctly.
 
 ### The .dev folder
 
