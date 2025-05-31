@@ -3,11 +3,11 @@ entries:
   kubeview:
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2025-05-31T17:37:07.126905944+01:00"
+    created: "2025-05-31T22:41:48.241585661+01:00"
     description: Kubernetes cluster visualiser and visual explorer
-    digest: dc80f678f66bcd4a26b384d1b91152ffe14e352a5cd6125e3595775d04b553e9
+    digest: 5d41894df4888693fbe559d263db728626d258410e23f2c1662e3c6b24265357
     home: https://github.com/benc-uk/kubeview
-    icon: https://raw.githubusercontent.com/benc-uk/kubeview/public/img/icon.png
+    icon: https://kubeview.benco.io/public/img/icon.png
     maintainers:
     - email: benc.uk@gmail.com
       name: Ben Coleman
@@ -19,4 +19,4 @@ entries:
     urls:
     - kubeview-2.0.0.tgz
     version: 2.0.0
-generated: "2025-05-31T17:37:07.126431198+01:00"
+generated: "2025-05-31T22:41:48.240025267+01:00"
