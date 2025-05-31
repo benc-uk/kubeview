@@ -1,0 +1,19 @@
+#
+# This is an example working values file for deploying Kubeview with Helm
+#
+
+image:
+  repository: ghcr.io/benc-uk/kubeview
+  pullPolicy: Always
+  tag: dev
+
+singleNamespace: false
+
+loadBalancer:
+  enabled: false
+
+ingress:
+  enabled: true
+  host: kubeview.kube.benco.io
+  tlsSecretName: benco-io-cert
+  className: nginx

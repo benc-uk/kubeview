@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubeview.fullname" . }}
+  labels:
+    {{- include "kubeview.labels" . | nindent 4 }}
+spec:
+  {{ if .Values.loadBalancer.enabled }}
+  type: LoadBalancer
+  {{ else }}
+  type: ClusterIP
+  {{ end }}
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "kubeview.selectorLabels" . | nindent 4 }}
+{{- if (and .Values.loadBalancer.enabled .Values.loadBalancer.IP) }}
+  loadBalancerIP: {{ .Values.loadBalancer.IP }}
+{{- end }}

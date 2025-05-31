@@ -1,0 +1,255 @@
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1" />
+  <title>KubeView</title>
+  <link rel="icon" href="public/img/icon.png" type="image/png" />
+  <link rel="stylesheet" href="public/ext/bulma.min.css" />
+  <link rel="stylesheet" href="public/css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+
+  <script src="public/js/main.js" type="module"></script>
+</head>
+
+<body x-data="mainApp">
+  <nav class="navbar is-dark" role="navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="/">
+        <img src="public/img/icon.png" alt="Logo" width="32" height="32" />
+        <span class="is-hidden-mobile is-size-4 has-text-weight-semibold">KubeView</span>
+      </a>
+    </div>
+    <div class="navbar-menu is-active">
+      <div class="navbar-start">
+        <div class="navbar-item">
+          <form>
+            <div class="field">
+              <div class="select">
+                <template x-if="namespaces !== null">
+                  <select x-model="namespace" :disabled="isLoading || namespaces.length === 1">
+                    <option value="" disabled>Choose a namespace</option>
+                    <template x-for="ns in namespaces" :key="ns">
+                      <option :value="ns" x-text="ns" :selected="ns == namespace"></option>
+                    </template>
+                  </select>
+                </template>
+                <template x-if="namespaces === null">
+                  <select>
+                    <option value="" disabled selected>🔁 Loading...</option>
+                  </select>
+                </template>
+              </div>
+              <button class="button is-link" type="button" @click="refreshNamespaces()" :disabled="isLoading"
+                title="Refresh Namespaces">
+                <span class="icon"><i class="fas fa-rotate"></i></span>
+              </button>
+            </div>
+          </form>
+          <button class="button is-primary" @click="toolbarTreeLayout()" title="Tree Layout">
+            <span class="icon"><i class="fas fa-chart-diagram"></i></span>
+          </button>
+          <button class="button is-primary" @click="toolbarCoseLayout()" title="Cose Layout">
+            <span class="icon"><i class="fas fa-circle-nodes"></i></span>
+          </button>
+          <button class="button is-primary" @click="toolbarFit()" title="Fit View">
+            <span class="icon"><i class="fas fa-expand"></i></span>
+          </button>
+          <button class="button is-primary" @click="toolbarSavePNG()" title="Save View as PNG">
+            <span class="icon"><i class="fas fa-camera"></i></span>
+          </button>
+        </div>
+        <div class="navbar-item">
+          <div class="field">
+            <p class="control has-icons-left">
+              <input class="input" type="text" placeholder="Search resources..." x-model="searchQuery"
+                @keyup.enter="searchResources()" />
+              <span class="icon is-left">
+                <i class="fas fa-search"></i>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <div class="buttons">
+            <div class="tag is-warning is-medium" id="eventStatusIcon">
+              <span class="icon">
+                <i class="fas fa-plug"></i>
+              </span>&nbsp;Status
+            </div>
+            <button class="button is-primary" @click="showConfigDialog = true">
+              <span class="icon">
+                <i class="fas fa-wrench"></i>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="notification is-danger mx-5 mt-5" x-show="errorMessage" x-cloak>
+    <p class="title is-3">💀 A terrible thing happened!</p>
+    <div x-html="errorMessage"></div><br>
+    <button class="button is-outline" @click="window.location.reload()">Reload</button>
+  </div>
+
+  <div class="notification is-light mx-5 mt-5" id="welcome" x-show="showWelcome" x-cloak>
+    <div class="mb-4 has-background-light p-2 rounded">
+      <img src="public/img/icon.png" class="logo"><span class="logotext">Welcome to KubeView</span>
+    </div>
+    <p class="has-text-dark">
+      To get started, select a namespace from the dropdown above.<br>
+      Use the buttons to switch between layouts, or fit the view to the screen<br>
+      Click on any resource to see its details in the info panel.
+    </p>
+  </div>
+
+  <!-- This is the main view where the graph will be rendered -->
+  <div id="mainView" x-show="!errorMessage" x-cloak></div>
+
+  <div id="loading" x-show="isLoading" x-cloak>
+    <img src="public/img/loading.svg" width="200" height="200" />
+  </div>
+
+  <!-- This is the dialog for settings -->
+  <div class="modal is-active" x-show="showConfigDialog" x-cloak id="configDialog">
+    <div class="modal-background"></div>
+    <div class="modal-card better-shad">
+      <header class="modal-card-head has-background-primary py-3">
+        <p class="modal-card-title has-text-black">Settings</p>
+        <button class="delete" aria-label="close" @click="showConfigDialog = false"></button>
+      </header>
+      <div class="modal-content dark-blur">
+        <section class="my-2 mx-2">
+          <div class="tabs">
+            <ul>
+              <li :class="{'is-active':configTab==1}" @click="configTab=1"><a>General</a></li>
+              <li :class="{'is-active':configTab==2}" @click="configTab=2"><a>Filters</a></li>
+              <li :class="{'is-active':configTab==3}" @click="configTab=3"><a>About</a></li>
+            </ul>
+          </div>
+        </section>
+        <section class="mx-5 my-3">
+          <div :class="{'is-hidden':configTab!=1}">
+            <label class="label">Options</label>
+            <div class="field">
+              <label class="checkbox">
+                <input type="checkbox" x-model="cfg.shortenNames" />
+                Shorten Names
+              </label>
+              <p class="help">Removes hash details from Pod & ReplicaSet names</p>
+            </div>
+            <div class="field mt-4">
+              <label class="checkbox">
+                <input type="checkbox" x-model="cfg.debug" />
+                Debug
+              </label>
+              <p class="help">Extra logging in the console</p>
+            </div>
+          </div>
+          <div :class="{'is-hidden':configTab!=2}">
+            <label class="label">Resource Filters (Hold Ctrl to select multiple)</label>
+            <div class="field">
+              <div class="select is-multiple is-success is-fullwidth">
+                <select multiple size="6" x-model="cfg.resFilter">
+                  <option disabled>• Pods & Deployments:</option>
+                  <option value="Pod" :selected="cfg.resFilter.includes('Pod')">Pods</option>
+                  <option value="Deployment" :selected="cfg.resFilter.includes('Deployment')">Deployments</option>
+                  <option value="StatefulSet" :selected="cfg.resFilter.includes('StatefulSet')">StatefulSets</option>
+                  <option value="DaemonSet" :selected="cfg.resFilter.includes('DaemonSet')">DaemonSets</option>
+                  <option value="ReplicaSet" :selected="cfg.resFilter.includes('ReplicaSet')">ReplicaSets</option>
+                  <option disabled>• Networking:</option>
+                  <option value="Service" :selected="cfg.resFilter.includes('Service')">Services</option>
+                  <option value="Ingress" :selected="cfg.resFilter.includes('Ingress')">Ingress</option>
+                  <option disabled>• Config & Secrets:</option>
+                  <option value="ConfigMap" :selected="cfg.resFilter.includes('ConfigMap')">ConfigMaps</option>
+                  <option value="Secret" :selected="cfg.resFilter.includes('Secret')">Secrets</option>
+                  <option disabled>• Other Resources:</option>
+                  <option value="Job" :selected="cfg.resFilter.includes('Job')">Jobs</option>
+                  <option value="CronJob" :selected="cfg.resFilter.includes('CronJob')">CronJobs</option>
+                  <option value="PersistentVolumeClaim" :selected="cfg.resFilter.includes('PersistentVolumeClaim')">
+                    PersistentVolumeClaims</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div :class="{'is-hidden':configTab!=3}">
+            <div class="field">
+              <label class="label">Kubernetes Cluster</label>
+              <p x-text="serviceMetadata.clusterHost"></p>
+            </div>
+            <div class="field">
+              <label class="label">Version</label>
+              <p x-text="`${serviceMetadata.version} (${serviceMetadata.buildInfo})`"></p>
+            </div>
+            <div class="field">
+              <label class="label">Project</label>
+              <a class="button is-dark" href="https://github.com/benc-uk/kubeview" target="_blank">
+                <span class="icon">
+                  <i class="fab fa-github"></i>
+                </span>
+                <span>github.com/benc-uk/kubeview</span>
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
+      <footer class="modal-card-foot py-3 is-flex is-justify-content-center">
+        <div class="buttons">
+          <button class="button is-success" @click="configDialogSave()">Save changes</button>
+          <button class="button" @click="showConfigDialog = false">Cancel</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- This is the info panel that shows resource details -->
+  <article class="panel is-link" id="infoPanel" x-transition:enter="slidein" x-transition:leave="slideout"
+    x-show="panelOpen" x-cloak>
+    <p class="panel-heading py-2">
+      <img :src="`public/img/res/${panelData.icon}.svg`" width="32" height="32" class="valign-middle" />
+      <span x-text="panelData.kind" class="valign-middle"></span>
+    </p>
+    <section>
+      <div class="panel-block">
+        <button class="button is-small is-primary" :class="{'is-outlined':!panelShowLabels}"
+          @click="panelShowLabels=!panelShowLabels">Labels</button>
+      </div>
+      <!-- Labels -->
+      <template x-for="(value, label) in panelData.labels" :key="label">
+        <div class="panel-block py-0" x-show="panelShowLabels">
+          <div class="py-1 has-text-weight-bold" x-text="label"></div>
+          <div class="py-1" x-text="`: ${value}`"></div>
+        </div>
+      </template>
+      <!-- Properties -->
+      <div class="panel-block has-background-dark py-1">
+        <label class="label">Properties</label>
+      </div>
+      <template x-for="(value, prop) in panelData.props" :key="prop">
+        <div class="panel-block py-0">
+          <div class="py-1 has-text-weight-bold property" x-text="prop"></div>
+          <div class="py-1" x-text="value"></div>
+        </div>
+      </template>
+      <!-- Containers (pods only) -->
+      <template x-for="(cont, name) in panelData.containers" :key="name">
+        <div>
+          <div class="panel-block has-background-dark py-1">
+            <label class="label" x-text="`Container: ${name}`"></label>
+          </div>
+          <template x-for="(value, prop) in cont" :key="prop">
+            <div class="panel-block py-0">
+              <div class="py-1 has-text-weight-bold property" x-text="prop"></div>
+              <div class="py-1" x-text="value"></div>
+            </div>
+          </template>
+        </div>
+      </template>
+    </section>
+  </article>
+</body>
+
+</html>

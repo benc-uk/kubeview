@@ -1,0 +1,62 @@
+name: Release Images
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release'
+        required: true
+        default: 'dev'
+        type: string
+
+env:
+  # Base the version and image tag on the release tag or user input
+  VERSION: ${{ github.event.release.tag_name || github.event.inputs.version || 'dev' }}
+  IMAGE_REG: ghcr.io
+  IMAGE_NAME: benc-uk/kubeview
+  # Build a multi-platform image for Linux and Apple ARM64, using QEMU and Buildx
+  BUILD_PLATFORM: linux/amd64,linux/arm64,darwin/arm64
+
+permissions:
+  packages: write
+
+jobs:
+  image-build:
+    name: Build and push images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set BUILD_INFO based on git log
+        run: |
+          echo BUILD_INFO="stable $(git log -1 --pretty=format:'%h %ad' --date=short)" >> ${GITHUB_ENV}
+
+      - run: |
+          echo ===== RELEASE ======
+          echo VERSION: $VERSION
+          echo BUILD_INFO: $BUILD_INFO
+          echo BUILD_PLATFORM: $BUILD_PLATFORM
+
+      # Needed for building multi-platform images
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # Also needed for building multi-platform images
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push images - version tagged
+        env:
+          IMAGE_TAG: ${{ env.VERSION }}
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
+          make image IMAGE_EXTRA_ARGS="--push"
+
+      - name: Build & push images - latest tagged
+        env:
+          IMAGE_TAG: 'latest'
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
+          make image IMAGE_EXTRA_ARGS="--push"

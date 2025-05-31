@@ -3,19 +3,13 @@
 # It is only used by the hosting on GitHub Pages, it has no other importance to the project
 #
 
-title: "KubeView"
+title: 'KubeView'
 remote_theme: benc-uk/theme-msdark
-favicon: /web/client/src/assets/logo.png
+favicon: public/img/icon.png
 buttons:
   - b0:
     text: Main Docs
-    href: /
-  - b1:
-    text: Server
-    href: /cmd/server
-  - b2:
-    text: Frontend
-    href: /web/client
+    href: https://code.benco.io/kubeview/
   - b3:
     text: Helm
-    href: /charts
+    href: https://code.benco.io/kubeview/deploy/helm/

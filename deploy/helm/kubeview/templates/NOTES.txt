@@ -1,0 +1,27 @@
+╭────────────────────────────────────────────────╮
+│   🌍 KubeView was deployed to Kubernetes! 🚀   │ 
+╰────────────────────────────────────────────────╯
+
+📦 Image:    {{ .Values.image.repository }}:{{ .Values.image.tag }}
+⚡ Replicas: {{ .Values.replicaCount }}
+🌐 Service:  {{ if .Values.loadBalancer.enabled }}LoadBalancer{{ else }}ClusterIP{{- end }}
+🔀 Ingress:  {{ .Values.ingress.enabled }}
+‎ 
+
+{{- if .Values.ingress.enabled }}
+  KubeView is available at this URL:
+  http{{ if $.Values.ingress.tlsSecretName }}s{{ end }}://{{ .Values.ingress.host }}
+{{- else }}
+{{- if .Values.loadBalancer.enabled }}
+  To get the URL to open KubeView, run the following:
+
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "kubeview.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  echo http://$SERVICE_IP:8000
+
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available!
+        You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "kubeview.fullname" . }}'
+{{- else }}
+You haven't configured an ingress or enabled the load balancer. 
+Kubeview will only be accessible inside the cluster, this may be what you intended, probably not.
+{{- end }}
+{{- end }}
