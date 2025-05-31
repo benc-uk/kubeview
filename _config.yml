@@ -9,7 +9,7 @@ favicon: public/img/icon.png
 buttons:
   - b0:
     text: Main Docs
-    href: https://code.benco.io/kubeview/
+    href: https://kubeview.benco.io
   - b3:
     text: Helm
-    href: https://code.benco.io/kubeview/deploy/helm/
+    href: https://kubeview.benco.io/deploy/helm/
