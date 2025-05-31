@@ -4,8 +4,6 @@ github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRF
 github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/benc-uk/go-rest-api v1.0.14 h1:VY6EyyDATpYsSJTv3K35aXCaJ43mon+WBfgcVpcR6ow=
 github.com/benc-uk/go-rest-api v1.0.14/go.mod h1:hJmJtLQmVCWghN8N8nVkcaxE6hPwOfCIlIL+r8OOq4Y=
-github.com/benc-uk/kubeview2 v0.0.0-20250531152610-7c33577d0e88 h1:/DpHsh9/rog7ZxBcI7KYy3Dm2FJ0Mo4ph3J4kEXkI/o=
-github.com/benc-uk/kubeview2 v0.0.0-20250531152610-7c33577d0e88/go.mod h1:sxrqkTB6bCeYUz53v2u0r9/yoYE2lQAFGNOsvNyvIb8=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=

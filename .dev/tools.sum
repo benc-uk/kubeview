@@ -60,8 +60,8 @@ github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLj
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/benc-uk/go-rest-api v1.0.14 h1:VY6EyyDATpYsSJTv3K35aXCaJ43mon+WBfgcVpcR6ow=
 github.com/benc-uk/go-rest-api v1.0.14/go.mod h1:hJmJtLQmVCWghN8N8nVkcaxE6hPwOfCIlIL+r8OOq4Y=
-github.com/benc-uk/kubeview2 v0.0.0-20250531152610-7c33577d0e88 h1:/DpHsh9/rog7ZxBcI7KYy3Dm2FJ0Mo4ph3J4kEXkI/o=
-github.com/benc-uk/kubeview2 v0.0.0-20250531152610-7c33577d0e88/go.mod h1:sxrqkTB6bCeYUz53v2u0r9/yoYE2lQAFGNOsvNyvIb8=
+github.com/benc-uk/kubeview v0.0.0-20250531214456-391d7651fb15 h1:XhYF2H8J1+qJh7pBY9/Q71mFqfrFXNWaosACmA4eDCY=
+github.com/benc-uk/kubeview v0.0.0-20250531214456-391d7651fb15/go.mod h1:7Zq57I8cgPTgweBpEyrqpFFlYxhuS4o+9gG3/N8VSW4=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=

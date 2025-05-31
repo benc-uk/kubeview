@@ -4,7 +4,6 @@ go 1.24.3
 
 require (
 	github.com/benc-uk/go-rest-api v1.0.14
-	github.com/benc-uk/kubeview2 v0.0.0-20250531152610-7c33577d0e88
 	github.com/go-chi/chi/v5 v5.2.1
 	k8s.io/api v0.33.1
 	k8s.io/apimachinery v0.33.1
@@ -49,6 +48,7 @@ require (
 	golang.org/x/term v0.31.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
+	golang.org/x/tools v0.32.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
