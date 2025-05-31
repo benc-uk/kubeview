@@ -6,11 +6,6 @@ body {
   height: 100%;
 }
 
-form {
-  margin: 0;
-  padding: 0;
-}
-
 pre {
   margin: 10px !important;
   padding: 5px !important;
@@ -127,5 +122,7 @@ pre {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 22;
-  background-color: rgb(182, 209, 226);
+  background-color: rgb(84, 172, 226);
+  font-size: 1rem;
+  font-weight: 500;
 }

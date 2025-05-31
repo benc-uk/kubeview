@@ -204,11 +204,9 @@ Alpine.data('mainApp', () => ({
 
     this.searchQuery = ''
     this.isLoading = true
+
     window.history.replaceState({}, '', `?ns=${this.namespace}`)
     cy.elements().remove() // Clear the graph before loading new data
-
-    this.isLoading = false
-    this.showWelcome = false
 
     let data
     let res
@@ -216,6 +214,9 @@ Alpine.data('mainApp', () => ({
       res = await fetch(`api/fetch/${this.namespace}?clientID=${this.clientId}`)
       if (!res.ok) throw new Error(`HTTP error ${res.status}: ${res.statusText}`)
       data = await res.json()
+
+      this.isLoading = false
+      this.showWelcome = false
     } catch (err) {
       this.showError(`Failed to fetch namespace data: ${err.message}`, res)
       return
