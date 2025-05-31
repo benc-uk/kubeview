@@ -1,3 +1,7 @@
+# 👁️ Notice 🔥
+
+KubeView has been rewritten, and it has a new home - https://github.com/benc-uk/kubeview2. It's better and faster and has several new features. I don't plan to remove this old v1 version (yet), but I also have no intention of maintaining anything here, merging PRs or fixing issues etc
+
 # KubeView
 <img src="https://github.com/benc-uk/kubeview/raw/master/web/client/src/assets/logo.png" style="float:right">
 Kubernetes cluster visualiser and visual explorer
