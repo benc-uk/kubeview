@@ -4,6 +4,8 @@ A Helm chart is provided for easily deploying Kubeview.
 
 [📃 Chart Readme](./kubeview/README.md)
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/kubeview)](https://artifacthub.io/packages/search?repo=kubeview)
+
 To install the Kubeview Helm chart, you can use the chart repository hosted from GitHub pages, which means no need to clone this repo. Follow the steps below to add the repository:
 
 ```
