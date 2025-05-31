@@ -1,10 +1,6 @@
 {
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
-    },
-    "eslint.format.enable": true,
-    "[typescript]": {
-        "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-    },
-    "eslint.workingDirectories": ["./web/client"]
+  "prettier.configPath": ".dev/.prettierrc",
+  "eslint.options": {
+    "overrideConfigFile": ".dev/eslint.config.mjs"
+  }
 }

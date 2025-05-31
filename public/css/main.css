@@ -1,0 +1,131 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  height: 100%;
+}
+
+form {
+  margin: 0;
+  padding: 0;
+}
+
+pre {
+  margin: 10px !important;
+  padding: 5px !important;
+  background-color: #080808;
+}
+
+#mainView {
+  width: 100%;
+  height: calc(100% - 65px);
+  background-color: #0a0b0d;
+}
+
+#loading {
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  top: 100px;
+  width: 100%;
+  z-index: 20;
+}
+
+#infoPanel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  margin: 20px;
+  z-index: 10;
+  border: 4px solid rgba(0, 0, 0, 0.8);
+  box-shadow: -1px 7px 14px 2px rgba(0, 0, 0, 0.65) !important;
+}
+
+#infoPanel section {
+  border-radius: 0rem 0rem 0rem 0rem !important;
+  backdrop-filter: blur(20px);
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+#configDialog .modal-content {
+  min-height: 330px;
+}
+
+.logo {
+  vertical-align: middle;
+  width: 80px;
+  height: 80px;
+}
+
+.logotext {
+  font-size: 1.8rem;
+  color: #000;
+  margin-left: 10px;
+  vertical-align: middle;
+  font-weight: 600;
+}
+
+.rounded {
+  border-radius: 0.5rem;
+}
+
+.valign-middle {
+  vertical-align: middle;
+}
+
+.dark-blur {
+  backdrop-filter: blur(20px);
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.property {
+  width: 150px;
+}
+
+.better-shad {
+  border-radius: 0.75rem 0.75rem 0.75rem 0.75rem;
+  border: 4px solid rgba(0, 0, 0, 0.8);
+  box-shadow: -1px 7px 14px 2px rgba(0, 0, 0, 0.65) !important;
+}
+
+.panel-heading img {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  margin-left: 0;
+  vertical-align: middle;
+}
+
+.panel-heading span {
+  vertical-align: middle;
+}
+
+.slidein {
+  animation: slidein 0.5s forwards;
+}
+.slideout {
+  animation: slidein 0.5s reverse forwards;
+}
+
+@keyframes slidein {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+#welcome {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 22;
+  background-color: rgb(182, 209, 226);
+}

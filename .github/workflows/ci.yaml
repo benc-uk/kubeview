@@ -1,0 +1,29 @@
+name: CI Lint & Build
+
+on:
+  push:
+    branches: [main]
+    paths: ['server/**', 'public/**', '.dev/**']
+  pull_request:
+    branches: [main]
+    paths: ['server/**', 'public/**', '.dev/**']
+
+jobs:
+  ci-job:
+    name: Lint & Build Job
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+
+      - name: Run lint
+        run: make lint
+
+      - name: Run build
+        run: make build

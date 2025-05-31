@@ -1,0 +1,55 @@
+version: "2"
+linters:
+  enable:
+    - bodyclose
+    - cyclop
+    - gocyclo
+    - gosec
+    - misspell
+    - nilerr
+    - nilnil
+    - revive
+    - staticcheck
+    - tagliatelle
+    - wsl
+  settings:
+    misspell:
+      locale: UK
+      ignore-rules: ["dialogues", "dialogs"]
+    revive:
+      confidence: 0.5
+      severity: error
+      enable-all-rules: false
+      rules:
+        - name: line-length-limit
+          arguments:
+            - 120
+          severity: error
+        - name: var-naming
+          severity: error
+    tagliatelle:
+      case:
+        rules:
+          json: goCamel
+          yaml: goCamel
+        use-field-name: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

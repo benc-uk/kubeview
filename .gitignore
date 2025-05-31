@@ -1,7 +1,5 @@
+tmp/
+bin/
 node_modules/
-cmd/server/server
-/server
 .env
-**/myvalues*.yaml
-!**/myvalues-sample.yaml
-bin/**
+release-notes.md
