@@ -10,7 +10,7 @@ maintainers:
     url: https://github.com/benc-uk/
     email: benc.uk@gmail.com
 
-icon: https://raw.githubusercontent.com/benc-uk/kubeview/public/img/icon.png
+icon: https://kubeview.benco.io/public/img/icon.png
 home: https://github.com/benc-uk/kubeview
 sources:
   - https://github.com/benc-uk/kubeview

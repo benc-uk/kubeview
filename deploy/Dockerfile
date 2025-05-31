@@ -17,7 +17,6 @@ RUN go mod download
 
 COPY server/ ./server/
 
-# Build the Go binary for the specified platform
 # CGO_ENABLED=0 is used to ensure a statically linked binary
 # TARGETOS and TARGETARCH are set to build for the desired platform
 # The -ldflags option is used to embed version and build info into the binary
