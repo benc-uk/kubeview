@@ -5,7 +5,7 @@
 image:
   repository: ghcr.io/benc-uk/kubeview
   pullPolicy: Always
-  tag: dev
+  tag: latest
 
 singleNamespace: false
 
