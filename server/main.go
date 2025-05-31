@@ -1,6 +1,6 @@
 // ==========================================================================================
 // The backend server for KubeView, serving the web application via templates
-// and connecting to the Kubernetes cluster.
+// - and connecting to the Kubernetes cluster
 // ==========================================================================================
 
 package main
