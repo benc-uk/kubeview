@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/benc-uk/go-starter/pkg/envhelper"
+	"github.com/benc-uk/go-rest-api/pkg/env"
 
 	"github.com/gorilla/mux"
 	_ "github.com/joho/godotenv/autoload" // Autoloads .env file if it exists
@@ -38,8 +38,8 @@ func main() {
 	log.Printf("### Kubeview v%v starting...", version)
 
 	// Port to listen on, change the default as you see fit
-	serverPort := envhelper.GetEnvInt("PORT", 8000)
-	inCluster := envhelper.GetEnvBool("IN_CLUSTER", false)
+	serverPort := env.GetEnvInt("PORT", 8000)
+	inCluster := env.GetEnvBool("IN_CLUSTER", false)
 
 	log.Println("### Connecting to Kubernetes...")
 	var kubeConfig *rest.Config
@@ -80,7 +80,7 @@ func main() {
 	router.HandleFunc("/api/config", routeConfig)
 
 	// Serve the frontend Vue.js SPA
-	staticDirectory := envhelper.GetEnvString("STATIC_DIR", "./frontend")
+	staticDirectory := env.GetEnvString("STATIC_DIR", "./frontend")
 	spa := spaHandler{staticPath: staticDirectory, indexPath: "index.html"}
 	router.PathPrefix("/").Handler(spa)
 
