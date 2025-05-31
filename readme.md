@@ -2,7 +2,7 @@
 
 KubeView is a Kubernetes cluster visualization tool that provides a graphical representation of your cluster's resources and their relationships. It helps you understand the structure and dependencies of your Kubernetes resources, making it easier to manage and troubleshoot your cluster. It is designed to be lightweight, easy to use, and provides a real-time view of your cluster's resources.
 
-Note: This is a v2& complete rewrite the original KubeView project [see below](#-why-a-v2-rewrite) for some insight on the differences and why this was created.
+Note: This is a v2 and complete rewrite the original KubeView project [see below](#-why-a-v2-rewrite) for some insight on the differences and why this was created.
 
 [![CI Lint & Build](https://github.com/benc-uk/kubeview/actions/workflows/ci.yaml/badge.svg)](https://github.com/benc-uk/kubeview/actions/workflows/ci.yaml)
 ![GitHub last commit](https://img.shields.io/github/last-commit/benc-uk/kubeview)
