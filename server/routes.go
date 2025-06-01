@@ -42,9 +42,7 @@ func (s *KubeviewAPI) handleSSE(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("⚡ SSE client connected: %s", clientID)
-
-	err := s.sseBroker.Stream(clientID, w, *r)
+	err := s.eventBroker.Stream(clientID, w, *r)
 	if err != nil {
 		log.Fatalln("💥 Error in SSE broker stream:", err)
 		return
@@ -125,8 +123,8 @@ func (s *KubeviewAPI) handleFetchData(w http.ResponseWriter, r *http.Request) {
 
 	// Critical: Puts the client in the correct SSE group for this namespace
 	// Events are sent to this group, so the client will receive updates ONLY for this namespace
-	s.sseBroker.RemoveFromAllGroups(clientID)
-	s.sseBroker.AddToGroup(clientID, ns)
+	s.eventBroker.RemoveFromAllGroups(clientID)
+	s.eventBroker.AddToGroup(clientID, ns)
 
 	exists := s.kubeService.CheckNamespaceExists(ns)
 	if !exists {
@@ -138,19 +136,6 @@ func (s *KubeviewAPI) handleFetchData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		problem.Wrap(500, r.RequestURI, "fetch data", err).Send(w)
 		return
-	}
-
-	// Debug all groups and clients
-	if s.config.Debug {
-		allGroups := s.sseBroker.GetGroups()
-
-		log.Printf("🔍 Debug: Current groups in SSE broker: %v", allGroups)
-		log.Printf("🔍 Debug: Current clients in SSE broker: %v", s.sseBroker.GetClients())
-
-		for _, group := range allGroups {
-			clients := s.sseBroker.GetGroupClients(group)
-			log.Printf("🔍 Debug: Group '%s' has clients: %v", group, clients)
-		}
 	}
 
 	s.ReturnJSON(w, data)
