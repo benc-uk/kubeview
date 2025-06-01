@@ -96,6 +96,7 @@ func (s *KubeviewAPI) handleNamespaceList(w http.ResponseWriter, r *http.Request
 		Namespaces:  namespaces,
 		Version:     s.Version,
 		BuildInfo:   s.BuildInfo,
+		Mode:        s.kubeService.Mode,
 	}
 
 	s.ReturnJSON(w, res)
@@ -137,6 +138,19 @@ func (s *KubeviewAPI) handleFetchData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		problem.Wrap(500, r.RequestURI, "fetch data", err).Send(w)
 		return
+	}
+
+	// Debug all groups and clients
+	if s.config.Debug {
+		allGroups := s.sseBroker.GetGroups()
+
+		log.Printf("🔍 Debug: Current groups in SSE broker: %v", allGroups)
+		log.Printf("🔍 Debug: Current clients in SSE broker: %v", s.sseBroker.GetClients())
+
+		for _, group := range allGroups {
+			clients := s.sseBroker.GetGroupClients(group)
+			log.Printf("🔍 Debug: Group '%s' has clients: %v", group, clients)
+		}
 	}
 
 	s.ReturnJSON(w, data)

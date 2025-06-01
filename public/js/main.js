@@ -64,6 +64,7 @@ Alpine.data('mainApp', () => ({
     clusterHost: '',
     version: '',
     buildInfo: '',
+    clusterMode: '',
   },
   searchQuery: '',
 
@@ -166,6 +167,7 @@ Alpine.data('mainApp', () => ({
       this.serviceMetadata.clusterHost = data.clusterHost || ''
       this.serviceMetadata.version = data.version || ''
       this.serviceMetadata.buildInfo = data.buildInfo || ''
+      this.serviceMetadata.clusterMode = data.mode || ''
 
       // if single namespace is returned, set it as the current namespace
       if (this.namespaces && this.namespaces.length === 1) {

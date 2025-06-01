@@ -29,6 +29,7 @@ type NamespaceListResult struct {
 	ClusterHost string `json:"clusterHost"`
 	Version     string `json:"version"`
 	BuildInfo   string `json:"buildInfo"`
+	Mode        string `json:"mode"`
 }
 
 func NewKubeviewAPI(conf Config) *KubeviewAPI {
@@ -44,6 +45,10 @@ func NewKubeviewAPI(conf Config) *KubeviewAPI {
 				Data:  "Error marshalling object",
 				Event: "error",
 			}
+		}
+
+		if conf.Debug {
+			log.Printf("🔄 Sending SSE event: %s, clientID: %s, data: %s", ke.EventType, clientID, json)
 		}
 
 		return sse.SSE{

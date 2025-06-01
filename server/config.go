@@ -14,6 +14,7 @@ type Config struct {
 	Port            int
 	NameSpaceFilter string
 	SingleNamespace string
+	Debug           bool
 }
 
 // Parse the environment variables and return a Config struct
@@ -23,6 +24,7 @@ func getConfig() Config {
 	port := 8000
 	nameSpaceFilter := ""
 	singleNamespace := ""
+	debug := false
 
 	if portEnv := os.Getenv("PORT"); portEnv != "" {
 		if p, err := strconv.Atoi(portEnv); err == nil {
@@ -38,9 +40,14 @@ func getConfig() Config {
 		nameSpaceFilter = s
 	}
 
+	if debugEnv := os.Getenv("DEBUG"); debugEnv != "" {
+		debug, _ = strconv.ParseBool(debugEnv)
+	}
+
 	return Config{
 		Port:            port,
 		NameSpaceFilter: nameSpaceFilter,
 		SingleNamespace: singleNamespace,
+		Debug:           debug,
 	}
 }

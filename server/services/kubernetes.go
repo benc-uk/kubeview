@@ -28,6 +28,7 @@ import (
 type Kubernetes struct {
 	client      *dynamic.DynamicClient
 	ClusterHost string
+	Mode        string // "in-cluster" or "out-of-cluster"
 }
 
 // This is used by the SSE broker to send events to connected clients
@@ -57,12 +58,16 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 
 	var err error
 
+	mode := "out-of-cluster" // Default to out-of-cluster mode
+
 	// In cluster connect using in-cluster "magic", else build config from .kube/config file
 	if inCluster() {
 		log.Println("⚓ Running in cluster, will try to use cluster config")
 
 		kubeConfig, err = rest.InClusterConfig()
+		mode = "in-cluster"
 	} else {
+
 		// Default location for kubeconfig file is $HOME/.kube/config
 		kubeconfigFile := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 
@@ -160,6 +165,7 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 	return &Kubernetes{
 		client:      dynamicClient,
 		ClusterHost: kubeConfig.Host,
+		Mode:        mode,
 	}, nil
 }
 
