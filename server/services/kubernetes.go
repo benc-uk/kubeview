@@ -67,7 +67,6 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 		kubeConfig, err = rest.InClusterConfig()
 		mode = "in-cluster"
 	} else {
-
 		// Default location for kubeconfig file is $HOME/.kube/config
 		kubeconfigFile := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 
