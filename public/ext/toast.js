@@ -25,11 +25,25 @@ toastStyles.innerHTML = `
   visibility: hidden;
   opacity: 0;
   transition: visibility 0s 0.5s, opacity 0.3s linear;
-}`
+}
+.warning {
+  background-color:rgb(224, 155, 59);
+  color: #111;
+}
+.error {
+  background-color:rgb(197, 45, 40);
+}
+.success {
+  background-color:rgb(58, 138, 58);
+}
+.info {
+  background-color: #5bc0de;
+}
+`
 document.body.appendChild(toastStyles)
 
 // Show a toast message
-export function showToast(message, duration = 2000, pos = 'top-center') {
+export function showToast(message, duration = 2000, pos = 'top-center', type = '') {
   const toast = document.createElement(`div`)
   toast.classList.add(`toast`)
   toast.classList.add(`toastHidden`)
@@ -75,6 +89,12 @@ export function showToast(message, duration = 2000, pos = 'top-center') {
 
   // Show the toast
   toast.classList.replace('toastHidden', 'toastShown')
+
+  // Apply type-specific styles
+  if (type !== '') {
+    toast.classList.add(type)
+  }
+
   // Set a timeout to hide the toast
   setTimeout(function () {
     toast.classList.replace('toastShown', 'toastHidden')

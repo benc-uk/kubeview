@@ -33,7 +33,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initEventStreaming()
 })
 
-const bc = new BroadcastChannel('kubeview')
+export const channel = new BroadcastChannel('kubeview')
 
 // Alpine.js component for the main application
 Alpine.data('mainApp', () => ({
@@ -76,11 +76,21 @@ Alpine.data('mainApp', () => ({
     console.log(`🙍 ClientID ${this.clientId}`)
 
     // Listen for messages from the BroadcastChannel, just to warn about namespace changes
-    bc.onmessage = (event) => {
+    channel.onmessage = (event) => {
       if (event.data.type === 'namespaceChange') {
-        showToast(`Namespace was changed on a different tab<br>you will no longer see live updates here!`, 5000, 'top-center')
+        showToast(`Namespace was changed on a different tab<br>you will no longer see live updates here!`, 5000, 'top-center', 'warning')
       }
     }
+
+    // These two handlers syncs us with the EventSource in events.js
+    window.addEventListener('reconnect', () => {
+      showToast('Reconnected to the server!<br>Resuming live updates', 3000, 'top-center', 'success')
+      this.fetchNamespace()
+    })
+
+    window.addEventListener('disconnect', () => {
+      showToast('Disconnected from the server!<br>Live updates are paused', 3000, 'top-center', 'error')
+    })
 
     this.$watch('namespace', () => {
       console.log(`🔄 Namespace changed to: ${this.namespace}`)
@@ -88,7 +98,7 @@ Alpine.data('mainApp', () => ({
       this.fetchNamespace()
 
       // This is a workaround to notify other tabs about the namespace change
-      bc.postMessage({ type: 'namespaceChange', namespace: this.namespace })
+      channel.postMessage({ type: 'namespaceChange', namespace: this.namespace })
     })
 
     this.$watch('searchQuery', (query) => this.search(query))
@@ -150,7 +160,7 @@ Alpine.data('mainApp', () => ({
     // Handle layout stop event to show a toast if no nodes are present
     cy.on('layoutstop', () => {
       if (cy.nodes().length === 0) {
-        showToast('🤷‍♂️ No resources found in this namespace<br>Check your filter settings', 3000, 'top-center')
+        showToast('No resources found in this namespace<br>Check your filter settings', 3000, 'top-center', 'warning')
       }
     })
   },
@@ -285,7 +295,7 @@ Alpine.data('mainApp', () => ({
   configDialogSave() {
     saveConfig(this.cfg)
     this.showConfigDialog = false
-    showToast('Configuration saved successfully', 3000, 'top-center')
+    showToast('Configuration saved successfully', 3000, 'top-center', 'success')
     this.fetchNamespace()
   },
 

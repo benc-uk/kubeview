@@ -25,11 +25,14 @@ export function getClientId() {
   return clientID
 }
 
+let disconnected = false
+
 export function initEventStreaming() {
   const clientId = getClientId()
 
   console.log('🌐 Opening event stream...')
-  const updateStream = new EventSource(`/updates?clientID=${clientId}`, {})
+  const updateStream = new EventSource(`updates?clientID=${clientId}`, {})
+  disconnected = false
 
   // Handle resource add events from the server
   updateStream.addEventListener('add', function (event) {
@@ -87,11 +90,33 @@ export function initEventStreaming() {
     const statusIcon = document.getElementById('eventStatusIcon')
 
     if (updateStream.readyState === 1 && statusIcon) {
-      statusIcon.classList.remove('is-warning')
+      statusIcon.classList.remove('is-danger', 'is-warning')
       statusIcon.classList.add('is-success')
+      if (disconnected) {
+        disconnected = false
+        console.log('▶️ Reconnected to event stream')
+        // Inform main app that the stream has reconnected
+        window.dispatchEvent(new CustomEvent('reconnect', {}))
+      }
     } else if (statusIcon) {
       statusIcon.classList.remove('is-success')
       statusIcon.classList.add('is-warning')
+    }
+  }
+
+  updateStream.onerror = function (event) {
+    console.error('‼️ Event stream error:', event)
+    if (!disconnected) {
+      // Inform main app that the stream has disconnected
+      window.dispatchEvent(new CustomEvent('disconnect', {}))
+    }
+    disconnected = true
+
+    const statusIcon = document.getElementById('eventStatusIcon')
+
+    if (statusIcon) {
+      statusIcon.classList.remove('is-success')
+      statusIcon.classList.add('is-danger')
     }
   }
 }
