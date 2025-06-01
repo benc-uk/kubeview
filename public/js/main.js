@@ -197,6 +197,8 @@ Alpine.data('mainApp', () => ({
 
   // Main function to fetch the namespace data
   async fetchNamespace() {
+    this.errorMessage = ''
+
     if (this.isLoading) {
       console.warn('⚠️ Fetch already in progress, ignoring new request')
       return
