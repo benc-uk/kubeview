@@ -1,8 +1,8 @@
 apiVersion: v2
 name: kubeview
 type: application
-version: 2.0.0
-appVersion: '2.0.0'
+version: 2.0.1
+appVersion: '2.0.2'
 
 description: Kubernetes cluster visualiser and visual explorer
 maintainers:

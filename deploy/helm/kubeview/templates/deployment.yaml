@@ -43,6 +43,14 @@ spec:
             - name: SINGLE_NAMESPACE
               value: {{ ternary .Release.Namespace .Values.singleNamespace (eq (toString .Values.singleNamespace) "true") }}
           {{ end }}
+          {{ if .Values.namespaceFilter }}
+            - name: NAMESPACE_FILTER
+              value: {{ .Values.namespaceFilter | quote }}
+          {{ end }}
+          {{ if .Values.debug }}
+            - name: DEBUG
+              value: true
+          {{ end }}           
           ports:
             - name: http
               containerPort: 8000

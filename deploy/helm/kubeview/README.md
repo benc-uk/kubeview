@@ -1,6 +1,6 @@
 # kubeview
 
-![Version: 2.0.0](https://img.shields.io/badge/Version-2.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.0](https://img.shields.io/badge/AppVersion-2.0.0-informational?style=flat-square)
+![Version: 2.0.1](https://img.shields.io/badge/Version-2.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.1](https://img.shields.io/badge/AppVersion-2.0.1-informational?style=flat-square)
 
 Kubernetes cluster visualiser and visual explorer
 
@@ -21,9 +21,11 @@ Kubernetes cluster visualiser and visual explorer
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | singleNamespace | bool | `false` | Configure single namespace mode: `false` - Show resources in all namespaces. This is the default. `true` - Show resources only in namespace Kubeview is installed to. "string" - Only show resources in the named namespace (can be *different* from the one Kubeview is installed to). |
+| namespaceFilter | string | `""` | If you want to hide certain namespaces, use a regular expression here, e.g. `kube-\|aks-` |
+| debug | bool | `false` | Set to true to enable debug mode, which outputs much more information in the logs |
 | ingress.enabled | bool | `false` | Expose the app via an Ingress |
 | ingress.host | string | `""` | The domain name to use for the Ingress, required if enabled |
-| ingress.tlsSecretName | string | `""` | Set to reference a TLS secret (cert) to enable HTTPS |
+| ingress.tlsSecretName | string | `""` | To enable HTTPS, set this to reference a TLS secret (with a valid cert) |
 | ingress.className | string | `""` | The Ingress class to use, if you have multiple ingress controllers |
 | ingress.annotations | object | `{}` | Extra Ingress annotations |
 | loadBalancer.enabled | bool | `true` | Set to true to enable the LoadBalancer service type |
@@ -34,8 +36,9 @@ Kubernetes cluster visualiser and visual explorer
 | image.repository | string | `"ghcr.io/benc-uk/kubeview"` | Only change this if you've built & pushed your own image to a registry |
 | image.pullPolicy | string | `"Always"` | This sets the pull policy for images |
 | image.tag | string | `"latest"` | Specify the image tag to use. If you want to use a specific version, set it here. |
-| podAnnotations | object | `{}` | For adding custom Kubernetes Annotations to the pods |
-| podLabels | object | `{}` | For adding custom Kubernetes Labels to the pods |
+| podAnnotations | object | `{}` | For adding custom annotations to the pods |
+| podLabels | object | `{}` | For adding custom labels to the pods |
+| serviceAnnotations | object | `{}` | For adding custom annotations to the service |
 | podSecurityContext | object | `{}` | Sets pod security context if you need that sort of thing |
 | securityContext | object | `{}` | Sets container security context if you need to run as a specific user or group |
 | replicaCount | int | `1` | Run multiple instances of the Kubeview pod |

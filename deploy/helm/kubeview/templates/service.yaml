@@ -4,6 +4,10 @@ metadata:
   name: {{ include "kubeview.fullname" . }}
   labels:
     {{- include "kubeview.labels" . | nindent 4 }}
+  {{ if .Values.serviceAnnotations }}
+  annotations:
+    {{- toYaml .Values.serviceAnnotations | nindent 4 }}
+  {{ end }}
 spec:
   {{ if .Values.loadBalancer.enabled }}
   type: LoadBalancer

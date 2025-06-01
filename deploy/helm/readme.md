@@ -26,5 +26,8 @@ It's _extremely_ unlikely that you will want to use the default values, so you s
 After creating your `values.yaml` file, you can install the chart with your custom values:
 
 ```
-helm install kubeview kv2/kubeview -f values.yaml
+helm upgrade my kv2/kubeview \
+ --values values.yaml \
+ --namespace kubeview \
+ --install --create-namespace
 ```

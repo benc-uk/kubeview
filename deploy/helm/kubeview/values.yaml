@@ -8,12 +8,18 @@
 # "string" - Only show resources in the named namespace (can be *different* from the one Kubeview is installed to).
 singleNamespace: false
 
+# -- If you want to hide certain namespaces, use a regular expression here, e.g. `kube-\|aks-`
+namespaceFilter: ''
+
+# -- Set to true to enable debug mode, which outputs much more information in the logs
+debug: false
+
 ingress:
   # -- Expose the app via an Ingress
   enabled: false
   # -- The domain name to use for the Ingress, required if enabled
   host: ''
-  # -- Set to reference a TLS secret (cert) to enable HTTPS
+  # -- To enable HTTPS, set this to reference a TLS secret (with a valid cert)
   tlsSecretName: ''
   # -- The Ingress class to use, if you have multiple ingress controllers
   className: ''
@@ -41,10 +47,13 @@ image:
   # -- Specify the image tag to use. If you want to use a specific version, set it here.
   tag: 'latest'
 
-# -- For adding custom Kubernetes Annotations to the pods
+# -- For adding custom annotations to the pods
 podAnnotations: {}
-# -- For adding custom Kubernetes Labels to the pods
+# -- For adding custom labels to the pods
 podLabels: {}
+
+# -- For adding custom annotations to the service
+serviceAnnotations: {}
 
 # -- Sets pod security context if you need that sort of thing
 podSecurityContext: {}
