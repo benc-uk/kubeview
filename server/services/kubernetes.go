@@ -17,6 +17,7 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/rest"
@@ -26,9 +27,11 @@ import (
 
 // Kubernetes is a service that connects to a Kubernetes cluster and provides access to its resources
 type Kubernetes struct {
-	client      *dynamic.DynamicClient
-	ClusterHost string
-	Mode        string // "in-cluster" or "out-of-cluster"
+	client            *dynamic.DynamicClient
+	ClusterHost       string
+	Mode              string // "in-cluster" or "out-of-cluster"
+	KubeVersion       string
+	UseEndpointSlices bool
 }
 
 // This is used by the SSE broker to send events to connected clients
@@ -86,6 +89,26 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 
 	log.Println("🌐 Kubernetes host:", kubeConfig.Host)
 
+	discClient, err := discovery.NewDiscoveryClientForConfig(kubeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate the connection to the Kubernetes API by checking the server version
+	serverVersion, err := discClient.ServerVersion()
+	if err != nil {
+		log.Println("⛔ Failed to connect to Kubernetes API", err)
+		return nil, err
+	} else {
+		log.Println("✅ Connected to Kubernetes API, version:", serverVersion.String())
+	}
+
+	useEndpointSlices := false
+	if serverVersion.Major == "1" && serverVersion.Minor >= "33" {
+		log.Println("🔄 Using EndpointSlices for service endpoints")
+		useEndpointSlices = true
+	}
+
 	// Use the dynamic client to interact with the Kubernetes API
 	// This allows us to work with any resource type without needing to know the schema in advance
 	dynamicClient, err := dynamic.NewForConfig(kubeConfig)
@@ -97,17 +120,6 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 	if singleNamespace != "" {
 		namespace = singleNamespace
 		log.Println("🔑 Authorised for a single namespace:", namespace)
-	}
-
-	// Check connection to the cluster, by listing pods in the specified namespace (or all)
-	_, err = dynamicClient.Resource(schema.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}).
-		Namespace(namespace).
-		List(context.TODO(), metaV1.ListOptions{})
-	if err != nil {
-		log.Println("💥 Failed retrieve data from Kubernetes API:", err)
-		return nil, err
-	} else {
-		log.Println("✅ Validated connection to Kubernetes API")
 	}
 
 	log.Println("👀 Setting up resource watchers...")
@@ -124,9 +136,15 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 		Informer().
 		AddEventHandler(getHandlerFuncs(sseBroker))
 
-	_, _ = factory.ForResource(schema.GroupVersionResource{Group: "", Version: "v1", Resource: "endpoints"}).
-		Informer().
-		AddEventHandler(getHandlerFuncs(sseBroker))
+	if useEndpointSlices {
+		_, _ = factory.ForResource(schema.GroupVersionResource{Group: "discovery.k8s.io", Version: "v1", Resource: "endpointslices"}).
+			Informer().
+			AddEventHandler(getHandlerFuncs(sseBroker))
+	} else {
+		_, _ = factory.ForResource(schema.GroupVersionResource{Group: "", Version: "v1", Resource: "endpoints"}).
+			Informer().
+			AddEventHandler(getHandlerFuncs(sseBroker))
+	}
 
 	_, _ = factory.ForResource(schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}).
 		Informer().
@@ -162,9 +180,11 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 	factory.WaitForCacheSync(context.Background().Done())
 
 	return &Kubernetes{
-		client:      dynamicClient,
-		ClusterHost: kubeConfig.Host,
-		Mode:        mode,
+		client:            dynamicClient,
+		ClusterHost:       kubeConfig.Host,
+		Mode:              mode,
+		UseEndpointSlices: useEndpointSlices,
+		KubeVersion:       serverVersion.String(),
 	}, nil
 }
 
@@ -205,7 +225,7 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 
 	podList, _ := k.getResources(ns, "", "v1", "pods")
 	serviceList, _ := k.getResources(ns, "", "v1", "services")
-	endpointList, _ := k.getResources(ns, "", "v1", "endpoints")
+	// endpointList, _ := k.getResources(ns, "", "v1", "endpoints")
 	deploymentList, _ := k.getResources(ns, "apps", "v1", "deployments")
 	replicaSetList, _ := k.getResources(ns, "apps", "v1", "replicasets")
 	statefulSetList, _ := k.getResources(ns, "apps", "v1", "statefulsets")
@@ -217,9 +237,16 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 	secretList, _ := k.getResources(ns, "", "v1", "secrets")
 	pvcList, _ := k.getResources(ns, "", "v1", "persistentvolumeclaims")
 
+	// If we are using EndpointSlices, get those instead of Endpoints
+	endpointList := []unstructured.Unstructured{}
+	if k.UseEndpointSlices {
+		endpointList, _ = k.getResources(ns, "discovery.k8s.io", "v1", "endpointslices")
+	} else {
+		endpointList, _ = k.getResources(ns, "", "v1", "endpoints")
+	}
+
 	data := make(map[string][]unstructured.Unstructured)
 	data["pods"] = podList
-	data["endpoints"] = endpointList
 	data["services"] = serviceList
 	data["deployments"] = deploymentList
 	data["replicasets"] = replicaSetList
@@ -231,6 +258,14 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 	data["configmaps"] = confMapList
 	data["secrets"] = secretList
 	data["persistentvolumeclaims"] = pvcList
+
+	// If we are using EndpointSlices, add them to the data
+	// The client can check which keys are present to determine if EndpointSlices are used
+	if k.UseEndpointSlices {
+		data["endpointslices"] = endpointList
+	} else {
+		data["endpoints"] = endpointList
+	}
 
 	// Clean up the managed fields and redact sensitive data
 	for _, items := range data {

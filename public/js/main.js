@@ -236,6 +236,10 @@ Alpine.data('mainApp', () => ({
       return
     }
 
+    if (this.cfg.debug) {
+      console.log('📦 Fetched data:', data)
+    }
+
     // Pass 1 - Add ALL the resources to the graph
     for (const kindKey in data) {
       const resources = data[kindKey]

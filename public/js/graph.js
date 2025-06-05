@@ -164,6 +164,26 @@ export function processLinks(res) {
     }
   }
 
+  // Handle endpoint slices
+  if (res.kind === 'EndpointSlice') {
+    const serviceName = res.metadata?.labels?.['kubernetes.io/service-name']
+    const service = cy.$(`node[kind = "Service"][label = "${serviceName}"]`)
+    if (service.length == 1) {
+      for (const ep of res.endpoints || []) {
+        if (ep.addresses && ep.addresses.length > 0) {
+          const addr = ep.addresses[0]
+          const pod = cy.$(`node[kind = "Pod"][ip = "${addr}"]`)
+          if (pod.length > 0) {
+            if (getConfig().debug) console.log(`🔗 Linking EndpointSlice ${res.metadata.name} to PodIP ${addr} (${pod.data('label')})`)
+            addEdge(service.id(), pod.id())
+          } else {
+            if (getConfig().debug) console.warn(`🔗 No Pod found for EndpointSlice ${res.metadata.name} with IP ${addr}`)
+          }
+        }
+      }
+    }
+  }
+
   // Try to link a pod with a volume claim to the PVC
   if (res.kind === 'Pod' && res.spec?.volumes) {
     for (const volume of res.spec.volumes) {
