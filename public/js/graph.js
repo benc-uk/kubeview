@@ -1,4 +1,5 @@
 //@ts-check
+/// <reference path="./types/custom.d.ts" />
 
 // ==========================================================================================
 // Handles most graph operations like adding, updating, and removing resources

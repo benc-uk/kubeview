@@ -49,6 +49,9 @@ export function initEventStreaming() {
 
     addResource(res)
     layout()
+
+    // Inform main app that a new resource has been added
+    window.dispatchEvent(new CustomEvent('resAdded', {}))
   })
 
   // Handle resource delete events from the server

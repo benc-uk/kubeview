@@ -35,7 +35,8 @@ declare type Resource = {
   }
   spec: any
   status: any
-  subsets: any
+  subsets?: any // Only on Endpoints
+  endpoints?: any // Only on EndpointSlices
 }
 
 declare type PanelData = {

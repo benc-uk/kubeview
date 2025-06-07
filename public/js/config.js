@@ -1,4 +1,5 @@
 //@ts-check
+/// <reference path="./types/custom.d.ts" />
 
 // ==========================================================================================
 // Client-side configuration management for KubeView

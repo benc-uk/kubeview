@@ -1,4 +1,5 @@
 //@ts-check
+/// <reference path="./types/custom.d.ts" />
 
 // ==========================================================================================
 // Main JavaScript entry point for KubeView
@@ -70,7 +71,9 @@ Alpine.data('mainApp', () => ({
 
   // ===== Functions ============================================
 
-  // All app initialization logic is here
+  /**
+   * All app initialization logic is here, called automatically by Alpine.js
+   */
   async init() {
     console.log('🚀 Initializing KubeView...')
     console.log(`🙍 ClientID ${this.clientId}`)
@@ -91,6 +94,9 @@ Alpine.data('mainApp', () => ({
     window.addEventListener('disconnect', () => {
       showToast('Disconnected from the server!<br>Live updates are paused', 3000, 'top-center', 'error')
     })
+
+    // Listen for resource addition events, and re-run the search & filtering
+    window.addEventListener('resAdded', () => this.search(this.searchQuery))
 
     this.$watch('namespace', () => {
       console.log(`🔄 Namespace changed to: ${this.namespace}`)
@@ -165,7 +171,9 @@ Alpine.data('mainApp', () => ({
     })
   },
 
-  // Fetch the list of namespaces from the server
+  /**
+   * Fetch the list of namespaces from the server
+   */
   async refreshNamespaces() {
     let res
     try {
@@ -191,7 +199,11 @@ Alpine.data('mainApp', () => ({
     console.log(`📚 Found ${this.namespaces ? this.namespaces.length : 0} namespaces in cluster`)
   },
 
-  // Display an error message in the UI and log it to the console
+  /**
+   * Display an error message in the UI and log it to the console
+   * @param {string} message
+   * @param {Object} res
+   */
   showError(message, res) {
     this.errorMessage = message
     if (!res) {
@@ -207,7 +219,10 @@ Alpine.data('mainApp', () => ({
     this.isLoading = false
   },
 
-  // Main function to fetch the namespace data
+  /**
+   * Main function to fetch & parse the namespace data and populate the graph
+   * This will clear the current graph and load new data from the server
+   */
   async fetchNamespace() {
     this.errorMessage = ''
 
@@ -259,7 +274,10 @@ Alpine.data('mainApp', () => ({
     layout()
   },
 
-  // Filter the viewable graph based on the search query
+  /**
+   * Search for resources in the graph based on a query string
+   * @param {string} query
+   */
   search(query) {
     const q = query.trim().toLowerCase()
 
@@ -274,6 +292,8 @@ Alpine.data('mainApp', () => ({
       return
     }
 
+    const visCountBefore = cy.$(':visible').length
+
     // Set all nodes that match the search query to be visible
     // And hide all nodes that do not match
     const result = cy.$('node[label*="' + q + '"]')
@@ -286,13 +306,16 @@ Alpine.data('mainApp', () => ({
       visibility: 'hidden',
     })
 
-    if (cy.$(':visible').length <= 0) {
+    const visCountAfter = cy.$(':visible').length
+    if (visCountAfter <= 0) {
       showToast('No resources found matching the search query', 2000, 'top-center')
     } else {
       hideToast(20)
     }
 
-    this.toolbarFit()
+    if (visCountBefore != visCountAfter) {
+      this.toolbarFit()
+    }
   },
 
   // Save settings to the config
