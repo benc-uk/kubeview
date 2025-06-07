@@ -4,7 +4,7 @@
 
 📦 Image:    {{ .Values.image.repository }}:{{ .Values.image.tag }}
 ⚡ Replicas: {{ .Values.replicaCount }}
-🌐 Service:  {{ if .Values.loadBalancer.enabled }}LoadBalancer{{ else }}ClusterIP{{- end }}
+🌐 Service:  {{ if .Values.loadBalancer.enabled }}LoadBalancer{{- else if .Values.nodePort.enabled }}NodePort{{- else }}ClusterIP{{- end }}
 🔀 Ingress:  {{ .Values.ingress.enabled }}
 ‎ 
 
@@ -20,8 +20,11 @@
 
   NOTE: It may take a few minutes for the LoadBalancer IP to be available!
         You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "kubeview.fullname" . }}'
+{{- else if .Values.nodePort.enabled }}
+To access the app via the node port, use this URL http://$NODE_IP:{{ .Values.nodePort.port | default 30000 }}
+Where $NODE_IP is the external IP address of a node running at least one of the KubeView pods
 {{- else }}
-You haven't configured an ingress or enabled the load balancer. 
-Kubeview will only be accessible inside the cluster, this may be what you intended, probably not.
+You haven't enabled an ingress, or a service with type of load balancer / node port. 
+Kubeview will only be accessible from inside the cluster, this may be what you intended, but probably not.
 {{- end }}
 {{- end }}

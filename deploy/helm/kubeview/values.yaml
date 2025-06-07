@@ -32,6 +32,12 @@ loadBalancer:
   # -- Optionally set the LoadBalancer IP address if you want to use a static IP
   IP: ''
 
+nodePort:
+  # -- Set to true to enable NodePort service type
+  enabled: false
+  # -- Optionally set the NodePort number, if you want to use a specific one
+  port: 30000
+
 # -- This is for the secrets for pulling an image from a private repository
 imagePullSecrets: []
 # -- This is to override the chart name when naming resources

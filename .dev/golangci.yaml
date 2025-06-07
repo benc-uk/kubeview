@@ -1,4 +1,4 @@
-version: "2"
+version: '2'
 linters:
   enable:
     - bodyclose
@@ -13,9 +13,11 @@ linters:
     - tagliatelle
     - wsl
   settings:
+    cyclop:
+      max-complexity: 15
     misspell:
       locale: UK
-      ignore-rules: ["dialogues", "dialogs"]
+      ignore-rules: ['dialogues', 'dialogs']
     revive:
       confidence: 0.5
       severity: error

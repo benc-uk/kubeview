@@ -3,9 +3,9 @@ entries:
   kubeview:
   - apiVersion: v2
     appVersion: 2.0.2
-    created: "2025-06-01T16:28:36.144590009+01:00"
+    created: "2025-06-07T14:25:26.0381623+01:00"
     description: Kubernetes cluster visualiser and visual explorer
-    digest: 823e95798cc746919780f23734f07085e5a43b47796223c112d0bc9a44342505
+    digest: 141bbf01850b6f1be4a01fe48792784fb5dee299c08640cf83d8caf9e9987d03
     home: https://github.com/benc-uk/kubeview
     icon: https://kubeview.benco.io/public/img/icon.png
     maintainers:
@@ -21,7 +21,7 @@ entries:
     version: 2.0.1
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2025-06-01T16:28:36.144271576+01:00"
+    created: "2025-06-07T14:25:26.037804219+01:00"
     description: Kubernetes cluster visualiser and visual explorer
     digest: 5d41894df4888693fbe559d263db728626d258410e23f2c1662e3c6b24265357
     home: https://github.com/benc-uk/kubeview
@@ -37,4 +37,4 @@ entries:
     urls:
     - kubeview-2.0.0.tgz
     version: 2.0.0
-generated: "2025-06-01T16:28:36.143081368+01:00"
+generated: "2025-06-07T14:25:26.037186016+01:00"

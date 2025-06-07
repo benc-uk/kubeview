@@ -83,7 +83,6 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 	}
 
 	if err != nil {
-		log.Println("💥 Failed to create client:", err)
 		return nil, err
 	}
 
@@ -104,8 +103,12 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 	}
 
 	useEndpointSlices := false
+
+	// If the server version is 1.33 or higher, we will use EndpointSlices instead of Endpoints
+	// See https://kubernetes.io/blog/2025/04/24/endpoints-deprecation/
 	if serverVersion.Major == "1" && serverVersion.Minor >= "33" {
-		log.Println("🔄 Using EndpointSlices for service endpoints")
+		log.Println("🔄 Kubernetes version > 1.32 Using EndpointSlices for service endpoints")
+
 		useEndpointSlices = true
 	}
 
@@ -136,16 +139,6 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 		Informer().
 		AddEventHandler(getHandlerFuncs(sseBroker))
 
-	if useEndpointSlices {
-		_, _ = factory.ForResource(schema.GroupVersionResource{Group: "discovery.k8s.io", Version: "v1", Resource: "endpointslices"}).
-			Informer().
-			AddEventHandler(getHandlerFuncs(sseBroker))
-	} else {
-		_, _ = factory.ForResource(schema.GroupVersionResource{Group: "", Version: "v1", Resource: "endpoints"}).
-			Informer().
-			AddEventHandler(getHandlerFuncs(sseBroker))
-	}
-
 	_, _ = factory.ForResource(schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}).
 		Informer().
 		AddEventHandler(getHandlerFuncs(sseBroker))
@@ -175,6 +168,17 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 		Version: "v1", Resource: "persistentvolumeclaims"}).
 		Informer().
 		AddEventHandler(getHandlerFuncs(sseBroker))
+
+	if useEndpointSlices {
+		_, _ = factory.ForResource(schema.GroupVersionResource{Group: "discovery.k8s.io",
+			Version: "v1", Resource: "endpointslices"}).
+			Informer().
+			AddEventHandler(getHandlerFuncs(sseBroker))
+	} else {
+		_, _ = factory.ForResource(schema.GroupVersionResource{Group: "", Version: "v1", Resource: "endpoints"}).
+			Informer().
+			AddEventHandler(getHandlerFuncs(sseBroker))
+	}
 
 	factory.Start(context.Background().Done())
 	factory.WaitForCacheSync(context.Background().Done())
@@ -223,6 +227,8 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 		return nil, errors.New("namespace is empty")
 	}
 
+	data := make(map[string][]unstructured.Unstructured)
+
 	podList, _ := k.getResources(ns, "", "v1", "pods")
 	serviceList, _ := k.getResources(ns, "", "v1", "services")
 	// endpointList, _ := k.getResources(ns, "", "v1", "endpoints")
@@ -237,15 +243,6 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 	secretList, _ := k.getResources(ns, "", "v1", "secrets")
 	pvcList, _ := k.getResources(ns, "", "v1", "persistentvolumeclaims")
 
-	// If we are using EndpointSlices, get those instead of Endpoints
-	endpointList := []unstructured.Unstructured{}
-	if k.UseEndpointSlices {
-		endpointList, _ = k.getResources(ns, "discovery.k8s.io", "v1", "endpointslices")
-	} else {
-		endpointList, _ = k.getResources(ns, "", "v1", "endpoints")
-	}
-
-	data := make(map[string][]unstructured.Unstructured)
 	data["pods"] = podList
 	data["services"] = serviceList
 	data["deployments"] = deploymentList
@@ -259,11 +256,12 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 	data["secrets"] = secretList
 	data["persistentvolumeclaims"] = pvcList
 
-	// If we are using EndpointSlices, add them to the data
-	// The client can check which keys are present to determine if EndpointSlices are used
+	// If we are using EndpointSlices, get those instead of Endpoints
 	if k.UseEndpointSlices {
+		endpointList, _ := k.getResources(ns, "discovery.k8s.io", "v1", "endpointslices")
 		data["endpointslices"] = endpointList
 	} else {
+		endpointList, _ := k.getResources(ns, "", "v1", "endpoints")
 		data["endpoints"] = endpointList
 	}
 

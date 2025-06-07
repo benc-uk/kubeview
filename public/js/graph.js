@@ -164,7 +164,9 @@ export function processLinks(res) {
     }
   }
 
-  // Handle endpoint slices
+  // Handle endpoint slices, these replace Endpoints in newer Kubernetes versions
+  // If the server version is 1.33 or higher, we will use EndpointSlices instead of Endpoints
+  // See https://kubernetes.io/blog/2025/04/24/endpoints-deprecation/
   if (res.kind === 'EndpointSlice') {
     const serviceName = res.metadata?.labels?.['kubernetes.io/service-name']
     const service = cy.$(`node[kind = "Service"][label = "${serviceName}"]`)

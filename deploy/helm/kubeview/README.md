@@ -30,6 +30,8 @@ Kubernetes cluster visualiser and visual explorer
 | ingress.annotations | object | `{}` | Extra Ingress annotations |
 | loadBalancer.enabled | bool | `true` | Set to true to enable the LoadBalancer service type |
 | loadBalancer.IP | string | `""` | Optionally set the LoadBalancer IP address if you want to use a static IP |
+| nodePort.enabled | bool | `false` | Set to true to enable NodePort service type |
+| nodePort.port | int | `30000` | Optionally set the NodePort number, if you want to use a specific one |
 | imagePullSecrets | list | `[]` | This is for the secrets for pulling an image from a private repository |
 | nameOverride | string | `""` | This is to override the chart name when naming resources |
 | fullnameOverride | string | `""` | This is to fully override the name of the chart & release when naming resources |

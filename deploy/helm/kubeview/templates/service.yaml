@@ -11,7 +11,9 @@ metadata:
 spec:
   {{ if .Values.loadBalancer.enabled }}
   type: LoadBalancer
-  {{ else }}
+  {{ else if .Values.nodePort.enabled }}
+  type: NodePort
+  {{ else if not .Values.nodePort.enabled }}
   type: ClusterIP
   {{ end }}
   ports:
@@ -19,6 +21,9 @@ spec:
       targetPort: 8000
       protocol: TCP
       name: http
+    {{- if .Values.nodePort.enabled }}
+      nodePort: {{ .Values.nodePort.port | default 30000 }}
+    {{- end }}
   selector:
     {{- include "kubeview.selectorLabels" . | nindent 4 }}
 {{- if (and .Values.loadBalancer.enabled .Values.loadBalancer.IP) }}
