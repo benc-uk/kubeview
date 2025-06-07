@@ -14,11 +14,10 @@ import { getClientId, initEventStreaming } from './events.js'
 import { styleSheet } from './styles.js'
 import { addResource, processLinks, layout, coseLayout } from './graph.js'
 import { hideToast, showToast } from '../ext/toast.js'
-
-// A shared global map of resources by their UID, used in a bunch of places
-export const resMap = {}
+import sidePanel from './side-panel.js'
 
 // This is why we are here, Cytoscape will be used to render all the data
+// It's global and expoesed so that other modules can access it
 export const cy = cytoscape({
   container: document.getElementById('mainView'),
   style: styleSheet,
@@ -39,17 +38,6 @@ export const channel = new BroadcastChannel('kubeview')
 // Alpine.js component for the main application
 Alpine.data('mainApp', () => ({
   // ===== Application state ================================
-  panelShowLabels: false,
-  panelOpen: false,
-  /** @type {PanelData} */
-  panelData: {
-    id: '',
-    kind: 'default',
-    icon: 'default',
-    props: {},
-    containers: {},
-    labels: {},
-  },
   errorMessage: '',
   /** @type {string[] | null} */
   namespaces: null,
@@ -60,6 +48,8 @@ Alpine.data('mainApp', () => ({
   showConfigDialog: false,
   configTab: 1,
   cfg: getConfig(),
+  searchQuery: '',
+
   /** @type {Record<string, string>} */
   serviceMetadata: {
     clusterHost: '',
@@ -67,7 +57,6 @@ Alpine.data('mainApp', () => ({
     buildInfo: '',
     clusterMode: '',
   },
-  searchQuery: '',
 
   // ===== Functions ============================================
 
@@ -119,49 +108,6 @@ Alpine.data('mainApp', () => ({
 
     // Load the initial namespaces
     await this.refreshNamespaces()
-
-    // When nodes are tapped or clicked, show the info panel with the resource details
-    cy.on('tap', 'node', (evt) => {
-      const node = evt.target
-      if (node.data('resource')) {
-        const newPanelData = getPanelData(node.id())
-        if (!newPanelData) {
-          this.panelOpen = false
-          return
-        }
-        this.panelOpen = true
-        this.panelData = newPanelData
-      }
-    })
-
-    // hide the info panel when clicking outside of a node
-    cy.on('tap', (evt) => {
-      if (evt.target === cy) this.panelOpen = false
-    })
-
-    // Handle node removal events
-    cy.on('remove', 'node', (evt) => {
-      if (evt.target.id() === this.panelData.id) {
-        this.$nextTick(() => {
-          this.panelOpen = false
-        })
-      }
-    })
-
-    // Handle data updates for nodes
-    cy.on('data', 'node', (evt) => {
-      const node = evt.target
-      if (this.panelData && node.id() === this.panelData.id) {
-        this.$nextTick(() => {
-          const newData = getPanelData(node.id())
-          if (!newData) {
-            this.panelOpen = false
-            return
-          }
-          this.panelData = newData
-        })
-      }
-    })
 
     // Handle layout stop event to show a toast if no nodes are present
     cy.on('layoutstop', () => {
@@ -354,120 +300,8 @@ Alpine.data('mainApp', () => ({
   },
 }))
 
-// Initialize & start Alpine.js
+// Register side panel sub child-component
+Alpine.data('sidePanel', sidePanel)
+
+// Initialize & start!
 Alpine.start()
-
-/**
- * For a given resource ID, this function retrieves the data to be shown in the info panel
- * This has customized logic to present the data in a user-friendly way
- * @param {string} id - The ID of the resource to show
- * @return {PanelData | undefined} The data to be shown in the info panel, or undefined if the resource is not found
- */
-function getPanelData(id) {
-  // Find the resource in the resMap
-  const res = resMap[id]
-  if (!res) return
-
-  const props = {
-    name: res.metadata.name,
-    created: res.metadata.creationTimestamp,
-  }
-
-  if (res.spec?.nodeName) props.nodeName = res.spec.nodeName
-  if (res.spec?.replicas) props.replicas = res.spec.replicas
-  if (res.spec?.type) props.type = res.spec.type
-  if (res.spec?.clusterIP) props.clusterIP = res.spec.clusterIP
-  if (res.spec?.ports) {
-    props.ports = res.spec.ports
-      .map((port) => {
-        return `${port.name} ${port.port}${port.protocol ? `/${port.protocol}` : ''}`
-      })
-      .join(', ')
-  }
-  if (res.spec?.ipFamilies) props.ipVersions = res.spec.ipFamilies.join(', ')
-  if (res.spec?.serviceAccount) props.serviceAccount = res.spec.serviceAccount
-  if (res.spec?.ingressClassName) props.ingressClass = res.spec.ingressClassName
-  if (res.spec?.rules) {
-    props.hosts = res.spec.rules
-      .map((rule) => {
-        return rule.host ? rule.host : '<no host>'
-      })
-      .join(', ')
-  }
-  if (res.spec?.completions !== undefined) props.completions = res.spec.completions
-  if (res.spec?.parallelism !== undefined) props.parallelism = res.spec.parallelism
-  if (res.spec?.backoffLimit !== undefined) props.backoffLimit = res.spec.backoffLimit
-  if (res.spec?.successfulJobsHistoryLimit !== undefined) props.successHistory = res.spec.successfulJobsHistoryLimit
-  if (res.spec?.failedJobsHistoryLimit !== undefined) props.failedHistory = res.spec.failedJobsHistoryLimit
-  if (res.spec?.schedule !== undefined) props.scheduled = res.spec.schedule
-
-  if (res.status?.podIP) props.podIP = res.status.podIP
-  if (res.status?.hostIP) props.hostIP = res.status.hostIP
-  if (res.status?.phase) props.phase = res.status.phase
-  if (res.status?.readyReplicas !== undefined) props.replicasReady = res.status.readyReplicas
-  if (res.status?.availableReplicas !== undefined) props.replicasAvailable = res.status.availableReplicas
-  if (res.status?.conditions) {
-    for (const cond of res.status.conditions || []) {
-      if (cond.type === 'Ready') {
-        props.ready = cond.status === 'True' ? 'Yes' : 'No'
-      }
-      if (cond.type === 'PodScheduled') {
-        props.scheduled = cond.status === 'True' ? 'Yes' : 'No'
-      }
-      if (cond.type === 'Initialized') {
-        props.initialized = cond.status === 'True' ? 'Yes' : 'No'
-      }
-    }
-  }
-  if (res.status?.loadBalancer) {
-    if (res.status.loadBalancer.ingress) {
-      props.loadBalancer = res.status.loadBalancer.ingress.map((ingress) => ingress.ip || ingress.hostname).join(', ')
-    }
-  }
-  // if (res.status?.active !== undefined) props.active = res.status.active
-  if (res.status?.ready !== undefined) props.ready = res.status.ready
-  if (res.status?.succeeded !== undefined) props.succeeded = res.status.succeeded
-  if (res.status?.failed !== undefined) props.failed = res.status.failed
-  if (res.status?.lastScheduleTime) props.lastScheduleTime = res.status.lastScheduleTime
-  if (res.status?.lastSuccessfulTime) props.lastSuccessfulTime = res.status.lastSuccessfulTime
-
-  // ConfigMap and Secret data
-  if (res.data) {
-    // just list the keys of the data object
-    props.data = Object.keys(res.data).join(',\n')
-  }
-
-  // Labels
-  /** @type {Record<string, string>} */
-  const labels = {}
-  if (res.metadata?.labels) {
-    for (const [key, value] of Object.entries(res.metadata.labels)) {
-      labels[key] = value
-    }
-  }
-
-  /** @type {Record<string, any>} */
-  const containers = {}
-  if (res.status?.containerStatuses) {
-    for (const c of res.status.containerStatuses) {
-      containers[c.name] = {
-        image: c.image,
-        ready: c.ready ? 'Yes' : 'No',
-        restarts: c.restartCount,
-        started: c.started ? 'Yes' : 'No',
-        state: Object.keys(c.state).map((key) => {
-          return `${key}: ${c.state[key].reason || ''}`
-        }),
-      }
-    }
-  }
-
-  return {
-    kind: res.kind,
-    id: res.metadata.uid,
-    icon: res.kind.toLowerCase(),
-    props,
-    containers,
-    labels,
-  }
-}

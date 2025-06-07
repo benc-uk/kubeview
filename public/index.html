@@ -210,20 +210,20 @@
   </div>
 
   <!-- This is the info panel that shows resource details -->
-  <article class="panel is-link" id="infoPanel" x-transition:enter="slidein" x-transition:leave="slideout"
-    x-show="panelOpen" x-cloak>
+  <article class="panel is-link" x-data="sidePanel" id="infoPanel" x-transition:enter="slidein"
+    x-transition:leave="slideout" x-show="open" x-cloak>
     <p class="panel-heading py-2">
       <img :src="`public/img/res/${panelData.icon}.svg`" width="32" height="32" class="valign-middle" />
       <span x-text="panelData.kind" class="valign-middle"></span>
     </p>
     <section>
       <div class="panel-block">
-        <button class="button is-small is-primary" :class="{'is-outlined':!panelShowLabels}"
-          @click="panelShowLabels=!panelShowLabels">Labels</button>
+        <button class="button is-small is-primary" :class="{'is-outlined':!showLabels}"
+          @click="showLabels=!showLabels">Labels</button>
       </div>
       <!-- Labels -->
       <template x-for="(value, label) in panelData.labels" :key="label">
-        <div class="panel-block py-0" x-show="panelShowLabels">
+        <div class="panel-block py-0" x-show="showLabels">
           <div class="py-1 has-text-weight-bold" x-text="label"></div>
           <div class="py-1" x-text="`: ${value}`"></div>
         </div>

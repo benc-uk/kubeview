@@ -20,6 +20,7 @@ declare type Config = {
 }
 
 // Represents a generic Kubernetes resource
+// See all those `any` down there, yeah, I know, but I'm not mapping every single field of every single k8s resource
 declare type Resource = {
   kind: string
   metadata: {
@@ -37,6 +38,7 @@ declare type Resource = {
   status: any
   subsets?: any // Only on Endpoints
   endpoints?: any // Only on EndpointSlices
+  data?: any // For Secret and ConfigMap
 }
 
 declare type PanelData = {

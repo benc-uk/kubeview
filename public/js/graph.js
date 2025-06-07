@@ -7,9 +7,21 @@
 // ==========================================================================================
 
 import { getConfig } from './config.js'
-import { cy, resMap } from './main.js'
+import { cy } from './main.js'
 
 const ICON_PATH = 'public/img/res'
+
+// A map & cache of resources by their UID, used in a bunch of places
+const resMap = {}
+
+/**
+ * Get a cached resource by its ID
+ * @param {string} id
+ * @returns {Resource | null} The resource object or null if not found
+ */
+export function getResource(id) {
+  return resMap[id] || null
+}
 
 /**
  * Used to add a resource to the graph
