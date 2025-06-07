@@ -28,7 +28,15 @@ export function addResource(res) {
     return
   }
 
-  cy.add(makeNode(res))
+  try {
+    cy.add(makeNode(res))
+  } catch (e) {
+    if (getConfig().debug) {
+      console.warn(`🍒 Unable to add node for resource ${res.metadata.name} (${res.kind}):`, e.message)
+    }
+    return
+  }
+
   processLinks(res)
 
   resMap[res.metadata.uid] = res
@@ -186,7 +194,7 @@ export function processLinks(res) {
     }
   }
 
-  // Try to link a pod with a volume claim to the PVC
+  // Try to link a pod with a volume claim to the PVC resource
   if (res.kind === 'Pod' && res.spec?.volumes) {
     for (const volume of res.spec.volumes) {
       if (volume.persistentVolumeClaim && volume.persistentVolumeClaim.claimName) {
@@ -194,6 +202,26 @@ export function processLinks(res) {
         if (pvc.length > 0) {
           if (getConfig().debug) console.log(`🔗 Linking Pod ${res.metadata.name} to PVC ${volume.persistentVolumeClaim.claimName}`)
           addEdge(res.metadata.uid, pvc.id())
+        }
+      }
+    }
+  }
+
+  // Try to link config maps and secrets to pods
+  if (res.kind === 'Pod' && res.spec?.volumes) {
+    for (const volume of res.spec.volumes) {
+      if (volume.configMap && volume.configMap.name) {
+        const cm = cy.$(`node[kind = "ConfigMap"][label = "${volume.configMap.name}"]`)
+        if (cm.length > 0) {
+          if (getConfig().debug) console.log(`🔗 Linking Pod ${res.metadata.name} to ConfigMap ${volume.configMap.name}`)
+          addEdge(res.metadata.uid, cm.id())
+        }
+      }
+      if (volume.secret && volume.secret.secretName) {
+        const secret = cy.$(`node[kind = "Secret"][label = "${volume.secret.secretName}"]`)
+        if (secret.length > 0) {
+          if (getConfig().debug) console.log(`🔗 Linking Pod ${res.metadata.name} to Secret ${volume.secret.secretName}`)
+          addEdge(res.metadata.uid, secret.id())
         }
       }
     }
