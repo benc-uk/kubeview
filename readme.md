@@ -26,9 +26,9 @@ Note: This is a v2 and complete rewrite the original KubeView project [see below
 
 ## 🏗️ Architecture & Design
 
-KubeView is built using Go for the backend, exposing a REST API that provides the data for the frontend, and serves static HTML/JS. The frontend is a static web application that uses HTML, CSS, and JavaScript to render the user interface. It uses [Cytoscape.js](https://js.cytoscape.org/) for graph visualization, [Alpine.js](https://alpinejs.dev/) for client-side interactivity, and [Bulma](https://bulma.io/) for styling.
+KubeView is built using Go for the backend, exposing a REST API that provides the data for the frontend, and serves static HTML/JS. The frontend is a static web application that uses HTML, CSS, and plain modern JavaScript (ES6) to render the user interface. It uses [Cytoscape.js](https://js.cytoscape.org/) for graph visualization, [Alpine.js](https://alpinejs.dev/) for client-side interactivity, and [Bulma](https://bulma.io/) for styling.
 
-The backend uses the Go client for Kubernetes to interact with the cluster and retrieve resource information, including setting up watchers for real-time updates streamed using SSE. The data is then processed and sent to the frontend as JSON, which the frontend uses to render the graph and update the UI.
+The backend uses the Go client for Kubernetes to retrieve resource information, including setting up watchers for real-time updates streamed using SSE. The data is then processed and sent to the frontend as JSON, which the frontend uses to render the graph and update the UI.
 
 ![diagram of system](./docs/diagram.drawio.png)
 

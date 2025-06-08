@@ -30,6 +30,7 @@ declare type Resource = {
     creationTimestamp: string
     deletionTimestamp: string | null
     labels: Record<string, string>
+    annotations: Record<string, string>
     ownerReferences: Array<{
       uid: string
     }>
@@ -48,4 +49,5 @@ declare type PanelData = {
   props: Record<string, string>
   containers: Record<string, any>
   labels: Record<string, string>
+  annotations: Record<string, string>
 }

@@ -12,6 +12,10 @@ import { getResource } from './graph.js'
 export default () => ({
   open: false,
   showLabels: false,
+  showAnno: false,
+  showProps: true,
+  showContainers: true,
+
   /** @type {PanelData} */
   panelData: {
     id: '',
@@ -20,6 +24,7 @@ export default () => ({
     props: {},
     containers: {},
     labels: {},
+    annotations: {},
   },
 
   init() {
@@ -147,6 +152,15 @@ export default () => ({
       }
     }
 
+    // Annotations
+    /** @type {Record<string, string>} */
+    const annotations = {}
+    if (res.metadata?.annotations) {
+      for (const [key, value] of Object.entries(res.metadata.annotations)) {
+        annotations[key] = value
+      }
+    }
+
     /** @type {Record<string, any>} */
     const containers = {}
     if (res.status?.containerStatuses) {
@@ -170,6 +184,7 @@ export default () => ({
       props,
       containers,
       labels,
+      annotations,
     }
   },
 })

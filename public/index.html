@@ -217,23 +217,34 @@
       <span x-text="panelData.kind" class="valign-middle"></span>
     </p>
     <section>
-      <div class="panel-block">
-        <button class="button is-small is-primary" :class="{'is-outlined':!showLabels}"
-          @click="showLabels=!showLabels">Labels</button>
+      <div class="panel-block is-flex">
+        <button class="button is-small is-primary mr-1" :class="{'is-outlined':!showLabels}"
+          @click="showLabels=!showLabels; showAnno=false">Labels</button>
+        <button class="button is-small is-primary" :class="{'is-outlined':!showAnno}"
+          @click="showAnno=!showAnno; showLabels=false">Annotations</button>
       </div>
-      <!-- Labels -->
+      <!-- Labels & Annotations -->
       <template x-for="(value, label) in panelData.labels" :key="label">
         <div class="panel-block py-0" x-show="showLabels">
           <div class="py-1 has-text-weight-bold" x-text="label"></div>
           <div class="py-1" x-text="`: ${value}`"></div>
         </div>
       </template>
+      <template x-for="(value, label) in panelData.annotations" :key="label">
+        <div class="panel-block py-0" x-show="showAnno">
+          <div class="py-1 has-text-weight-bold" x-text="label"></div>
+          <div class="py-1" x-text="`: ${value}`"></div>
+        </div>
+      </template>
       <!-- Properties -->
-      <div class="panel-block has-background-dark py-1">
-        <label class="label">Properties</label>
+      <div
+        class="panel-block has-background-dark py-0 is-flex is-justify-content-space-around is-align-items-center clickable"
+        @click="showProps=!showProps">
+        <label class="label is-flex-grow-1 pt-1 mr-3 clickable">Properties</label>
+        <i class="fas" :class="showProps ? 'fa-angles-up' : 'fa-angles-down'"></i>
       </div>
       <template x-for="(value, prop) in panelData.props" :key="prop">
-        <div class="panel-block py-0">
+        <div class="panel-block py-0" x-show="showProps" x-transition.scale.origin.top>
           <div class="py-1 has-text-weight-bold property" x-text="prop"></div>
           <div class="py-1" x-text="value"></div>
         </div>
@@ -241,13 +252,16 @@
       <!-- Containers (pods only) -->
       <template x-for="(cont, name) in panelData.containers" :key="name">
         <div>
-          <div class="panel-block has-background-dark py-1">
-            <label class="label" x-text="`Container: ${name}`"></label>
+          <div
+            class="panel-block has-background-dark py-0 is-flex is-justify-content-space-around is-align-items-center clickable"
+            @click="showContainers=!showContainers" style="cursor: pointer">
+            <label class="label is-flex-grow-1 pt-1 mr-3 clickable" x-text="`Container: ${name}`"></label>
+            <i class="fas" :class="showContainers ? 'fa-angles-up' : 'fa-angles-down'"></i>
           </div>
           <template x-for="(value, prop) in cont" :key="prop">
-            <div class="panel-block py-0">
+            <div class="panel-block py-0" x-show="showContainers" x-transition.scale.origin.top>
               <div class="py-1 has-text-weight-bold property" x-text="prop"></div>
-              <div class="py-1" x-text="value"></div>
+              <div class="py-1=" x-text="value"></div>
             </div>
           </template>
         </div>
