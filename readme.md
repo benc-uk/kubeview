@@ -148,6 +148,7 @@ For reference these permissions are `get`, `list`, `watch` for all of the follow
 - v1/configmaps
 - v1/secrets
 - v1/endpoints
+- v1/events
 - v1/persistentvolumesclaims
 - apps/v1/deployments
 - apps/v1/replicasets
@@ -156,3 +157,4 @@ For reference these permissions are `get`, `list`, `watch` for all of the follow
 - networking.k8s.io/v1/ingresses
 - batch/v1/jobs
 - batch/v1/cronjobs
+- discovery.k8s.io/v1/endpointslices
