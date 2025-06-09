@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 
   <script src="public/js/main.js" type="module"></script>
+  <script src="public/js/loader.js"></script>
 </head>
 
 <body x-data="mainApp">
@@ -38,10 +39,17 @@
             </select>
           </template>
         </div>
-        <button class="button is-link mr-3" type="button" @click="refreshNamespaces()" :disabled="isLoading"
+        <button class="button is-info" type="button" @click="refreshNamespaces()" :disabled="isLoading"
           title="Refresh Namespaces">
           <span class="icon"><i class="fas fa-rotate"></i></span>
         </button>
+        <!-- <div class="navbar-item is-hidden-touch is-hidden-desktop-only"> -->
+        <button class="button is-info is-hidden-touch is-hidden-desktop-only"
+          @click="showEventsDialog = !showEventsDialog" title="Events" :disabled="isLoading">
+          <span class="icon"><i class="fas fa-list-check"></i></span>
+          <span>Events</span>
+        </button>
+        <!-- </div> -->
 
         <!-- Toolbar of buttons -->
         <div class="is-hidden-touch">
@@ -64,14 +72,15 @@
       <div class="navbar-item is-hidden-touch is-hidden-desktop-only">
         <div class="field">
           <p class="control has-icons-left">
-            <input class="input" type="text" placeholder="Search resources..." x-model="searchQuery"
-              @keyup.enter="searchResources()" />
+            <input class="input" type="text" placeholder="Search resources..." x-model.debounce="searchQuery" />
             <span class="icon is-left">
               <i class="fas fa-search"></i>
             </span>
           </p>
         </div>
       </div>
+
+
     </div>
 
     <!-- Right side of the navbar -->
@@ -116,158 +125,10 @@
     <img src="public/img/loading.svg" width="200" height="200" />
   </div>
 
-  <!-- This is the dialog for settings -->
-  <div class="modal is-active" x-show="showConfigDialog" x-cloak id="configDialog">
-    <div class="modal-background"></div>
-    <div class="modal-card better-shad">
-      <header class="modal-card-head has-background-primary py-3">
-        <p class="modal-card-title has-text-black">Settings</p>
-        <button class="delete" aria-label="close" @click="showConfigDialog = false"></button>
-      </header>
-      <div class="modal-content dark-blur">
-        <section class="my-2 mx-2">
-          <div class="tabs">
-            <ul>
-              <li :class="{'is-active':configTab==1}" @click="configTab=1"><a>General</a></li>
-              <li :class="{'is-active':configTab==2}" @click="configTab=2"><a>Filters</a></li>
-              <li :class="{'is-active':configTab==3}" @click="configTab=3"><a>About</a></li>
-            </ul>
-          </div>
-        </section>
-        <section class="mx-5 my-3">
-          <div :class="{'is-hidden':configTab!=1}">
-            <label class="label">Options</label>
-            <div class="field">
-              <label class="checkbox">
-                <input type="checkbox" x-model="cfg.shortenNames" />
-                Shorten Names
-              </label>
-              <p class="help">Removes hash details from Pod & ReplicaSet names</p>
-            </div>
-            <div class="field mt-4">
-              <label class="checkbox">
-                <input type="checkbox" x-model="cfg.debug" />
-                Debug
-              </label>
-              <p class="help">Extra logging in the console</p>
-            </div>
-          </div>
-          <div :class="{'is-hidden':configTab!=2}">
-            <label class="label">Resource Filters (Hold Ctrl to select multiple)</label>
-            <div class="field">
-              <div class="select is-multiple is-success is-fullwidth">
-                <select multiple size="6" x-model="cfg.resFilter">
-                  <option disabled>• Pods & Deployments:</option>
-                  <option value="Pod" :selected="cfg.resFilter.includes('Pod')">Pods</option>
-                  <option value="Deployment" :selected="cfg.resFilter.includes('Deployment')">Deployments</option>
-                  <option value="StatefulSet" :selected="cfg.resFilter.includes('StatefulSet')">StatefulSets</option>
-                  <option value="DaemonSet" :selected="cfg.resFilter.includes('DaemonSet')">DaemonSets</option>
-                  <option value="ReplicaSet" :selected="cfg.resFilter.includes('ReplicaSet')">ReplicaSets</option>
-                  <option disabled>• Networking:</option>
-                  <option value="Service" :selected="cfg.resFilter.includes('Service')">Services</option>
-                  <option value="Ingress" :selected="cfg.resFilter.includes('Ingress')">Ingress</option>
-                  <option disabled>• Config & Secrets:</option>
-                  <option value="ConfigMap" :selected="cfg.resFilter.includes('ConfigMap')">ConfigMaps</option>
-                  <option value="Secret" :selected="cfg.resFilter.includes('Secret')">Secrets</option>
-                  <option disabled>• Other Resources:</option>
-                  <option value="Job" :selected="cfg.resFilter.includes('Job')">Jobs</option>
-                  <option value="CronJob" :selected="cfg.resFilter.includes('CronJob')">CronJobs</option>
-                  <option value="PersistentVolumeClaim" :selected="cfg.resFilter.includes('PersistentVolumeClaim')">
-                    PersistentVolumeClaims</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div :class="{'is-hidden':configTab!=3}">
-            <div class="field">
-              <label class="label">Kubernetes Cluster</label>
-              <p x-text="`Endpoint: ${serviceMetadata.clusterHost}`"></p>
-              <p x-text="`Mode: ${serviceMetadata.clusterMode}`"></p>
-            </div>
-            <div class="field">
-              <label class="label">Version</label>
-              <p x-text="`${serviceMetadata.version} (${serviceMetadata.buildInfo})`"></p>
-            </div>
-            <div class="field">
-              <label class="label">Project</label>
-              <a class="button is-dark" href="https://github.com/benc-uk/kubeview" target="_blank">
-                <span class="icon">
-                  <i class="fab fa-github"></i>
-                </span>
-                <span>github.com/benc-uk/kubeview</span>
-              </a>
-            </div>
-          </div>
-        </section>
-      </div>
-      <footer class="modal-card-foot py-3 is-flex is-justify-content-center">
-        <div class="buttons">
-          <button class="button is-success" @click="configDialogSave()">Save changes</button>
-          <button class="button" @click="showConfigDialog = false">Cancel</button>
-        </div>
-      </footer>
-    </div>
-  </div>
-
-  <!-- This is the info panel that shows resource details -->
-  <article class="panel is-link" x-data="sidePanel" id="infoPanel" x-transition:enter="slidein"
-    x-transition:leave="slideout" x-show="open" x-cloak>
-    <p class="panel-heading py-2">
-      <img :src="`public/img/res/${panelData.icon}.svg`" width="32" height="32" class="valign-middle" />
-      <span x-text="panelData.kind" class="valign-middle"></span>
-    </p>
-    <section>
-      <div class="panel-block is-flex">
-        <button class="button is-small is-primary mr-1" :class="{'is-outlined':!showLabels}"
-          @click="showLabels=!showLabels; showAnno=false">Labels</button>
-        <button class="button is-small is-primary" :class="{'is-outlined':!showAnno}"
-          @click="showAnno=!showAnno; showLabels=false">Annotations</button>
-      </div>
-      <!-- Labels & Annotations -->
-      <template x-for="(value, label) in panelData.labels" :key="label">
-        <div class="panel-block py-0" x-show="showLabels">
-          <div class="py-1 has-text-weight-bold" x-text="label"></div>
-          <div class="py-1" x-text="`: ${value}`"></div>
-        </div>
-      </template>
-      <template x-for="(value, label) in panelData.annotations" :key="label">
-        <div class="panel-block py-0" x-show="showAnno">
-          <div class="py-1 has-text-weight-bold" x-text="label"></div>
-          <div class="py-1" x-text="`: ${value}`"></div>
-        </div>
-      </template>
-      <!-- Properties -->
-      <div
-        class="panel-block has-background-dark py-0 is-flex is-justify-content-space-around is-align-items-center clickable"
-        @click="showProps=!showProps">
-        <label class="label is-flex-grow-1 pt-1 mr-3 clickable">Properties</label>
-        <i class="fas" :class="showProps ? 'fa-angles-up' : 'fa-angles-down'"></i>
-      </div>
-      <template x-for="(value, prop) in panelData.props" :key="prop">
-        <div class="panel-block py-0" x-show="showProps" x-transition.scale.origin.top>
-          <div class="py-1 has-text-weight-bold property" x-text="prop"></div>
-          <div class="py-1" x-text="value"></div>
-        </div>
-      </template>
-      <!-- Containers (pods only) -->
-      <template x-for="(cont, name) in panelData.containers" :key="name">
-        <div>
-          <div
-            class="panel-block has-background-dark py-0 is-flex is-justify-content-space-around is-align-items-center clickable"
-            @click="showContainers=!showContainers" style="cursor: pointer">
-            <label class="label is-flex-grow-1 pt-1 mr-3 clickable" x-text="`Container: ${name}`"></label>
-            <i class="fas" :class="showContainers ? 'fa-angles-up' : 'fa-angles-down'"></i>
-          </div>
-          <template x-for="(value, prop) in cont" :key="prop">
-            <div class="panel-block py-0" x-show="showContainers" x-transition.scale.origin.top>
-              <div class="py-1 has-text-weight-bold property" x-text="prop"></div>
-              <div class="py-1=" x-text="value"></div>
-            </div>
-          </template>
-        </div>
-      </template>
-    </section>
-  </article>
+  <!-- To reduce size of the index page some parts are loaded dynamically -->
+  <div data-fragment="config-dialog"></div>
+  <div data-fragment="side-panel"></div>
+  <div data-fragment="events-dialog"></div>
 </body>
 
 </html>
