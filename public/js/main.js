@@ -12,12 +12,13 @@ import Alpine from '../ext/alpinejs.esm.min.js'
 import { getConfig, saveConfig } from './config.js'
 import { getClientId, initEventStreaming } from './events.js'
 import { styleSheet } from './styles.js'
-import { addResource, processLinks, layout, coseLayout } from './graph.js'
+import { addResource, processLinks, layout, coseLayout, clearCache } from './graph.js'
 import { hideToast, showToast } from '../ext/toast.js'
 import sidePanel from './side-panel.js'
+import eventsDialog from './events-dialog.js'
 
 // This is why we are here, Cytoscape will be used to render all the data
-// It's global and expoesed so that other modules can access it
+// It's global and exposed so that other modules can access it
 export const cy = cytoscape({
   container: document.getElementById('mainView'),
   style: styleSheet,
@@ -44,11 +45,11 @@ Alpine.data('mainApp', () => ({
   namespace: '',
   showWelcome: true,
   isLoading: false,
-  clientId: getClientId(),
   showConfigDialog: false,
   configTab: 1,
   cfg: getConfig(),
   searchQuery: '',
+  showEventsDialog: false,
 
   /** @type {Record<string, string>} */
   serviceMetadata: {
@@ -65,7 +66,7 @@ Alpine.data('mainApp', () => ({
    */
   async init() {
     console.log('🚀 Initializing KubeView...')
-    console.log(`🙍 ClientID ${this.clientId}`)
+    console.log(`🙍 ClientID ${getClientId()}`)
 
     // Listen for messages from the BroadcastChannel, just to warn about namespace changes
     channel.onmessage = (event) => {
@@ -85,7 +86,7 @@ Alpine.data('mainApp', () => ({
     })
 
     // Listen for resource addition events, and re-run the search & filtering
-    window.addEventListener('resAdded', () => this.search(this.searchQuery))
+    cy.on('add', () => this.filterView(this.searchQuery))
 
     this.$watch('namespace', () => {
       console.log(`🔄 Namespace changed to: ${this.namespace}`)
@@ -96,9 +97,9 @@ Alpine.data('mainApp', () => ({
       channel.postMessage({ type: 'namespaceChange', namespace: this.namespace })
     })
 
-    this.$watch('searchQuery', (query) => this.search(query))
+    this.$watch('searchQuery', (query) => this.filterView(query))
 
-    // Check if the URL has a namespace parameter, then automatically set it
+    // Check if the URL has a namespace parameter
     const urlParams = new URLSearchParams(window.location.search)
     const queryNs = urlParams.get('ns') || ''
     if (queryNs) {
@@ -186,7 +187,7 @@ Alpine.data('mainApp', () => ({
     let data
     let res
     try {
-      res = await fetch(`api/fetch/${this.namespace}?clientID=${this.clientId}`)
+      res = await fetch(`api/fetch/${this.namespace}?clientID=${getClientId()}`)
       if (!res.ok) throw new Error(`HTTP error ${res.status}: ${res.statusText}`)
       data = await res.json()
 
@@ -200,6 +201,9 @@ Alpine.data('mainApp', () => ({
     if (this.cfg.debug) {
       console.log('📦 Fetched data:', data)
     }
+
+    // Important: Clear the cache before adding new resources
+    clearCache()
 
     // Pass 1 - Add ALL the resources to the graph
     for (const kindKey in data) {
@@ -224,7 +228,7 @@ Alpine.data('mainApp', () => ({
    * Search for resources in the graph based on a query string
    * @param {string} query
    */
-  search(query) {
+  filterView(query) {
     const q = query.trim().toLowerCase()
 
     if (q.length === 0) {
@@ -300,8 +304,9 @@ Alpine.data('mainApp', () => ({
   },
 }))
 
-// Register side panel sub child-component
+// Register sub child-components
 Alpine.data('sidePanel', sidePanel)
+Alpine.data('eventsDialog', eventsDialog)
 
 // Initialize & start!
 Alpine.start()

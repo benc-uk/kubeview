@@ -74,6 +74,7 @@ export default () => ({
    * @param {Resource} res
    */
   updateData(res) {
+    // Common properties for all resources
     const props = {
       name: res.metadata.name,
       created: res.metadata.creationTimestamp,
@@ -106,6 +107,8 @@ export default () => ({
     if (res.spec?.successfulJobsHistoryLimit !== undefined) props.successHistory = res.spec.successfulJobsHistoryLimit
     if (res.spec?.failedJobsHistoryLimit !== undefined) props.failedHistory = res.spec.failedJobsHistoryLimit
     if (res.spec?.schedule !== undefined) props.scheduled = res.spec.schedule
+    if (res.spec?.storageClassName) props.storageClass = res.spec.storageClassName
+    if (res.spec?.volumeMode) props.volumeMode = res.spec.volumeMode
 
     if (res.status?.podIP) props.podIP = res.status.podIP
     if (res.status?.hostIP) props.hostIP = res.status.hostIP
@@ -136,6 +139,15 @@ export default () => ({
     if (res.status?.failed !== undefined) props.failed = res.status.failed
     if (res.status?.lastScheduleTime) props.lastScheduleTime = res.status.lastScheduleTime
     if (res.status?.lastSuccessfulTime) props.lastSuccessfulTime = res.status.lastSuccessfulTime
+    if (res.status?.capacity) {
+      props.capacity = Object.entries(res.status.capacity)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(', ')
+    }
+    if (res.status?.phase) props.phase = res.status.phase
+    if (res.status?.accessModes) {
+      props.accessModes = res.status.accessModes.join(', ')
+    }
 
     // ConfigMap and Secret data
     if (res.data) {
@@ -171,7 +183,11 @@ export default () => ({
           restarts: c.restartCount,
           started: c.started ? 'Yes' : 'No',
           state: Object.keys(c.state).map((key) => {
-            return `${key}: ${c.state[key].reason || ''}`
+            const reason = c.state[key]
+            if (typeof reason === 'string') {
+              return `${key}: ${reason}`
+            }
+            return key
           }),
         }
       }

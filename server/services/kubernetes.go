@@ -169,6 +169,10 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 		Informer().
 		AddEventHandler(getHandlerFuncs(sseBroker))
 
+	_, _ = factory.ForResource(schema.GroupVersionResource{Group: "", Version: "v1", Resource: "events"}).
+		Informer().
+		AddEventHandler(getHandlerFuncs(sseBroker))
+
 	if useEndpointSlices {
 		_, _ = factory.ForResource(schema.GroupVersionResource{Group: "discovery.k8s.io",
 			Version: "v1", Resource: "endpointslices"}).
@@ -229,19 +233,20 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 
 	data := make(map[string][]unstructured.Unstructured)
 
-	podList, _ := k.getResources(ns, "", "v1", "pods")
-	serviceList, _ := k.getResources(ns, "", "v1", "services")
+	podList, _ := k.GetResources(ns, "", "v1", "pods")
+	serviceList, _ := k.GetResources(ns, "", "v1", "services")
 	// endpointList, _ := k.getResources(ns, "", "v1", "endpoints")
-	deploymentList, _ := k.getResources(ns, "apps", "v1", "deployments")
-	replicaSetList, _ := k.getResources(ns, "apps", "v1", "replicasets")
-	statefulSetList, _ := k.getResources(ns, "apps", "v1", "statefulsets")
-	daemonSetList, _ := k.getResources(ns, "apps", "v1", "daemonsets")
-	jobList, _ := k.getResources(ns, "batch", "v1", "jobs")
-	cronJobList, _ := k.getResources(ns, "batch", "v1", "cronjobs")
-	ingressList, _ := k.getResources(ns, "networking.k8s.io", "v1", "ingresses")
-	confMapList, _ := k.getResources(ns, "", "v1", "configmaps")
-	secretList, _ := k.getResources(ns, "", "v1", "secrets")
-	pvcList, _ := k.getResources(ns, "", "v1", "persistentvolumeclaims")
+	deploymentList, _ := k.GetResources(ns, "apps", "v1", "deployments")
+	replicaSetList, _ := k.GetResources(ns, "apps", "v1", "replicasets")
+	statefulSetList, _ := k.GetResources(ns, "apps", "v1", "statefulsets")
+	daemonSetList, _ := k.GetResources(ns, "apps", "v1", "daemonsets")
+	jobList, _ := k.GetResources(ns, "batch", "v1", "jobs")
+	cronJobList, _ := k.GetResources(ns, "batch", "v1", "cronjobs")
+	ingressList, _ := k.GetResources(ns, "networking.k8s.io", "v1", "ingresses")
+	confMapList, _ := k.GetResources(ns, "", "v1", "configmaps")
+	secretList, _ := k.GetResources(ns, "", "v1", "secrets")
+	pvcList, _ := k.GetResources(ns, "", "v1", "persistentvolumeclaims")
+	eventList, _ := k.GetResources(ns, "", "v1", "events")
 
 	data["pods"] = podList
 	data["services"] = serviceList
@@ -255,13 +260,14 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 	data["configmaps"] = confMapList
 	data["secrets"] = secretList
 	data["persistentvolumeclaims"] = pvcList
+	data["events"] = eventList
 
 	// If we are using EndpointSlices, get those instead of Endpoints
 	if k.UseEndpointSlices {
-		endpointList, _ := k.getResources(ns, "discovery.k8s.io", "v1", "endpointslices")
+		endpointList, _ := k.GetResources(ns, "discovery.k8s.io", "v1", "endpointslices")
 		data["endpointslices"] = endpointList
 	} else {
-		endpointList, _ := k.getResources(ns, "", "v1", "endpoints")
+		endpointList, _ := k.GetResources(ns, "", "v1", "endpoints")
 		data["endpoints"] = endpointList
 	}
 
@@ -286,10 +292,10 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 }
 
 // Generic function to list resources from a specific namespace
-func (k *Kubernetes) getResources(ns string, grp string, ver string, res string) ([]unstructured.Unstructured, error) {
+func (k *Kubernetes) GetResources(ns string, grp string, ver string, res string) ([]unstructured.Unstructured, error) {
 	gvr := schema.GroupVersionResource{Group: grp, Version: ver, Resource: res}
 
-	l, err := k.client.Resource(gvr).Namespace(ns).List(context.TODO(), metaV1.ListOptions{})
+	l, err := k.client.Resource(gvr).Namespace(ns).List(context.TODO(), metaV1.ListOptions{Limit: 1000})
 	if err != nil {
 		log.Printf("💥 Failed to get %s %v", res, err)
 		return nil, err

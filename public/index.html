@@ -43,26 +43,28 @@
           title="Refresh Namespaces">
           <span class="icon"><i class="fas fa-rotate"></i></span>
         </button>
-        <!-- <div class="navbar-item is-hidden-touch is-hidden-desktop-only"> -->
+
         <button class="button is-info is-hidden-touch is-hidden-desktop-only"
-          @click="showEventsDialog = !showEventsDialog" title="Events" :disabled="isLoading">
+          @click="showEventsDialog = !showEventsDialog" title="Events" :disabled="isLoading || showWelcome">
           <span class="icon"><i class="fas fa-list-check"></i></span>
           <span>Events</span>
         </button>
-        <!-- </div> -->
 
         <!-- Toolbar of buttons -->
         <div class="is-hidden-touch">
-          <button class="button is-primary" @click="toolbarTreeLayout()" title="Tree Layout">
+          <button class="button is-primary" @click="toolbarTreeLayout()" title="Tree Layout"
+            :disabled="isLoading || showWelcome">
             <span class="icon"><i class="fas fa-chart-diagram"></i></span>
           </button>
-          <button class="button is-primary" @click="toolbarCoseLayout()" title="Cose Layout">
+          <button class="button is-primary" @click="toolbarCoseLayout()" title="Cose Layout"
+            :disabled="isLoading || showWelcome">
             <span class="icon"><i class="fas fa-circle-nodes"></i></span>
           </button>
-          <button class="button is-primary" @click="toolbarFit()" title="Fit View">
+          <button class="button is-primary" @click="toolbarFit()" title="Fit View" :disabled="isLoading || showWelcome">
             <span class="icon"><i class="fas fa-expand"></i></span>
           </button>
-          <button class="button is-primary" @click="toolbarSavePNG()" title="Save View as PNG">
+          <button class="button is-primary" @click="toolbarSavePNG()" title="Save View as PNG"
+            :disabled="isLoading || showWelcome">
             <span class="icon"><i class="fas fa-camera"></i></span>
           </button>
         </div>

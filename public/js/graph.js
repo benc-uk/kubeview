@@ -3,6 +3,7 @@
 
 // ==========================================================================================
 // Handles most graph operations like adding, updating, and removing resources
+// Also stores some cached resources and events not related to the graph
 // Also processes links between resources in the Cytoscape graph
 // ==========================================================================================
 
@@ -13,6 +14,7 @@ const ICON_PATH = 'public/img/res'
 
 // A map & cache of resources by their UID, used in a bunch of places
 const resMap = {}
+const eventMap = {}
 
 /**
  * Get a cached resource by its ID
@@ -24,15 +26,48 @@ export function getResource(id) {
 }
 
 /**
+ * Get events from the cache
+ * @param {number} [count=100] The maximum number of events to return, defaults to 100
+ * @return {Resource[]} An array of all events in the event map
+ */
+export function getEvents(count = 100) {
+  const sortedEvents = Object.values(eventMap)
+    .sort((a, b) => {
+      return Date.parse(b.lastTimestamp) - Date.parse(a.lastTimestamp)
+    })
+    .slice(0, count)
+
+  return sortedEvents
+}
+
+/**
+ * Clear the resource and event cache
+ * This is used to reset the graph state, e.g. when switching namespaces
+ * @returns {void}
+ */
+export function clearCache() {
+  Object.keys(resMap).forEach((key) => delete resMap[key])
+  Object.keys(eventMap).forEach((key) => delete eventMap[key])
+}
+
+/**
  * Used to add a resource to the graph
  * @param {Resource} res The k8s resource to add
  */
 export function addResource(res) {
   // Endpoints are stored in the resmap but not added to the graph
-  if (res.kind === 'Endpoints') {
+  if (res.kind === 'Endpoints' || res.kind === 'EndpointSlice') {
     resMap[res.metadata.uid] = res
     processLinks(res)
     return
+  }
+
+  // Events are special, they are not added to the graph
+  if (res.kind === 'Event') {
+    eventMap[res.metadata.uid] = res
+
+    // Notify the events dialog that a new event has been added
+    window.dispatchEvent(new CustomEvent('kubeEventAdded', { detail: res }))
   }
 
   // Hide resources that are not in the filter
@@ -66,6 +101,13 @@ export function updateResource(res) {
   if (res.kind === 'Endpoints') {
     resMap[res.metadata.uid] = res
     processLinks(res)
+    return
+  }
+
+  // Events are special, they are not added to the graph
+  if (res.kind === 'Event') {
+    eventMap[res.metadata.uid] = res
+    window.dispatchEvent(new CustomEvent('eventsUpdated', { detail: res }))
     return
   }
 

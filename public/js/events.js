@@ -3,6 +3,7 @@
 // ==========================================================================================
 // Event streaming for Kubernetes resources
 // Handles SSE events from the server and updates the graph accordingly
+// These are *not* the same as Kubernetes events, which are handled in events-dialog.js
 // ==========================================================================================
 import { layout, removeResource, addResource, updateResource } from './graph.js'
 import { getConfig } from './config.js'
@@ -27,11 +28,13 @@ export function getClientId() {
 
 let disconnected = false
 
+/**
+ * Set up the event streaming connection to receive live updates
+ * from the server for Kubernetes resources
+ */
 export function initEventStreaming() {
-  const clientId = getClientId()
-
   console.log('🌐 Opening event stream...')
-  const updateStream = new EventSource(`updates?clientID=${clientId}`, {})
+  const updateStream = new EventSource(`updates?clientID=${getClientId()}`, {})
   disconnected = false
 
   // Handle resource add events from the server
@@ -49,9 +52,6 @@ export function initEventStreaming() {
 
     addResource(res)
     layout()
-
-    // Inform main app that a new resource has been added
-    window.dispatchEvent(new CustomEvent('resAdded', {}))
   })
 
   // Handle resource delete events from the server

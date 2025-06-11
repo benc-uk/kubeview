@@ -1,0 +1,32 @@
+<!-- This is the dialog for settings -->
+<div class="modal is-active" x-data="eventsDialog" x-show="showEventsDialog" x-cloak>
+  <div class="modal-background" @click="showEventsDialog = false"></div>
+  <div class="modal-card" style="width:80vw">
+    <header class="modal-card-head has-background-primary py-3">
+      <p class="modal-card-title has-text-black">Events</p>
+      <button class="delete" aria-label="close" @click="showEventsDialog = false"></button>
+    </header>
+    <div class="modal-content" style="width:100%">
+      <table class="table is-striped is-hoverable is-fullwidth" x-show="events && events.length > 0">
+        <thead>
+          <tr class="is-size-6 has-text-weight-bold">
+            <th>Reason</th>
+            <th>Time</th>
+            <th>Message</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="event in events" :key="event.metadata.uid">
+            <tr class="is-size-6">
+              <td x-text="event.reason" :class="textColour(event)"></td>
+              <td x-text="niceDate(event)" :class="textColour(event)"></td>
+              <td x-text="event.message" :class="textColour(event)"></td>
+              <td x-text="event.count" :class="textColour(event)"></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

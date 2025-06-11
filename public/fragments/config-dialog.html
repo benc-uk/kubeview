@@ -1,5 +1,5 @@
 <!-- This is the dialog for settings -->
-<div class="modal is-active" x-show="showConfigDialog" x-cloak>
+<div class="modal is-active" x-show="showConfigDialog" x-cloak id="configDialog">
   <div class="modal-background"></div>
   <div class="modal-card better-shad">
     <header class="modal-card-head has-background-primary py-3">
@@ -38,7 +38,7 @@
           <label class="label">Resource Filters (Hold Ctrl to select multiple)</label>
           <div class="field">
             <div class="select is-multiple is-success is-fullwidth">
-              <select multiple size="6" x-model="cfg.resFilter">
+              <select multiple x-model="cfg.resFilter" size="10">
                 <option disabled>• Pods & Deployments:</option>
                 <option value="Pod" :selected="cfg.resFilter.includes('Pod')">Pods</option>
                 <option value="Deployment" :selected="cfg.resFilter.includes('Deployment')">Deployments</option>

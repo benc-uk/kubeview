@@ -44,7 +44,8 @@ pre {
 }
 
 #configDialog .modal-content {
-  min-height: 330px;
+  min-height: 500px;
+  height: 60vh;
 }
 
 .logo {
