@@ -161,9 +161,9 @@ func (s *KubeviewAPI) GetPodLogs(w http.ResponseWriter, r *http.Request) {
 
 	logs, err := s.kubeService.GetPodLogs(ns, podName, logCount)
 	if err != nil {
-		logs = "Error fetching logs: " + err.Error()
 		// Note: We don't send a problem response here, as we want to return something even if there's an error
 		// This is more graceful as the pod might not be in a state to fetch logs
+		logs = "Error fetching logs: " + err.Error()
 	}
 
 	s.ReturnText(w, logs)
