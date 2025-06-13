@@ -3,7 +3,7 @@
   <div class="modal-background" @click="showEventsDialog = false"></div>
   <div class="modal-card" style="width:80vw">
     <header class="modal-card-head has-background-primary py-3">
-      <p class="modal-card-title has-text-black">Events</p>
+      <p class="modal-card-title has-text-black" x-text="`Events for namespace: ${namespace}`"></p>
       <button class="delete" aria-label="close" @click="showEventsDialog = false"></button>
     </header>
     <div class="modal-content" style="width:100%">

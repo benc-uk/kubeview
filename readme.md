@@ -20,9 +20,11 @@ Note: This is a v2 and complete rewrite the original KubeView project [see below
 - Real-time updates using Server-Sent Events (SSE) so view dynamically updates as resources change
 - Supports a wide range of common and core Kubernetes resource types, including Pods, Deployments, Services, ConfigMaps, Secrets, Ingresses, and more
 - Colour coding (Red/Green/Grey) of resources based on their status and health
-- Side info panel allows you to view further details of resources
+- Side info panel allows you to view further details of resources, including labels, annotations, and other properties
+- Display list of events which have occurred in the namespace
+- Drill down and show pod logs for debugging and troubleshooting
 - Filtering of resources by type to reduce clutter
-- Search functionality to quickly find resources by name
+- Search functionality to quickly find & filter resources by name
 
 ## 🏗️ Architecture & Design
 
@@ -38,6 +40,7 @@ A `clientID` is used to identify the client and send updates for the resources t
 
 - `/api/namespaces`: Returns a list of namespaces in the cluster.
 - `/api/fetch/{namespace}?clientID={clientID}`: Returns a list of resources in the cluster for the specified namespace.
+- `/api/logs/{namespace}/{podname}`: Fetches logs for a specific pod in the specified namespace.
 - `/api/status`: Returns the status of the KubeView server, including the version and build information.
 - `/updates?clientID={clientID}`: Establishes a Server-Sent Events (SSE) connection for real-time updates.
 - `/health`: Simple health endpoint to check if the server is running.
@@ -102,7 +105,6 @@ run                  🏃 Run application, used for local development
 build                🔨 Build application binary
 clean                🧹 Clean up and reset
 image                📦 Build container image from Dockerfile
-push                 📤 Push container image to registry
 helm-docs            📜 Update docs & readme for Helm chart
 helm-package         🔠 Package Helm chart and update index
 ```
@@ -119,7 +121,8 @@ The project is structured as follows:
  │   ├── css          # Stylesheets
  │   ├── ext          # External libraries (e.g., Cytoscape.js, Alpine.js)
  │   ├── img          # Images and icons
- │   └── js           # All client side JavaScript, see main.js for entry point
+ │   ├── js           # All client side JavaScript, see main.js for entry point
+ │   └── fragments    # HTML fragments for Alpine.js components
  └── server           # Core backend API server
      └── services     # Services for handling Kubernetes resources and SSE
 ```

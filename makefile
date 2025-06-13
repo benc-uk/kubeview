@@ -8,7 +8,7 @@ REPO_ROOT := $(shell git rev-parse --show-toplevel)
 VERSION ?= $(shell git tag -l --sort=-creatordate | head -n 1)
 BUILD_INFO ?= dev-build $(shell git log -1 --pretty=format:'%h %ad' --date=short)
 BUILD_PLATFORM ?= linux/amd64
-# Set this to '--push' to enable image push
+# Set this to '--push' to enable image pushing, e.g. `make image IMAGE_EXTRA_ARGS="--push"`
 IMAGE_EXTRA_ARGS ?= 
 
 .EXPORT_ALL_VARIABLES:
