@@ -1,4 +1,4 @@
-<!-- This is the info panel that shows resource details -->
+<!-- This shows a side panel filled with info about a resource when clicked -->
 <article class="panel is-link" x-data="sidePanel" id="infoPanel" x-transition:enter="slidein"
   x-transition:leave="slideout" x-show="open" x-cloak>
   <p class="panel-heading py-2">
@@ -7,10 +7,14 @@
   </p>
   <section>
     <div class="panel-block is-flex">
-      <button class="button is-small is-primary mr-1" :class="{'is-outlined':!showLabels}"
+      <button class="button is-small is-light mr-1" :class="{'is-outlined':!showLabels}"
         @click="showLabels=!showLabels; showAnno=false">Labels</button>
-      <button class="button is-small is-primary" :class="{'is-outlined':!showAnno}"
+      <button class="button is-small is-light mr-3" :class="{'is-outlined':!showAnno}"
         @click="showAnno=!showAnno; showLabels=false">Annotations</button>
+      <button class="button is-small is-primary" @click="showLogs(panelData.props.name)" x-show="isPod">
+        <span class="icon"><i class="fas fa-rectangle-list"></i></span>
+        <span>Pod Logs</span>
+      </button>
     </div>
     <!-- Labels & Annotations -->
     <template x-for="(value, label) in panelData.labels" :key="label">

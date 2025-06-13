@@ -48,6 +48,18 @@ pre {
   height: 60vh;
 }
 
+#logArea {
+  height: 70vh;
+  width: 100%;
+  font-family: monospace;
+  font-size: 0.9rem;
+  overflow-y: auto;
+  color: #eee;
+  background-color: black;
+  padding: 8px;
+  resize: none;
+}
+
 .logo {
   vertical-align: middle;
   width: 80px;

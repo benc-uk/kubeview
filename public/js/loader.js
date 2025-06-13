@@ -5,6 +5,7 @@
 const PATH = 'public/fragments'
 
 window.addEventListener('DOMContentLoaded', () => {
+  // Find all divs with data-fragment attribute and load their HTML content
   document.querySelectorAll('div[data-fragment]').forEach(async (el) => {
     const frag = el.getAttribute('data-fragment')
     if (frag) {

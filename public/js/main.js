@@ -50,6 +50,8 @@ Alpine.data('mainApp', () => ({
   cfg: getConfig(),
   searchQuery: '',
   showEventsDialog: false,
+  showLogsDialog: false,
+  logs: '',
 
   /** @type {Record<string, string>} */
   serviceMetadata: {
@@ -301,6 +303,10 @@ Alpine.data('mainApp', () => ({
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+  },
+
+  showLogs() {
+    console.log('Show logs for', this.panelData.id)
   },
 }))
 

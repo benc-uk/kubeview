@@ -6,6 +6,7 @@ import { getResource } from './graph.js'
 
 // ==========================================================================================
 // Component for the side panel showing information about a resource
+// Also responsible for showing pod logs
 // Responds to clicks in the Cytoscape graph & other events
 // ==========================================================================================
 
@@ -15,6 +16,7 @@ export default () => ({
   showAnno: false,
   showProps: true,
   showContainers: true,
+  isPod: false,
 
   /** @type {PanelData} */
   panelData: {
@@ -78,6 +80,11 @@ export default () => ({
     const props = {
       name: res.metadata.name,
       created: res.metadata.creationTimestamp,
+    }
+
+    this.isPod = false
+    if (res.kind === 'Pod') {
+      this.isPod = true
     }
 
     if (res.spec?.nodeName) props.nodeName = res.spec.nodeName
@@ -201,6 +208,36 @@ export default () => ({
       containers,
       labels,
       annotations,
+    }
+  },
+
+  async showLogs(podName) {
+    console.log(`📜 Fetching logs for pod ${podName} in namespace ${this.namespace}`)
+    this.isLoading = true
+
+    // Note these properties are in the parent mainApp component
+    // It didn't work having them here, so we use the parent component's properties
+    this.showLogsDialog = true
+    this.logs = ''
+
+    // Fetch logs from the server, the last 300 lines
+    let res
+    try {
+      res = await fetch(`api/logs/${this.namespace}/${podName}?max=300`)
+      if (!res.ok) throw new Error(`HTTP error ${res.status}: ${res.statusText}`)
+
+      this.isLoading = false
+      this.logs = (await res.text()) || 'No logs available'
+
+      // Scroll to the bottom of the log area
+      this.$nextTick(() => {
+        const logArea = document.getElementById('logArea')
+        if (logArea) logArea.scrollTop = logArea.scrollHeight
+      })
+    } catch (err) {
+      this.showError(`Failed to fetch logs: ${err.message}`, res)
+      this.open = false
+      return
     }
   },
 })

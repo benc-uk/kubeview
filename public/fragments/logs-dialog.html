@@ -1,0 +1,17 @@
+<!-- This is the dialog for showing pod logs, note it uses the sidePanel component for data -->
+<div class="modal is-active" x-data="sidePanel" x-show="showLogsDialog" x-cloak>
+  <div class="modal-background" @click="showLogsDialog = false"></div>
+  <div class="modal-card" style="width:80vw">
+    <header class="modal-card-head has-background-primary py-3">
+      <p class="modal-card-title has-text-black" x-text="`Pod Logs: ${panelData.props.name}`"></p>
+      <button @click="showLogs(panelData.props.name)" class="button is-small is-dark mr-3">
+        <span class="icon"><i class="fas fa-rotate"></i></span>
+        <span>Update Logs</span>
+      </button>
+      <button class="delete" aria-label="close" @click="showLogsDialog = false"></button>
+    </header>
+    <div class="modal-content" style="width:100%">
+      <textarea x-text="logs" readonly id="logArea"></textarea>
+    </div>
+  </div>
+</div>

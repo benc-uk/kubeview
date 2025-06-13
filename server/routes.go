@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 
 	"github.com/benc-uk/go-rest-api/pkg/problem"
 	"github.com/go-chi/chi/v5"
@@ -32,6 +33,7 @@ func (s *KubeviewAPI) AddRoutes(r *chi.Mux) {
 	// REST API routes
 	r.Get("/api/namespaces", s.handleNamespaceList)
 	r.Get("/api/fetch/{namespace}", s.handleFetchData)
+	r.Get("/api/logs/{namespace}/{podname}", s.GetPodLogs)
 }
 
 // Establish the SSE connection for streaming updates each client
@@ -139,4 +141,30 @@ func (s *KubeviewAPI) handleFetchData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.ReturnJSON(w, data)
+}
+
+// Pull logs for a specific pod in a namespace
+func (s *KubeviewAPI) GetPodLogs(w http.ResponseWriter, r *http.Request) {
+	ns := chi.URLParam(r, "namespace")
+	podName := chi.URLParam(r, "podname")
+
+	count := r.URL.Query().Get("max")
+	if count == "" {
+		count = "100" // Default to 100 lines if not specified
+	}
+
+	logCount, err := strconv.Atoi(count)
+	if err != nil {
+		problem.Wrap(400, r.RequestURI, "invalid log count", err).Send(w)
+		return
+	}
+
+	logs, err := s.kubeService.GetPodLogs(ns, podName, logCount)
+	if err != nil {
+		logs = "Error fetching logs: " + err.Error()
+		// Note: We don't send a problem response here, as we want to return something even if there's an error
+		// This is more graceful as the pod might not be in a state to fetch logs
+	}
+
+	s.ReturnText(w, logs)
 }

@@ -20,6 +20,7 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
@@ -28,6 +29,7 @@ import (
 // Kubernetes is a service that connects to a Kubernetes cluster and provides access to its resources
 type Kubernetes struct {
 	client            *dynamic.DynamicClient
+	clientSet         *kubernetes.Clientset
 	ClusterHost       string
 	Mode              string // "in-cluster" or "out-of-cluster"
 	KubeVersion       string
@@ -88,6 +90,8 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 
 	log.Println("🌐 Kubernetes host:", kubeConfig.Host)
 
+	// DiscoveryClient is used to discover the Kubernetes API resources
+	// It is used to check the server version and capabilities
 	discClient, err := discovery.NewDiscoveryClientForConfig(kubeConfig)
 	if err != nil {
 		return nil, err
@@ -115,6 +119,13 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 	// Use the dynamic client to interact with the Kubernetes API
 	// This allows us to work with any resource type without needing to know the schema in advance
 	dynamicClient, err := dynamic.NewForConfig(kubeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	// ClientSet is the standard Kubernetes client for interacting with the API
+	// It is used for operations that require the full client, such as getting logs
+	clientSet, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -189,6 +200,7 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 
 	return &Kubernetes{
 		client:            dynamicClient,
+		clientSet:         clientSet, // Deprecated, use client instead
 		ClusterHost:       kubeConfig.Host,
 		Mode:              mode,
 		UseEndpointSlices: useEndpointSlices,
@@ -217,6 +229,7 @@ func (k *Kubernetes) GetNamespaces() ([]string, error) {
 	return out, nil
 }
 
+// Validate if a namespace exists in the cluster
 func (k *Kubernetes) CheckNamespaceExists(ns string) bool {
 	gvr := schema.GroupVersionResource{Group: "", Version: "v1", Resource: "namespaces"}
 
@@ -226,6 +239,7 @@ func (k *Kubernetes) CheckNamespaceExists(ns string) bool {
 	return err == nil
 }
 
+// Retrieves all resources in a specific namespace and returns them in a big ol' map
 func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstructured, error) {
 	if ns == "" {
 		return nil, errors.New("namespace is empty")
@@ -302,6 +316,30 @@ func (k *Kubernetes) GetResources(ns string, grp string, ver string, res string)
 	}
 
 	return l.Items, nil
+}
+
+// Retrieves the logs of a specific pod in a given namespace
+func (k *Kubernetes) GetPodLogs(ns, podName string, lineCount int) (string, error) {
+	if ns == "" || podName == "" {
+		return "", errors.New("namespace or pod name is empty")
+	}
+
+	if lineCount <= 0 {
+		lineCount = 100 // Default to 100 lines if not specified
+	}
+
+	// Get the lines of logs from the pod
+	req := k.clientSet.CoreV1().Pods(ns).GetLogs(podName, &coreV1.PodLogOptions{
+		TailLines: &[]int64{int64(lineCount)}[0], // We pass in how many lines we want to get
+	})
+
+	logs, err := req.DoRaw(context.TODO())
+	if err != nil {
+		log.Printf("💥 Failed to get logs for pod %s in namespace %s: %v", podName, ns, err)
+		return "", err
+	}
+
+	return string(logs), nil
 }
 
 func inCluster() bool {
