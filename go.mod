@@ -4,7 +4,7 @@ go 1.24.3
 
 require (
 	github.com/benc-uk/go-rest-api v1.0.14
-	github.com/go-chi/chi/v5 v5.2.1
+	github.com/go-chi/chi/v5 v5.2.2
 	k8s.io/api v0.33.1
 	k8s.io/apimachinery v0.33.1
 	k8s.io/client-go v0.33.1
@@ -42,13 +42,12 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/oauth2 v0.27.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/term v0.31.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/term v0.30.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
-	golang.org/x/tools v0.32.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
