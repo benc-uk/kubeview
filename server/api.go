@@ -23,10 +23,11 @@ type NamespaceListResult struct {
 	Namespaces []string `json:"namespaces"`
 	// We munge a couple of extra fields into the API response
 	// This saves us from having to make a separate request for the version and build info
-	ClusterHost string `json:"clusterHost"`
-	Version     string `json:"version"`
-	BuildInfo   string `json:"buildInfo"`
-	Mode        string `json:"mode"`
+	ClusterHost    string `json:"clusterHost"`
+	Version        string `json:"version"`
+	BuildInfo      string `json:"buildInfo"`
+	Mode           string `json:"mode"`
+	PodLogsEnabled bool   `json:"podLogsEnabled"`
 }
 
 func NewKubeviewAPI(conf Config) *KubeviewAPI {
