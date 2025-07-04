@@ -11,6 +11,9 @@ singleNamespace: false
 # -- If you want to hide certain namespaces, use a regular expression here, e.g. `kube-\|aks-`
 namespaceFilter: ''
 
+# -- Set to true to disable access to pod logs from the API and UI.
+disablePodLogs: false
+
 # -- Set to true to enable debug mode, which outputs much more information in the logs
 debug: false
 

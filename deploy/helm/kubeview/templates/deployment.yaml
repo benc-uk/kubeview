@@ -50,7 +50,11 @@ spec:
           {{ if .Values.debug }}
             - name: DEBUG
               value: true
-          {{ end }}           
+          {{ end }}     
+          {{ if .Values.disablePodLogs }}
+            - name: DISABLE_POD_LOGS
+              value: true
+          {{ end }}      
           ports:
             - name: http
               containerPort: 8000

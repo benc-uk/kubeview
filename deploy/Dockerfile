@@ -2,6 +2,7 @@
 # Build stage
 # For the multi-platform build, see this guide:
 # https://docs.docker.com/build/building/multi-platform/#cross-compiling-a-go-application
+# Note: BUILDPLATFORM is a magic variable that Docker sets when using BuildKit and --platform
 # ==============================================================
 FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS build
 ARG VERSION="0.0.0"
