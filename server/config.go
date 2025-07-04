@@ -15,6 +15,7 @@ type Config struct {
 	NameSpaceFilter string
 	SingleNamespace string
 	Debug           bool
+	EnablePodLogs   bool
 }
 
 // Parse the environment variables and return a Config struct
@@ -25,6 +26,7 @@ func getConfig() Config {
 	nameSpaceFilter := ""
 	singleNamespace := ""
 	debug := false
+	enablePodLogs := true
 
 	if portEnv := os.Getenv("PORT"); portEnv != "" {
 		if p, err := strconv.Atoi(portEnv); err == nil {
@@ -40,6 +42,12 @@ func getConfig() Config {
 		nameSpaceFilter = s
 	}
 
+	if s := os.Getenv("DISABLE_POD_LOGS"); s != "" {
+		if enable, err := strconv.ParseBool(s); err == nil {
+			enablePodLogs = !enable
+		}
+	}
+
 	if debugEnv := os.Getenv("DEBUG"); debugEnv != "" {
 		debug, _ = strconv.ParseBool(debugEnv)
 	}
@@ -49,5 +57,6 @@ func getConfig() Config {
 		NameSpaceFilter: nameSpaceFilter,
 		SingleNamespace: singleNamespace,
 		Debug:           debug,
+		EnablePodLogs:   enablePodLogs,
 	}
 }

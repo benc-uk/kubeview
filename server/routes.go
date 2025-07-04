@@ -145,6 +145,11 @@ func (s *KubeviewAPI) handleFetchData(w http.ResponseWriter, r *http.Request) {
 
 // Pull logs for a specific pod in a namespace
 func (s *KubeviewAPI) GetPodLogs(w http.ResponseWriter, r *http.Request) {
+	if !s.config.EnablePodLogs {
+		s.ReturnText(w, "Viewing logs has been disabled by the administrator")
+		return
+	}
+
 	ns := chi.URLParam(r, "namespace")
 	podName := chi.URLParam(r, "podname")
 
