@@ -35,7 +35,7 @@
           </div>
         </div>
         <div :class="{'is-hidden':configTab!=2}">
-          <label class="label">Resource Filters (Hold Ctrl to select multiple)</label>
+          <label class="label">Resource Filters (Use Ctrl or Shift to select multiple)</label>
           <div class="field">
             <div class="select is-multiple is-success is-fullwidth">
               <select multiple x-model="cfg.resFilter" size="10">
@@ -54,8 +54,10 @@
                 <option disabled>• Other Resources:</option>
                 <option value="Job" :selected="cfg.resFilter.includes('Job')">Jobs</option>
                 <option value="CronJob" :selected="cfg.resFilter.includes('CronJob')">CronJobs</option>
-                <option value="PersistentVolumeClaim" :selected="cfg.resFilter.includes('PersistentVolumeClaim')">
-                  PersistentVolumeClaims</option>
+                <option value="PersistentVolumeClaim" :selected="cfg.resFilter.includes('PersistentVolumeClaim')">PersistentVolumeClaims</option>
+                <option value="HorizontalPodAutoscaler" :selected="cfg.resFilter.includes('HorizontalPodAutoscaler')">
+                  HorizontalPodAutoscalers
+                </option>
               </select>
             </div>
           </div>

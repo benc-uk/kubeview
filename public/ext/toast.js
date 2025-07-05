@@ -104,6 +104,7 @@ export function showToast(message, duration = 2000, pos = 'top-center', type = '
         document.body.removeChild(toast)
       } catch (err) {
         // Ignore if already removed
+        err
       }
     }, 1000)
   }, duration)
@@ -119,6 +120,7 @@ export function hideToast(time) {
         document.body.removeChild(toast)
       } catch (err) {
         // Ignore if already removed
+        err
       }
     }, time || 1000)
   }
