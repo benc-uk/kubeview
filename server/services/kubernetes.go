@@ -184,6 +184,10 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 		Informer().
 		AddEventHandler(getHandlerFuncs(sseBroker))
 
+	_, _ = factory.ForResource(schema.GroupVersionResource{Group: "autoscaling", Version: "v2", Resource: "horizontalpodautoscalers"}).
+		Informer().
+		AddEventHandler(getHandlerFuncs(sseBroker))
+
 	if useEndpointSlices {
 		_, _ = factory.ForResource(schema.GroupVersionResource{Group: "discovery.k8s.io",
 			Version: "v1", Resource: "endpointslices"}).
@@ -261,6 +265,7 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 	secretList, _ := k.GetResources(ns, "", "v1", "secrets")
 	pvcList, _ := k.GetResources(ns, "", "v1", "persistentvolumeclaims")
 	eventList, _ := k.GetResources(ns, "", "v1", "events")
+	hpaList, _ := k.GetResources(ns, "autoscaling", "v2", "horizontalpodautoscalers")
 
 	data["pods"] = podList
 	data["services"] = serviceList
@@ -275,6 +280,7 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 	data["secrets"] = secretList
 	data["persistentvolumeclaims"] = pvcList
 	data["events"] = eventList
+	data["horizontalpodautoscalers"] = hpaList
 
 	// If we are using EndpointSlices, get those instead of Endpoints
 	if k.UseEndpointSlices {

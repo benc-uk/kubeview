@@ -281,6 +281,21 @@ export function processLinks(res) {
       }
     }
   }
+
+  // Try to link a HPA to the target resource
+  if (res.kind === 'HorizontalPodAutoscaler' && res.spec?.scaleTargetRef) {
+    const targetKind = res.spec.scaleTargetRef.kind
+    const targetName = res.spec.scaleTargetRef.name
+
+    // Find the target resource in the graph
+    const targetNode = cy.$(`node[kind = "${targetKind}"][label = "${targetName}"]`)
+    if (targetNode.length > 0) {
+      if (getConfig().debug) console.log(`🔗 Linking HPA ${res.metadata.name} to ${targetKind} ${targetName}`)
+      addEdge(res.metadata.uid, targetNode.id())
+    } else {
+      if (getConfig().debug) console.warn(`🔗 No target resource found for HPA ${res.metadata.name}`)
+    }
+  }
 }
 
 /**
