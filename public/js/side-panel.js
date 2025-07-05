@@ -116,6 +116,21 @@ export default () => ({
     if (res.spec?.schedule !== undefined) props.scheduled = res.spec.schedule
     if (res.spec?.storageClassName) props.storageClass = res.spec.storageClassName
     if (res.spec?.volumeMode) props.volumeMode = res.spec.volumeMode
+    if (res.spec?.minReplicas !== undefined) props.minReplicas = res.spec.minReplicas
+    if (res.spec?.maxReplicas !== undefined) props.maxReplicas = res.spec.maxReplicas
+    if (res.spec?.scaleTargetRef) {
+      props.scaleTarget = `${res.spec.scaleTargetRef.kind}: ${res.spec.scaleTargetRef.name}`
+    }
+    // For HPA: kinda convoluted as the spec is a bit fiddly
+    for (const [index, metric] of (res.spec?.metrics || []).entries()) {
+      const typeLower = metric.type.toLowerCase()
+      if (metric[typeLower]) {
+        const target = metric[typeLower].target
+        const value = target.averageUtilization || target.averageValue || target.value
+        const name = metric[typeLower].name || metric[typeLower].metric?.name
+        props[`metric${index + 1}`] = `${metric.type}: ${name} -> ${value}`
+      }
+    }
 
     if (res.status?.podIP) props.podIP = res.status.podIP
     if (res.status?.hostIP) props.hostIP = res.status.hostIP

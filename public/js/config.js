@@ -25,6 +25,7 @@ const defaultConfig = {
     'ConfigMap',
     'Secret',
     'PersistentVolumeClaim',
+    'HorizontalPodAutoscaler',
   ],
 }
 
