@@ -38,53 +38,54 @@ export function initEventStreaming() {
   disconnected = false
 
   // Handle resource add events from the server
-  updateStream.addEventListener('add', function (event) {
+  updateStream.addEventListener('add', async function (event) {
     /** @type {Resource} */
     let res
     try {
       res = JSON.parse(event.data)
-    } catch (e) {
-      console.error('💥 Error parsing event data:', e)
+    } catch (err) {
+      console.error('💥 Error parsing event data:', err)
       return
     }
 
     if (getConfig().debug) console.log('⬆️ Add resource:', res.kind, res.metadata.name)
 
     addResource(res)
-    layout()
+    await layout()
   })
 
   // Handle resource delete events from the server
-  updateStream.addEventListener('delete', function (event) {
+  updateStream.addEventListener('delete', async function (event) {
     /** @type {Resource} */
     let res
     try {
       res = JSON.parse(event.data)
-    } catch (e) {
-      console.error('💥 Error parsing event data:', e)
+    } catch (err) {
+      console.error('💥 Error parsing event data:', err)
       return
     }
 
     if (getConfig().debug) console.log('☠️ Delete resource:', res.kind, res.metadata.name)
 
     removeResource(res)
-    layout()
+    await layout()
   })
 
   // Handle resource update events from the server
-  updateStream.addEventListener('update', function (event) {
+  updateStream.addEventListener('update', async function (event) {
     /** @type {Resource} */
     let res
     try {
       res = JSON.parse(event.data)
-    } catch (e) {
-      console.error('💥 Error parsing event data:', e)
+    } catch (err) {
+      console.error('💥 Error parsing event data:', err)
       return
     }
 
     if (getConfig().debug) console.log('⬆️ Update resource:', res.kind, res.metadata.name)
 
     updateResource(res)
+    await layout()
   })
 
   // Notify when the stream is connected

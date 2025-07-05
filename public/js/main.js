@@ -6,27 +6,81 @@
 // Handles the main cytoscape graph and data load from the server
 // Provides functions to add, update, and remove resources from the graph
 // ==========================================================================================
-import cytoscape from '../ext/cytoscape.esm.min.mjs'
 import Alpine from '../ext/alpinejs.esm.min.js'
 
 import { getConfig, saveConfig } from './config.js'
 import { getClientId, initEventStreaming } from './events.js'
-import { styleSheet } from './styles.js'
-import { addResource, processLinks, layout, coseLayout, clearCache } from './graph.js'
-import { hideToast, showToast } from '../ext/toast.js'
+import { addResource, processLinks, layout, clearCache, tempShit } from './graph.js'
+import { showToast } from '../ext/toast.js'
 import sidePanel from './side-panel.js'
 import eventsDialog from './events-dialog.js'
 
-// This is why we are here, Cytoscape will be used to render all the data
-// It's global and exposed so that other modules can access it
-export const cy = cytoscape({
-  container: document.getElementById('mainView'),
-  style: styleSheet,
+// @ts-ignore
+export const graph = new G6.Graph({
+  container: 'mainView',
+  data: {},
+  autoFit: 'view',
+  zoomRange: [0.2, 10],
+  padding: 20,
+
+  node: {
+    type: 'image',
+    style: {
+      size: 100,
+      labelFill: '#cccccc',
+      labelFontSize: 20,
+      labelPlacement: 'bottom',
+      stroke: '#fff',
+      lineWidth: 2,
+      fillOpacity: 0.5,
+      cursor: 'pointer',
+      haloStroke: '#3153D5',
+    },
+    state: {
+      selected: {
+        halo: true,
+        haloLineWidth: 12,
+        haloStrokeOpacity: 0.8,
+        labelFontSize: 20,
+      },
+    },
+  },
+
+  edge: {
+    type: 'cubic-vertical',
+    style: {
+      endArrow: true,
+      lineWidth: 2.5,
+      stroke: '#666',
+    },
+  },
+
+  layout: {
+    type: 'antv-dagre',
+    rankdir: 'TB',
+    ranker: 'network-simplex',
+    animation: false,
+    preLayout: true,
+  },
+
+  behaviors: [
+    'drag-canvas',
+    'drag-element',
+    {
+      type: 'zoom-canvas',
+      sensitivity: 0.4,
+    },
+    {
+      type: 'click-select',
+      key: 'click-select-1',
+      unselectedState: 'unselected',
+    },
+  ],
 })
 
-window.addEventListener('resize', function () {
-  cy.resize()
-  cy.fit(null, 10)
+window.addEventListener('resize', async function () {
+  graph.resize()
+  await graph.fitView()
 })
 
 // Set up the event streaming for live updates once the DOM is loaded
@@ -88,7 +142,7 @@ Alpine.data('mainApp', () => ({
     })
 
     // Listen for resource addition events, and re-run the search & filtering
-    cy.on('add', () => this.filterView(this.searchQuery))
+    // TODO: cy.on('add', () => this.filterView(this.searchQuery))
 
     this.$watch('namespace', () => {
       console.log(`🔄 Namespace changed to: ${this.namespace}`)
@@ -112,9 +166,9 @@ Alpine.data('mainApp', () => ({
     // Load the initial namespaces
     await this.refreshNamespaces()
 
-    // Handle layout stop event to show a toast if no nodes are present
-    cy.on('layoutstop', () => {
-      if (cy.nodes().length === 0) {
+    // Handle post layout event to show a toast if no nodes are present
+    graph.on(G6.GraphEvent.AFTER_LAYOUT, () => {
+      if (graph.getNodeData().length === 0) {
         showToast('No resources found in this namespace<br>Check your filter settings', 3000, 'top-center', 'warning')
       }
     })
@@ -184,7 +238,8 @@ Alpine.data('mainApp', () => ({
     this.isLoading = true
 
     window.history.replaceState({}, '', `?ns=${this.namespace}`)
-    cy.elements().remove() // Clear the graph before loading new data
+    await graph.clear()
+    await graph.fitView()
 
     let data
     let res
@@ -223,7 +278,12 @@ Alpine.data('mainApp', () => ({
       }
     }
 
-    layout()
+    try {
+      await graph.render()
+    } catch (e) {
+      console.error('💥 Error rendering graph:', e)
+      return
+    }
   },
 
   /**
@@ -231,43 +291,39 @@ Alpine.data('mainApp', () => ({
    * @param {string} query
    */
   filterView(query) {
-    const q = query.trim().toLowerCase()
-
-    if (q.length === 0) {
-      // If the search query is empty, show everything
-      cy.elements().style({
-        display: 'element',
-        visibility: 'visible',
-      })
-      hideToast(20)
-      this.toolbarFit()
-      return
-    }
-
-    const visCountBefore = cy.$(':visible').length
-
-    // Set all nodes that match the search query to be visible
-    // And hide all nodes that do not match
-    const result = cy.$('node[label*="' + q + '"]')
-    result.style({
-      display: 'element',
-      visibility: 'visible',
-    })
-    result.symdiff('node').style({
-      display: 'none',
-      visibility: 'hidden',
-    })
-
-    const visCountAfter = cy.$(':visible').length
-    if (visCountAfter <= 0) {
-      showToast('No resources found matching the search query', 2000, 'top-center')
-    } else {
-      hideToast(20)
-    }
-
-    if (visCountBefore != visCountAfter) {
-      this.toolbarFit()
-    }
+    query
+    // const q = query.trim().toLowerCase()
+    // if (q.length === 0) {
+    //   // If the search query is empty, show everything
+    //   cy.elements().style({
+    //     display: 'element',
+    //     visibility: 'visible',
+    //   })
+    //   hideToast(20)
+    //   this.toolbarFit()
+    //   return
+    // }
+    // const visCountBefore = cy.$(':visible').length
+    // // Set all nodes that match the search query to be visible
+    // // And hide all nodes that do not match
+    // const result = cy.$('node[label*="' + q + '"]')
+    // result.style({
+    //   display: 'element',
+    //   visibility: 'visible',
+    // })
+    // result.symdiff('node').style({
+    //   display: 'none',
+    //   visibility: 'hidden',
+    // })
+    // const visCountAfter = cy.$(':visible').length
+    // if (visCountAfter <= 0) {
+    //   showToast('No resources found matching the search query', 2000, 'top-center')
+    // } else {
+    //   hideToast(20)
+    // }
+    // if (visCountBefore != visCountAfter) {
+    //   this.toolbarFit()
+    // }
   },
 
   // Save settings to the config
@@ -278,31 +334,24 @@ Alpine.data('mainApp', () => ({
     this.fetchNamespace()
   },
 
-  toolbarCoseLayout: coseLayout,
-
-  toolbarFit() {
-    cy.resize()
-    cy.fit(null, 10)
+  async toolbarFit() {
+    await graph.fitView()
   },
 
   toolbarTreeLayout: layout,
 
   async toolbarSavePNG() {
-    const blob = await cy.png({
-      full: true,
-      scale: 2,
-      bg: '#050505',
-      output: 'blob-promise',
+    const imageData = await graph.toDataURL({
+      type: 'image/png',
     })
 
-    const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url
+    a.href = imageData
     a.download = `kubeview-${this.namespace}.png`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    URL.revokeObjectURL(imageData)
   },
 
   showLogs() {

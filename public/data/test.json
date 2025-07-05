@@ -1,0 +1,158 @@
+{
+  "nodes": [
+    {
+      "id": "1",
+      "style": {
+        "src": "public/img/res/deployment.svg",
+        "labelText": "pod-api"
+      }
+    },
+    {
+      "id": "2",
+      "style": {
+        "src": "public/img/res/pod.svg",
+        "labelText": "pod-api-22213"
+      }
+    },
+    {
+      "id": "3",
+      "style": {
+        "src": "public/img/res/pod.svg",
+        "labelText": "pod-api-65753"
+      }
+    },
+    {
+      "id": "4",
+      "style": {
+        "src": "public/img/res/service.svg",
+        "labelText": "svc-api"
+      }
+    },
+    {
+      "id": "5",
+      "style": {
+        "src": "public/img/res/replicaset.svg",
+        "labelText": "pod-api-rs-123"
+      }
+    },
+    {
+      "id": "6",
+      "style": {
+        "src": "public/img/res/deployment.svg",
+        "labelText": "foo"
+      }
+    },
+    {
+      "id": "7",
+      "style": {
+        "src": "public/img/res/replicaset.svg",
+        "labelText": "foo-rs-456"
+      }
+    },
+    {
+      "id": "8",
+      "style": {
+        "src": "public/img/res/pod.svg",
+        "labelText": "foo-11111"
+      }
+    },
+    {
+      "id": "9",
+      "style": {
+        "src": "public/img/res/pod.svg",
+        "labelText": "foo-22222"
+      }
+    },
+    {
+      "id": "10",
+      "style": {
+        "src": "public/img/res/pod.svg",
+        "labelText": "foo-33333"
+      }
+    },
+    {
+      "id": "11",
+      "style": {
+        "src": "public/img/res/service.svg",
+        "labelText": "svc-foo"
+      }
+    },
+    {
+      "id": "12",
+      "style": {
+        "src": "public/img/res/configmap.svg",
+        "labelText": "app-config"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "1",
+      "target": "5"
+    },
+    {
+      "source": "5",
+      "target": "2"
+    },
+    {
+      "source": "5",
+      "target": "3"
+    },
+    {
+      "source": "4",
+      "target": "2"
+    },
+    {
+      "source": "4",
+      "target": "3"
+    },
+    {
+      "source": "6",
+      "target": "7"
+    },
+    {
+      "source": "7",
+      "target": "8"
+    },
+    {
+      "source": "7",
+      "target": "9"
+    },
+    {
+      "source": "7",
+      "target": "10"
+    },
+    {
+      "source": "11",
+      "target": "8"
+    },
+    {
+      "source": "11",
+      "target": "9"
+    },
+    {
+      "source": "11",
+      "target": "10"
+    },
+    {
+      "source": "12",
+      "target": "2"
+    },
+    {
+      "source": "12",
+      "target": "3"
+    },
+    {
+      "source": "12",
+      "target": "8"
+    },
+    {
+      "source": "12",
+      "target": "9"
+    },
+    {
+      "source": "12",
+      "target": "10"
+    }
+  ]
+}

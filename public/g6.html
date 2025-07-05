@@ -1,0 +1,108 @@
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1" />
+    <title>KubeView</title>
+    <link rel="icon" href="public/img/icon.png" type="image/png" />
+    <link rel="stylesheet" href="public/ext/bulma.min.css" />
+    <link rel="stylesheet" href="public/css/main.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+
+    <script src="https://unpkg.com/@antv/g6@5/dist/g6.min.js"></script>
+
+    <!-- <script src="public/js/main.js" type="module"></script> -->
+    <!-- <script src="public/js/loader.js"></script> -->
+  </head>
+
+  <body>
+    <div id="container" style="width: 100%; height: 100%"></div>
+
+    <script type="module">
+      const { Graph } = G6
+
+      const res = await fetch('public/data/test.json')
+      const data = await res.json()
+
+      const graph = new Graph({
+        container: 'container',
+        data: {},
+        autoFit: 'view',
+        zoomRange: [0.2, 10],
+
+        node: {
+          type: 'image',
+          style: {
+            size: 100,
+            labelFill: '#cccccc',
+            labelFontSize: 20,
+            labelPlacement: 'bottom',
+            stroke: '#fff',
+            lineWidth: 2,
+            fillOpacity: 0.5,
+            cursor: 'pointer',
+            haloStroke: '#3333dd',
+          },
+          state: {
+            selected: {
+              halo: true,
+              haloLineWidth: 6,
+              haloStrokeOpacity: 0.8,
+              labelFontSize: 20,
+            },
+          },
+        },
+
+        edge: {
+          type: 'cubic-vertical',
+          style: {
+            endArrow: true,
+            lineWidth: 2.5,
+            stroke: '#666',
+          },
+        },
+
+        layout: {
+          type: 'antv-dagre',
+          rankdir: 'TB',
+          ranker: 'network-simplex',
+        },
+        behaviors: [
+          'drag-canvas',
+          'drag-element',
+          {
+            type: 'zoom-canvas',
+            sensitivity: 0.4,
+          },
+          {
+            type: 'click-select',
+            key: 'click-select-1',
+            unselectedState: 'unselected',
+            onClick: (e) => {
+              console.log('e', e.target)
+            },
+          },
+        ],
+      })
+
+      graph.addNodeData([
+        {
+          id: '12',
+          style: {
+            src: 'public/img/res/configmap.svg',
+            labelText: 'app-config',
+          },
+        },
+      ])
+      graph.render()
+      graph.addNodeData([
+        {
+          id: '3',
+          style: {
+            src: 'public/img/res/pod.svg',
+            labelText: 'pod-api-65753',
+          },
+        },
+      ])
+    </script>
+  </body>
+</html>
