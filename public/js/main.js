@@ -12,6 +12,7 @@ import { getConfig, saveConfig } from './config.js'
 import { getClientId, initEventStreaming } from './events.js'
 import { addResource, processLinks, layout, clearCache } from './graph.js'
 import { showToast } from '../ext/toast.js'
+import { filterNodes, showAllNodes, cacheGraphData, clearCache as clearFilterCache, refreshCache } from './transforms/filter-nodes.js'
 import sidePanel from './side-panel.js'
 import eventsDialog from './events-dialog.js'
 
@@ -20,8 +21,8 @@ export const graph = new G6.Graph({
   container: 'mainView',
   data: {},
   autoFit: 'view',
-  zoomRange: [0.2, 10],
-  padding: 20,
+  zoomRange: [0.1, 10],
+  padding: 25,
 
   node: {
     type: 'image',
@@ -60,7 +61,7 @@ export const graph = new G6.Graph({
     rankdir: 'TB',
     ranker: 'network-simplex',
     animation: false,
-    preLayout: true,
+    preLayout: false,
     isLayoutInvisibleNodes: false,
   },
 
@@ -81,7 +82,7 @@ export const graph = new G6.Graph({
 
 window.addEventListener('resize', async function () {
   graph.resize()
-  await graph.fitView()
+  await graph.fitView({ when: 'always' })
 })
 
 // Set up the event streaming for live updates once the DOM is loaded
@@ -143,7 +144,14 @@ Alpine.data('mainApp', () => ({
     })
 
     // Listen for resource addition events, and re-run the search & filtering
-    // TODO: cy.on('add', () => this.filterView(this.searchQuery))
+    window.addEventListener('nodeUpdated', () => {
+      // Refresh the filter cache when nodes are updated
+      refreshCache(graph)
+      // Re-apply current filter if there is one
+      if (this.searchQuery) {
+        this.filterView(this.searchQuery)
+      }
+    })
 
     this.$watch('namespace', () => {
       console.log(`🔄 Namespace changed to: ${this.namespace}`)
@@ -240,7 +248,7 @@ Alpine.data('mainApp', () => ({
 
     window.history.replaceState({}, '', `?ns=${this.namespace}`)
     await graph.clear()
-    await graph.fitView()
+    await graph.fitView({ when: 'always' })
 
     let data
     let res
@@ -262,6 +270,7 @@ Alpine.data('mainApp', () => ({
 
     // Important: Clear the cache before adding new resources
     clearCache()
+    clearFilterCache()
 
     // Pass 1 - Add ALL the resources to the graph
     for (const kindKey in data) {
@@ -281,6 +290,8 @@ Alpine.data('mainApp', () => ({
 
     try {
       await graph.render()
+      // Cache the graph data for filtering after successful render
+      cacheGraphData(graph)
     } catch (e) {
       console.error('💥 Error rendering graph:', e)
       return
@@ -289,42 +300,40 @@ Alpine.data('mainApp', () => ({
 
   /**
    * Search for resources in the graph based on a query string
-   * @param {string} query
+   *
+   * This function implements custom node filtering using a cache-based approach:
+   * 1. Maintains a cache of all nodes/edges for efficient filtering
+   * 2. Filters nodes by matching search query against node labels
+   * 3. Uses visibility styling to hide/show nodes while preserving graph structure
+   * 4. Provides visual feedback and auto-fits the view
+   *
+   * @param {string} query - The search string to filter nodes by
    */
-  filterView(query) {
-    query
-    // const q = query.trim().toLowerCase()
-    // if (q.length === 0) {
-    //   // If the search query is empty, show everything
-    //   cy.elements().style({
-    //     display: 'element',
-    //     visibility: 'visible',
-    //   })
-    //   hideToast(20)
-    //   this.toolbarFit()
-    //   return
-    // }
-    // const visCountBefore = cy.$(':visible').length
-    // // Set all nodes that match the search query to be visible
-    // // And hide all nodes that do not match
-    // const result = cy.$('node[label*="' + q + '"]')
-    // result.style({
-    //   display: 'element',
-    //   visibility: 'visible',
-    // })
-    // result.symdiff('node').style({
-    //   display: 'none',
-    //   visibility: 'hidden',
-    // })
-    // const visCountAfter = cy.$(':visible').length
-    // if (visCountAfter <= 0) {
-    //   showToast('No resources found matching the search query', 2000, 'top-center')
-    // } else {
-    //   hideToast(20)
-    // }
-    // if (visCountBefore != visCountAfter) {
-    //   this.toolbarFit()
-    // }
+  async filterView(query) {
+    const q = query.trim()
+
+    try {
+      let visibleCount
+
+      if (q.length === 0) {
+        // Clear filter - show all nodes
+        visibleCount = showAllNodes(graph)
+        console.log(`🔍 Filter cleared: showing ${visibleCount} nodes`)
+      } else {
+        // Apply filter
+        visibleCount = filterNodes(graph, q, { caseSensitive: false })
+        console.log(`🔍 Filter applied: showing ${visibleCount} nodes matching "${q}"`)
+
+        if (visibleCount === 0) {
+          showToast('No resources found matching the search query', 2000, 'top-center', 'warning')
+        }
+      }
+
+      await layout()
+    } catch (error) {
+      console.error('💥 Error applying filter:', error)
+      showToast('Error applying filter', 2000, 'top-center', 'error')
+    }
   },
 
   // Save settings to the config
@@ -336,10 +345,8 @@ Alpine.data('mainApp', () => ({
   },
 
   async toolbarFit() {
-    await graph.fitView()
+    await layout()
   },
-
-  toolbarTreeLayout: layout,
 
   async toolbarSavePNG() {
     const imageData = await graph.toDataURL({

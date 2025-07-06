@@ -450,9 +450,13 @@ export async function layout() {
     layoutCallBackId = setTimeout(async () => {
       graph.stopLayout()
       try {
+        console.log('🔄 Running graph layout...')
+
         await graph.layout()
-      } catch (_err) {}
-      await graph.fitView()
+        await graph.fitView()
+      } catch (_err) {
+        console.error('💥 Error during graph layout:', _err)
+      }
     }, 80)
   } catch (_err) {}
 }
