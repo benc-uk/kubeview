@@ -31,39 +31,39 @@ export default () => ({
 
   init() {
     // When nodes are tapped or clicked, show the side panel with the resource details
-    // cy.on('tap', 'node', (evt) => {
-    //   const node = evt.target
-    //   if (node.data('resource')) {
-    //     const res = getResource(node.id())
-    //     if (!res) return
-    //     this.updateData(res)
-    //     this.open = true
-    //   }
-    // })
-    // // Hide the side panel when clicking outside of a node
-    // cy.on('tap', (evt) => {
-    //   if (evt.target === cy) {
-    //     this.open = false
-    //   }
-    // })
-    // // Handle node removal events
-    // cy.on('remove', 'node', (evt) => {
-    //   if (this.panelData && evt.target.id() === this.panelData.id) {
-    //     this.$nextTick(() => {
-    //       this.open = false
-    //     })
-    //   }
-    // })
-    // // Handle data updates for nodes
-    // cy.on('data', 'node', (evt) => {
-    //   const node = evt.target
-    //   if (this.panelData && node.id() === this.panelData.id) {
-    //     this.$nextTick(() => {
-    //       const res = getResource(node.id())
-    //       if (res) this.updateData(res)
-    //     })
-    //   }
-    // })
+    graph.on(G6.NodeEvent.CLICK, (evt) => {
+      const { target: node } = evt
+      const res = getResource(node.id)
+      if (!res) return
+      this.updateData(res)
+      this.open = true
+    })
+
+    // Hide the side panel when clicking outside of a node
+    graph.on(G6.CanvasEvent.CLICK, (_evt) => {
+      this.open = false
+    })
+
+    window.addEventListener('nodeDeleted', (evt) => {
+      //@ts-ignore
+      const nodeId = evt.detail
+      if (this.panelData && this.panelData.id === nodeId) {
+        this.$nextTick(() => {
+          this.open = false
+        })
+      }
+    })
+
+    window.addEventListener('nodeUpdated', (evt) => {
+      //@ts-ignore
+      const nodeId = evt.detail
+      if (this.panelData && this.panelData.id === nodeId) {
+        this.$nextTick(() => {
+          const res = getResource(nodeId)
+          if (res) this.updateData(res)
+        })
+      }
+    })
   },
 
   /**

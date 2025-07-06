@@ -10,7 +10,7 @@ import Alpine from '../ext/alpinejs.esm.min.js'
 
 import { getConfig, saveConfig } from './config.js'
 import { getClientId, initEventStreaming } from './events.js'
-import { addResource, processLinks, layout, clearCache, tempShit } from './graph.js'
+import { addResource, processLinks, layout, clearCache } from './graph.js'
 import { showToast } from '../ext/toast.js'
 import sidePanel from './side-panel.js'
 import eventsDialog from './events-dialog.js'
@@ -61,6 +61,7 @@ export const graph = new G6.Graph({
     ranker: 'network-simplex',
     animation: false,
     preLayout: true,
+    isLayoutInvisibleNodes: false,
   },
 
   behaviors: [

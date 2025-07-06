@@ -87,17 +87,15 @@ export function addResource(res) {
 
   try {
     graph.addNodeData([makeNode(res)])
+    processLinks(res)
+
+    resMap[res.metadata.uid] = res
+    return res.metadata.uid
   } catch (e) {
     if (getConfig().debug) {
       console.warn(`🍒 Unable to add node for resource ${res.metadata.name} (${res.kind}):`, e.message)
     }
-    return
   }
-
-  processLinks(res)
-
-  resMap[res.metadata.uid] = res
-  return res.metadata.uid
 }
 
 /**
@@ -134,8 +132,13 @@ export async function updateResource(res) {
   try {
     graph.updateNodeData([makeNode(res)])
   } catch (_err) {}
+
   resMap[res.metadata.uid] = res
   processLinks(res)
+
+  // Dispatch a custom event to notify that the node has been updated
+  const event = new CustomEvent('nodeUpdated', { detail: res.metadata.uid })
+  window.dispatchEvent(event)
 }
 
 /**
@@ -160,6 +163,10 @@ export function removeResource(res) {
   } catch (_err) {}
 
   delete resMap[res.metadata.uid]
+
+  // Dispatch a custom event to notify that the node has been deleted
+  const event = new CustomEvent('nodeDeleted', { detail: res.metadata.uid })
+  window.dispatchEvent(event)
 }
 
 /**
