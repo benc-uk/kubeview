@@ -10,9 +10,8 @@ import Alpine from '../ext/alpinejs.esm.min.js'
 
 import { getConfig, saveConfig } from './config.js'
 import { getClientId, initEventStreaming } from './events.js'
-import { addResource, processLinks, layout, clearCache } from './graph.js'
+import { addResource, processLinks, clearCache, layout, fitViewToVisible } from './graph.js'
 import { showToast } from '../ext/toast.js'
-import { filterNodes, showAllNodes, cacheGraphData, clearCache as clearFilterCache, refreshCache } from './transforms/filter-nodes.js'
 import sidePanel from './side-panel.js'
 import eventsDialog from './events-dialog.js'
 
@@ -20,7 +19,6 @@ import eventsDialog from './events-dialog.js'
 export const graph = new G6.Graph({
   container: 'mainView',
   data: {},
-  autoFit: 'view',
   zoomRange: [0.1, 10],
   padding: 25,
 
@@ -60,9 +58,7 @@ export const graph = new G6.Graph({
     type: 'antv-dagre',
     rankdir: 'TB',
     ranker: 'network-simplex',
-    animation: false,
-    preLayout: false,
-    isLayoutInvisibleNodes: false,
+    animation: true,
   },
 
   behaviors: [
@@ -144,11 +140,10 @@ Alpine.data('mainApp', () => ({
     })
 
     // Listen for resource addition events, and re-run the search & filtering
-    window.addEventListener('nodeUpdated', () => {
-      // Refresh the filter cache when nodes are updated
-      refreshCache(graph)
+    window.addEventListener('nodeAdded', () => {
       // Re-apply current filter if there is one
       if (this.searchQuery) {
+        console.log(`🔄 Node added, re-applying filter: "${this.searchQuery}"`)
         this.filterView(this.searchQuery)
       }
     })
@@ -248,7 +243,8 @@ Alpine.data('mainApp', () => ({
 
     window.history.replaceState({}, '', `?ns=${this.namespace}`)
     await graph.clear()
-    await graph.fitView({ when: 'always' })
+
+    window.dispatchEvent(new CustomEvent('closePanel'))
 
     let data
     let res
@@ -270,7 +266,6 @@ Alpine.data('mainApp', () => ({
 
     // Important: Clear the cache before adding new resources
     clearCache()
-    clearFilterCache()
 
     // Pass 1 - Add ALL the resources to the graph
     for (const kindKey in data) {
@@ -290,8 +285,7 @@ Alpine.data('mainApp', () => ({
 
     try {
       await graph.render()
-      // Cache the graph data for filtering after successful render
-      cacheGraphData(graph)
+      await fitViewToVisible()
     } catch (e) {
       console.error('💥 Error rendering graph:', e)
       return
@@ -300,39 +294,98 @@ Alpine.data('mainApp', () => ({
 
   /**
    * Search for resources in the graph based on a query string
-   *
-   * This function implements custom node filtering using a cache-based approach:
-   * 1. Maintains a cache of all nodes/edges for efficient filtering
-   * 2. Filters nodes by matching search query against node labels
-   * 3. Uses visibility styling to hide/show nodes while preserving graph structure
-   * 4. Provides visual feedback and auto-fits the view
-   *
-   * @param {string} query - The search string to filter nodes by
+   * Filters nodes by their labelText property, hiding non-matching nodes
+   * @param {string} query The search term to filter nodes by
    */
   async filterView(query) {
-    const q = query.trim()
+    const q = query.trim().toLowerCase()
 
-    try {
-      let visibleCount
+    // If query is empty, show all nodes
+    if (!q) {
+      // Show all nodes by removing any visibility styling
+      graph.updateNodeData(
+        graph.getNodeData().map((node) => ({
+          ...node,
+          style: {
+            ...node.style,
+            visibility: 'visible',
+            opacity: 1,
+          },
+        })),
+      )
 
-      if (q.length === 0) {
-        // Clear filter - show all nodes
-        visibleCount = showAllNodes(graph)
-        console.log(`🔍 Filter cleared: showing ${visibleCount} nodes`)
-      } else {
-        // Apply filter
-        visibleCount = filterNodes(graph, q, { caseSensitive: false })
-        console.log(`🔍 Filter applied: showing ${visibleCount} nodes matching "${q}"`)
+      // Show all edges by removing any visibility styling
+      graph.updateEdgeData(
+        graph.getEdgeData().map((edge) => ({
+          ...edge,
+          style: {
+            ...edge.style,
+            visibility: 'visible',
+            opacity: 1,
+          },
+        })),
+      )
 
-        if (visibleCount === 0) {
-          showToast('No resources found matching the search query', 2000, 'top-center', 'warning')
-        }
-      }
-
+      // Re-layout the graph to organize all visible nodes
+      console.log('🔍 Filter cleared, showing all nodes and edges')
       await layout()
-    } catch (error) {
-      console.error('💥 Error applying filter:', error)
-      showToast('Error applying filter', 2000, 'top-center', 'error')
+      return
+    }
+
+    // Filter nodes based on labelText
+    const allNodes = graph.getNodeData()
+    const updatedNodes = allNodes.map((node) => {
+      const labelText = node.style?.labelText || ''
+      const matches = labelText.toLowerCase().includes(q)
+
+      return {
+        ...node,
+        style: {
+          ...node.style,
+          visibility: matches ? 'visible' : 'hidden',
+          opacity: matches ? 1 : 0,
+        },
+      }
+    })
+
+    // Update the graph with filtered visibility
+    graph.updateNodeData(updatedNodes)
+
+    // Get the IDs of visible nodes
+    const visibleNodeIds = new Set(updatedNodes.filter((n) => n.style.visibility === 'visible').map((n) => n.id))
+
+    // Filter edges - hide edges that connect to hidden nodes
+    const allEdges = graph.getEdgeData()
+    const updatedEdges = allEdges.map((edge) => {
+      const sourceVisible = visibleNodeIds.has(edge.source)
+      const targetVisible = visibleNodeIds.has(edge.target)
+      const edgeVisible = sourceVisible && targetVisible
+
+      return {
+        ...edge,
+        style: {
+          ...edge.style,
+          visibility: edgeVisible ? 'visible' : 'hidden',
+          opacity: edgeVisible ? 1 : 0,
+        },
+      }
+    })
+
+    // Update the graph with filtered edge visibility
+    graph.updateEdgeData(updatedEdges)
+
+    const visibleCount = updatedNodes.filter((n) => n.style.visibility === 'visible').length
+    const visibleEdgeCount = updatedEdges.filter((e) => e.style.visibility === 'visible').length
+    console.log(`🔍 Filter applied: "${q}" - showing ${visibleCount}/${allNodes.length} nodes and ${visibleEdgeCount}/${allEdges.length} edges`)
+
+    // Re-layout the graph to organize visible nodes
+    await layout()
+
+    // Show toast with filter results
+    if (visibleCount === 0) {
+      showToast(`No nodes found matching "${query}"`, 3000, 'top-center', 'warning')
+    } else {
+      showToast(`Found ${visibleCount} node(s) matching "${query}"`, 2000, 'top-center', 'info')
     }
   },
 
@@ -345,7 +398,7 @@ Alpine.data('mainApp', () => ({
   },
 
   async toolbarFit() {
-    await layout()
+    await fitViewToVisible()
   },
 
   async toolbarSavePNG() {

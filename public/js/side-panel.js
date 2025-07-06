@@ -64,6 +64,12 @@ export default () => ({
         })
       }
     })
+
+    window.addEventListener('closePanel', () => {
+      this.$nextTick(() => {
+        this.open = false
+      })
+    })
   },
 
   /**
