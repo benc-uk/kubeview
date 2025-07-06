@@ -7,7 +7,7 @@ import { getResource } from './graph.js'
 // ==========================================================================================
 // Component for the side panel showing information about a resource
 // Also responsible for showing pod logs
-// Responds to clicks in the Cytoscape graph & other events
+// Responds to clicks in the graph & other events
 // ==========================================================================================
 
 export default () => ({
@@ -44,24 +44,26 @@ export default () => ({
       this.open = false
     })
 
-    window.addEventListener('nodeDeleted', (evt) => {
-      //@ts-ignore
-      const nodeId = evt.detail
-      if (this.panelData && this.panelData.id === nodeId) {
-        this.$nextTick(() => {
-          this.open = false
-        })
+    graph.on(G6.GraphEvent.AFTER_ELEMENT_DESTROY, (evt) => {
+      if (evt.elementType === 'node') {
+        const nodeId = evt.data.id
+        if (this.panelData && this.panelData.id === nodeId) {
+          this.$nextTick(() => {
+            this.open = false
+          })
+        }
       }
     })
 
-    window.addEventListener('nodeUpdated', (evt) => {
-      //@ts-ignore
-      const nodeId = evt.detail
-      if (this.panelData && this.panelData.id === nodeId) {
-        this.$nextTick(() => {
-          const res = getResource(nodeId)
-          if (res) this.updateData(res)
-        })
+    graph.on(G6.GraphEvent.AFTER_ELEMENT_UPDATE, (evt) => {
+      if (evt.elementType === 'node') {
+        const nodeId = evt.data.id
+        if (this.panelData && this.panelData.id === nodeId) {
+          this.$nextTick(() => {
+            const res = getResource(nodeId)
+            if (res) this.updateData(res)
+          })
+        }
       }
     })
 

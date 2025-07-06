@@ -59,6 +59,12 @@
             <button class="button is-primary" @click="toolbarFit()" title="Fit View" :disabled="isLoading || showWelcome">
               <span class="icon"><i class="fas fa-expand"></i></span>
             </button>
+            <button class="button is-primary" @click="toolbarDagreLayout()" title="Layout structured" :disabled="isLoading || showWelcome">
+              <span class="icon"><i class="fas fa-network-wired"></i></span>
+            </button>
+            <button class="button is-primary" @click="toolbarForceLayout()" title="Layout organic" :disabled="isLoading || showWelcome">
+              <span class="icon"><i class="fas fa-circle-nodes"></i></span>
+            </button>
             <button class="button is-primary" @click="toolbarSavePNG()" title="Save View as PNG" :disabled="isLoading || showWelcome">
               <span class="icon"><i class="fas fa-camera"></i></span>
             </button>

@@ -3,17 +3,18 @@
 
 // ==========================================================================================
 // Main JavaScript entry point for KubeView
-// Handles the main cytoscape graph and data load from the server
+// Handles the main G6 graph and data load from the server
 // Provides functions to add, update, and remove resources from the graph
 // ==========================================================================================
 import Alpine from '../ext/alpinejs.esm.min.js'
 
 import { getConfig, saveConfig } from './config.js'
 import { getClientId, initEventStreaming } from './events.js'
-import { addResource, processLinks, clearCache, layout, fitViewToVisible } from './graph.js'
+import { addResource, processLinks, clearCache, layout } from './graph.js'
 import { showToast } from '../ext/toast.js'
 import sidePanel from './side-panel.js'
 import eventsDialog from './events-dialog.js'
+import { fitToVisible, nodeVisByLabel } from './graph-utils.js'
 
 // @ts-ignore
 export const graph = new G6.Graph({
@@ -21,7 +22,12 @@ export const graph = new G6.Graph({
   data: {},
   zoomRange: [0.1, 10],
   padding: 25,
+  animation: {
+    duration: 250,
+    delay: 0,
+  },
 
+  // Node defaults
   node: {
     type: 'image',
     style: {
@@ -49,7 +55,8 @@ export const graph = new G6.Graph({
     type: 'cubic-vertical',
     style: {
       endArrow: true,
-      lineWidth: 2.5,
+      endArrowSize: 16,
+      lineWidth: 4,
       stroke: '#666',
     },
   },
@@ -58,7 +65,6 @@ export const graph = new G6.Graph({
     type: 'antv-dagre',
     rankdir: 'TB',
     ranker: 'network-simplex',
-    animation: true,
   },
 
   behaviors: [
@@ -170,8 +176,8 @@ Alpine.data('mainApp', () => ({
     // Load the initial namespaces
     await this.refreshNamespaces()
 
-    // Handle post layout event to show a toast if no nodes are present
-    graph.on(G6.GraphEvent.AFTER_LAYOUT, () => {
+    // Handle post render event to show a toast if no nodes are present
+    graph.on(G6.GraphEvent.AFTER_RENDER, () => {
       if (graph.getNodeData().length === 0) {
         showToast('No resources found in this namespace<br>Check your filter settings', 3000, 'top-center', 'warning')
       }
@@ -285,7 +291,7 @@ Alpine.data('mainApp', () => ({
 
     try {
       await graph.render()
-      await fitViewToVisible()
+      await fitToVisible(graph, true)
     } catch (e) {
       console.error('💥 Error rendering graph:', e)
       return
@@ -300,92 +306,19 @@ Alpine.data('mainApp', () => ({
   async filterView(query) {
     const q = query.trim().toLowerCase()
 
-    // If query is empty, show all nodes
-    if (!q) {
-      // Show all nodes by removing any visibility styling
-      graph.updateNodeData(
-        graph.getNodeData().map((node) => ({
-          ...node,
-          style: {
-            ...node.style,
-            visibility: 'visible',
-            opacity: 1,
-          },
-        })),
-      )
-
-      // Show all edges by removing any visibility styling
-      graph.updateEdgeData(
-        graph.getEdgeData().map((edge) => ({
-          ...edge,
-          style: {
-            ...edge.style,
-            visibility: 'visible',
-            opacity: 1,
-          },
-        })),
-      )
-
-      // Re-layout the graph to organize all visible nodes
-      console.log('🔍 Filter cleared, showing all nodes and edges')
-      await layout()
-      return
-    }
-
-    // Filter nodes based on labelText
-    const allNodes = graph.getNodeData()
-    const updatedNodes = allNodes.map((node) => {
-      const labelText = node.style?.labelText || ''
-      const matches = labelText.toLowerCase().includes(q)
-
-      return {
-        ...node,
-        style: {
-          ...node.style,
-          visibility: matches ? 'visible' : 'hidden',
-          opacity: matches ? 1 : 0,
-        },
-      }
-    })
-
-    // Update the graph with filtered visibility
-    graph.updateNodeData(updatedNodes)
-
-    // Get the IDs of visible nodes
-    const visibleNodeIds = new Set(updatedNodes.filter((n) => n.style.visibility === 'visible').map((n) => n.id))
-
-    // Filter edges - hide edges that connect to hidden nodes
-    const allEdges = graph.getEdgeData()
-    const updatedEdges = allEdges.map((edge) => {
-      const sourceVisible = visibleNodeIds.has(edge.source)
-      const targetVisible = visibleNodeIds.has(edge.target)
-      const edgeVisible = sourceVisible && targetVisible
-
-      return {
-        ...edge,
-        style: {
-          ...edge.style,
-          visibility: edgeVisible ? 'visible' : 'hidden',
-          opacity: edgeVisible ? 1 : 0,
-        },
-      }
-    })
-
-    // Update the graph with filtered edge visibility
-    graph.updateEdgeData(updatedEdges)
-
-    const visibleCount = updatedNodes.filter((n) => n.style.visibility === 'visible').length
-    const visibleEdgeCount = updatedEdges.filter((e) => e.style.visibility === 'visible').length
-    console.log(`🔍 Filter applied: "${q}" - showing ${visibleCount}/${allNodes.length} nodes and ${visibleEdgeCount}/${allEdges.length} edges`)
+    // Filters the graph nodes and edges based on the provided label query
+    const visCount = await nodeVisByLabel(graph, q)
 
     // Re-layout the graph to organize visible nodes
     await layout()
 
     // Show toast with filter results
-    if (visibleCount === 0) {
-      showToast(`No nodes found matching "${query}"`, 3000, 'top-center', 'warning')
+    if (visCount === 0) {
+      showToast(`No nodes found matching "${query}"`, 2000, 'top-center', 'warning')
+    } else if (q === '') {
+      showToast('Filter cleared, showing all nodes and edges', 2000, 'top-center', 'info')
     } else {
-      showToast(`Found ${visibleCount} node(s) matching "${query}"`, 2000, 'top-center', 'info')
+      showToast(`Found ${visCount} node(s) matching "${query}"`, 2000, 'top-center', 'info')
     }
   },
 
@@ -398,7 +331,30 @@ Alpine.data('mainApp', () => ({
   },
 
   async toolbarFit() {
-    await fitViewToVisible()
+    await fitToVisible(graph, true)
+  },
+
+  async toolbarForceLayout() {
+    graph.setLayout({
+      type: 'force-atlas2',
+      preventOverlap: true,
+      kr: 20,
+      ks: 0.3,
+      nodeSize: 130,
+    })
+
+    await graph.render()
+    await fitToVisible(graph, true)
+  },
+
+  async toolbarDagreLayout() {
+    graph.setLayout({
+      type: 'antv-dagre',
+      rankdir: 'TB',
+      ranker: 'network-simplex',
+    })
+    await graph.render()
+    await fitToVisible(graph, true)
   },
 
   async toolbarSavePNG() {

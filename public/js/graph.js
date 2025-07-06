@@ -4,10 +4,11 @@
 // ==========================================================================================
 // Handles most graph operations like adding, updating, and removing resources
 // Also stores some cached resources and events not related to the graph
-// Also processes links between resources in the Cytoscape graph
+// Also processes links between resources in the G6 graph
 // ==========================================================================================
 
 import { getConfig } from './config.js'
+import { fitToVisible } from './graph-utils.js'
 import { graph } from './main.js'
 
 const ICON_PATH = 'public/img/res'
@@ -149,10 +150,6 @@ export async function updateResource(res) {
 
   resMap[res.metadata.uid] = res
   processLinks(res)
-
-  // Dispatch a custom event to notify that the node has been updated
-  const event = new CustomEvent('nodeUpdated', { detail: res.metadata.uid })
-  window.dispatchEvent(event)
 }
 
 /**
@@ -177,10 +174,6 @@ export function removeResource(res) {
   } catch (_err) {}
 
   delete resMap[res.metadata.uid]
-
-  // Dispatch a custom event to notify that the node has been deleted
-  const event = new CustomEvent('nodeDeleted', { detail: res.metadata.uid })
-  window.dispatchEvent(event)
 }
 
 /**
@@ -466,121 +459,8 @@ export async function layout() {
         await graph.layout()
 
         // Call custom fit view that only considers visible nodes
-        await fitViewToVisible()
-      } catch (_err) {
-        console.error('💥 Error during graph layout:', _err)
-      }
+        await fitToVisible(graph, true)
+      } catch (_err) {}
     }, 80)
   } catch (_err) {}
-}
-
-/**
- * Custom fit view function that only considers visible nodes
- * This solves the G6 bug where fitView includes hidden nodes in the calculation
- * @param {boolean} animation Whether to use animation
- * @returns {Promise<void>}
- */
-export async function fitViewToVisible(animation = true) {
-  try {
-    // Get all nodes and filter for visible ones
-    const allNodes = graph.getNodeData()
-    const visibleNodes = allNodes.filter((node) => node.style?.visibility !== 'hidden' && node.style?.opacity !== 0)
-
-    if (visibleNodes.length === 0) {
-      console.warn('No visible nodes to fit to')
-      return
-    }
-
-    // If all nodes are visible, just use standard fitView
-    if (visibleNodes.length === allNodes.length) {
-      await graph.fitView({ when: 'always', direction: 'both' }, animation)
-      return
-    }
-
-    // Calculate bounding box of visible nodes using their actual positions
-    const positions = []
-
-    for (const node of visibleNodes) {
-      try {
-        // Get the actual rendered position of the node
-        const position = graph.getElementPosition(node.id)
-        if (position) {
-          positions.push(position)
-        }
-      } catch (_err) {
-        // If we can't get position, skip this node
-        console.warn(`Could not get position for node ${node.id}`)
-      }
-    }
-
-    if (positions.length === 0) {
-      console.warn('No node positions available for fitting')
-      await graph.fitView({ when: 'always', direction: 'both' }, animation)
-      return
-    }
-
-    // Calculate bounding box
-    const minX = Math.min(...positions.map((p) => p[0]))
-    const maxX = Math.max(...positions.map((p) => p[0]))
-    const minY = Math.min(...positions.map((p) => p[1]))
-    const maxY = Math.max(...positions.map((p) => p[1]))
-
-    // Calculate center of bounding box
-    const centerX = (minX + maxX) / 2
-    const centerY = (minY + maxY) / 2
-
-    // Calculate dimensions of bounding box
-    const width = maxX - minX
-    const height = maxY - minY
-
-    // Get canvas size
-    const canvasSize = graph.getSize()
-    const canvasWidth = canvasSize[0]
-    const canvasHeight = canvasSize[1]
-
-    // Add padding (20% of canvas size)
-    const paddingX = canvasWidth * 0.1
-    const paddingY = canvasHeight * 0.1
-
-    // Calculate zoom to fit with padding
-    const zoomX = (canvasWidth - 2 * paddingX) / width
-    const zoomY = (canvasHeight - 2 * paddingY) / height
-    const targetZoom = Math.min(zoomX, zoomY, 2) // Cap at 2x zoom
-
-    // Get current zoom
-    const currentZoom = graph.getZoom()
-
-    // Calculate zoom ratio
-    let zoomRatio = targetZoom / currentZoom
-    zoomRatio *= 0.91 // Slightly reduce zoom to avoid clipping
-
-    // Get viewport center
-    const viewportCenter = graph.getViewportCenter()
-
-    // First zoom to the target zoom level from viewport center
-    if (Math.abs(zoomRatio - 1) > 0.01) {
-      await graph.zoomBy(zoomRatio, animation, viewportCenter)
-    }
-
-    // Calculate where the center should be in viewport coordinates
-    const targetViewportX = canvasWidth / 2
-    const targetViewportY = canvasHeight / 2
-
-    // Convert the bounding box center to viewport coordinates AFTER zoom
-    const targetCanvasPoint = [centerX, centerY]
-    const currentViewportPoint = graph.getViewportByCanvas(targetCanvasPoint)
-
-    // Calculate translation needed to center the bounding box
-    const translateX = targetViewportX - currentViewportPoint[0]
-    const translateY = targetViewportY - currentViewportPoint[1]
-
-    // Translate to center the visible nodes
-    if (Math.abs(translateX) > 1 || Math.abs(translateY) > 1) {
-      await graph.translateBy([translateX, translateY], animation)
-    }
-  } catch (error) {
-    console.error('💥 Error in fitViewToVisible:', error)
-    // Fallback to standard fitView
-    await graph.fitView({ when: 'always', direction: 'both' }, animation)
-  }
 }
