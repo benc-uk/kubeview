@@ -26,6 +26,7 @@ export const graph = new G6.Graph({
     duration: 250,
     delay: 0,
   },
+  background: '#0a0b0d',
 
   // Node defaults
   node: {
@@ -369,10 +370,6 @@ Alpine.data('mainApp', () => ({
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(imageData)
-  },
-
-  showLogs() {
-    console.log('Show logs for', this.panelData.id)
   },
 }))
 
