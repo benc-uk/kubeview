@@ -3,7 +3,25 @@ entries:
   kubeview:
   - apiVersion: v2
     appVersion: 2.0.4
-    created: "2025-07-05T14:38:43.969116947+01:00"
+    created: "2025-07-07T09:25:04.561248325+01:00"
+    description: Kubernetes cluster visualiser and visual explorer
+    digest: bc5cab0e8ff6b9b33f03260b8bd7bfe1099bf812a38fb9cd9dc687b9abbdb96d
+    home: https://github.com/benc-uk/kubeview
+    icon: https://kubeview.benco.io/public/img/icon.png
+    maintainers:
+    - email: benc.uk@gmail.com
+      name: Ben Coleman
+      url: https://github.com/benc-uk/
+    name: kubeview
+    sources:
+    - https://github.com/benc-uk/kubeview
+    type: application
+    urls:
+    - kubeview-2.0.5.tgz
+    version: 2.0.5
+  - apiVersion: v2
+    appVersion: 2.0.4
+    created: "2025-07-07T09:25:04.560803237+01:00"
     description: Kubernetes cluster visualiser and visual explorer
     digest: 94bc9f275d27741832f3464d4df45737c1410728d0771fa1da7b821586f0740c
     home: https://github.com/benc-uk/kubeview
@@ -21,7 +39,7 @@ entries:
     version: 2.0.4
   - apiVersion: v2
     appVersion: 2.0.3
-    created: "2025-07-05T14:38:43.968806268+01:00"
+    created: "2025-07-07T09:25:04.560423177+01:00"
     description: Kubernetes cluster visualiser and visual explorer
     digest: b8c39f4184d38caa1274434b16c75376e2ea3d2f08183465d5c76437519529c9
     home: https://github.com/benc-uk/kubeview
@@ -39,7 +57,7 @@ entries:
     version: 2.0.3
   - apiVersion: v2
     appVersion: 2.0.2
-    created: "2025-07-05T14:38:43.96842535+01:00"
+    created: "2025-07-07T09:25:04.559972635+01:00"
     description: Kubernetes cluster visualiser and visual explorer
     digest: 141bbf01850b6f1be4a01fe48792784fb5dee299c08640cf83d8caf9e9987d03
     home: https://github.com/benc-uk/kubeview
@@ -57,7 +75,7 @@ entries:
     version: 2.0.1
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2025-07-05T14:38:43.967490607+01:00"
+    created: "2025-07-07T09:25:04.559335996+01:00"
     description: Kubernetes cluster visualiser and visual explorer
     digest: 5d41894df4888693fbe559d263db728626d258410e23f2c1662e3c6b24265357
     home: https://github.com/benc-uk/kubeview
@@ -73,4 +91,4 @@ entries:
     urls:
     - kubeview-2.0.0.tgz
     version: 2.0.0
-generated: "2025-07-05T14:38:43.966496698+01:00"
+generated: "2025-07-07T09:25:04.558240535+01:00"
