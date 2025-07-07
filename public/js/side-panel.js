@@ -1,6 +1,7 @@
 //@ts-check
 /// <reference path="./types/custom.d.ts" />
 
+import { NodeEvent, CanvasEvent, GraphEvent } from '../ext/g6-esm.js'
 import { graph } from './main.js'
 import { getResource } from './graph.js'
 
@@ -31,7 +32,7 @@ export default () => ({
 
   init() {
     // When nodes are tapped or clicked, show the side panel with the resource details
-    graph.on(G6.NodeEvent.CLICK, (evt) => {
+    graph.on(NodeEvent.CLICK, (evt) => {
       const { target: node } = evt
       const res = getResource(node.id)
       if (!res) return
@@ -40,11 +41,11 @@ export default () => ({
     })
 
     // Hide the side panel when clicking outside of a node
-    graph.on(G6.CanvasEvent.CLICK, (_evt) => {
+    graph.on(CanvasEvent.CLICK, (_evt) => {
       this.open = false
     })
 
-    graph.on(G6.GraphEvent.AFTER_ELEMENT_DESTROY, (evt) => {
+    graph.on(GraphEvent.AFTER_ELEMENT_DESTROY, (evt) => {
       if (evt.elementType === 'node') {
         const nodeId = evt.data.id
         if (this.panelData && this.panelData.id === nodeId) {
@@ -55,7 +56,7 @@ export default () => ({
       }
     })
 
-    graph.on(G6.GraphEvent.AFTER_ELEMENT_UPDATE, (evt) => {
+    graph.on(GraphEvent.AFTER_ELEMENT_UPDATE, (evt) => {
       if (evt.elementType === 'node') {
         const nodeId = evt.data.id
         if (this.panelData && this.panelData.id === nodeId) {

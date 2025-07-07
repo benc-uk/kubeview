@@ -2,8 +2,6 @@
 // This is a workaround to allow TypeScript to understand the types used in the JavaScript code.
 // VSCode will use this file to provide type checking & intellisense via JSDoc comments. Neat eh?
 
-declare const G6: any
-
 declare type ResNode = {
   id: string
   style: Record<string, string>

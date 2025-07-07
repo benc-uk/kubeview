@@ -7,6 +7,7 @@
 // Provides functions to add, update, and remove resources from the graph
 // ==========================================================================================
 import Alpine from '../ext/alpinejs.esm.min.js'
+import { Graph, GraphEvent } from '../ext/g6-esm.js'
 
 import { getConfig, saveConfig } from './config.js'
 import { getClientId, initEventStreaming } from './events.js'
@@ -31,7 +32,7 @@ const forceLayout = {
   nodeSize: getConfig().spacing || 100,
 }
 
-export const graph = new G6.Graph({
+export const graph = new Graph({
   container: 'mainView',
   data: {},
   zoomRange: [0.1, 10],
@@ -188,7 +189,7 @@ Alpine.data('mainApp', () => ({
     await this.refreshNamespaces()
 
     // Handle post render event to show a toast if no nodes are present
-    graph.on(G6.GraphEvent.AFTER_RENDER, () => {
+    graph.on(GraphEvent.AFTER_RENDER, () => {
       if (graph.getNodeData().length === 0) {
         showToast('No resources found in this namespace<br>Check your filter settings', 3000, 'top-center', 'warning')
       }

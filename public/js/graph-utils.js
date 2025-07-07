@@ -1,3 +1,5 @@
+//@ts-check
+
 // ==========================================================================================
 // More graph utility functions, mainly as G6 lacks some higher level features
 // And has some outright bugs
@@ -5,9 +7,9 @@
 
 /**
  * Filters the graph nodes and edges based on the provided label query.
- * @param {G6.Graph} graph The G6 graph instance.
+ * @param {any} graph The G6 graph instance.
  * @param {string} labelQuery The label query to filter nodes by. If empty, all nodes are shown.
- * @returns {Promise<number>} The number of visible nodes after filtering.
+ * @returns {number} The number of visible nodes after filtering.
  */
 export function nodeVisByLabel(graph, labelQuery) {
   // If query is empty, show all nodes
@@ -87,7 +89,7 @@ export function nodeVisByLabel(graph, labelQuery) {
 /**
  * Custom fit view function that only considers visible nodes
  * This solves the G6 bug where fitView includes hidden nodes in the calculation
- * @param {G6.Graph} graph The G6 graph instance
+ * @param {any} graph The G6 graph instance
  * @param {boolean} animation Whether to use animation
  * @returns {Promise<void>}
  */
