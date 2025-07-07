@@ -33,6 +33,11 @@
             </label>
             <p class="help">Extra logging in the console</p>
           </div>
+          <div class="field mt-4">
+            <label>Spacing</label>
+            <input type="range" x-model="cfg.spacing" min="10" max="300" step="1" />
+            <p class="help">Spacing between nodes in the layout</p>
+          </div>
         </div>
         <div :class="{'is-hidden':configTab!=2}">
           <label class="label">Resource Filters (Use Ctrl or Shift to select multiple)</label>

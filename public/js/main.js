@@ -16,7 +16,21 @@ import sidePanel from './side-panel.js'
 import eventsDialog from './events-dialog.js'
 import { fitToVisible, nodeVisByLabel } from './graph-utils.js'
 
-// @ts-ignore
+const dagreLayout = {
+  type: 'antv-dagre',
+  rankdir: 'TB',
+  ranker: 'network-simplex',
+  nodeSize: getConfig().spacing || 100,
+}
+
+const forceLayout = {
+  type: 'force-atlas2',
+  preventOverlap: true,
+  kr: 20,
+  ks: 0.3,
+  nodeSize: getConfig().spacing || 100,
+}
+
 export const graph = new G6.Graph({
   container: 'mainView',
   data: {},
@@ -62,11 +76,7 @@ export const graph = new G6.Graph({
     },
   },
 
-  layout: {
-    type: 'antv-dagre',
-    rankdir: 'TB',
-    ranker: 'network-simplex',
-  },
+  layout: dagreLayout,
 
   behaviors: [
     'drag-canvas',
@@ -328,6 +338,13 @@ Alpine.data('mainApp', () => ({
     saveConfig(this.cfg)
     this.showConfigDialog = false
     showToast('Configuration saved successfully', 3000, 'top-center', 'success')
+
+    // Update the graph layout with new spacing
+    graph.setLayout({
+      ...graph.getLayout(),
+      nodeSize: this.cfg.spacing,
+    })
+
     this.fetchNamespace()
   },
 
@@ -336,24 +353,13 @@ Alpine.data('mainApp', () => ({
   },
 
   async toolbarForceLayout() {
-    graph.setLayout({
-      type: 'force-atlas2',
-      preventOverlap: true,
-      kr: 20,
-      ks: 0.3,
-      nodeSize: 130,
-    })
-
+    graph.setLayout(forceLayout)
     await graph.render()
     await fitToVisible(graph, true)
   },
 
   async toolbarDagreLayout() {
-    graph.setLayout({
-      type: 'antv-dagre',
-      rankdir: 'TB',
-      ranker: 'network-simplex',
-    })
+    graph.setLayout(dagreLayout)
     await graph.render()
     await fitToVisible(graph, true)
   },

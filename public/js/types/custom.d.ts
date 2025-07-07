@@ -17,6 +17,7 @@ declare type Config = {
   debug: boolean
   shortenNames: boolean
   resFilter: string[]
+  spacing: number
 }
 
 // Represents a generic Kubernetes resource

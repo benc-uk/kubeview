@@ -2,7 +2,7 @@
 /// <reference path="./types/custom.d.ts" />
 
 // ==========================================================================================
-// Client-side configuration management for KubeView
+// Client-side configuration management for KubeView using local storage
 // ==========================================================================================
 
 /** @type {Config | null}*/
@@ -12,6 +12,7 @@ let config = null
 const defaultConfig = {
   debug: false,
   shortenNames: true,
+  spacing: 100,
   resFilter: [
     'Pod',
     'Deployment',
@@ -22,10 +23,10 @@ const defaultConfig = {
     'CronJob',
     'Service',
     'Ingress',
-    'ConfigMap',
-    'Secret',
-    'PersistentVolumeClaim',
-    'HorizontalPodAutoscaler',
+    // 'ConfigMap',
+    // 'Secret',
+    // 'PersistentVolumeClaim',
+    // 'HorizontalPodAutoscaler',
   ],
 }
 
@@ -50,7 +51,10 @@ export function getConfig() {
   return config || defaultConfig
 }
 
-export function saveConfig(newConfig) {
+export async function saveConfig(newConfig) {
+  // Weird bug where spacing is a string instead of a number
+  newConfig.spacing = parseInt(newConfig.spacing) || 100
+
   // Set the config in local storage
   localStorage.setItem('kubeviewConfig', JSON.stringify(newConfig))
   config = newConfig
