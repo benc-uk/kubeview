@@ -12,6 +12,7 @@ Note: This is a v2 and complete rewrite the original KubeView project [see below
 
 ## 📜 Details
 
+![](./docs/Screenshot2025-07-08192538.png)
 ![](./docs/msedge_3RbHD33whE.png)
 
 ### Features
@@ -163,3 +164,4 @@ For reference these permissions are `get`, `list`, `watch` for all of the follow
 - batch/v1/jobs
 - batch/v1/cronjobs
 - discovery.k8s.io/v1/endpointslices
+- autoscaling/v2/horizontalpodautoscalers
