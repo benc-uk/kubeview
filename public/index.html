@@ -89,9 +89,11 @@
       <div class="navbar-end is-hidden-touch is-hidden-desktop-only">
         <div class="navbar-item">
           <div class="buttons">
-            <div class="tag is-warning is-medium" id="eventStatusIcon">
-              <span class="icon"> <i class="fas fa-plug"></i> </span>&nbsp;Status
-            </div>
+            <!-- Connection indicator -->
+            <button class="button" :class="connStateClass" id="eventStatusIcon" @click="togglePaused()">
+              <span class="icon"><i class="fas fa-plug"></i></span>
+              <span x-text="connState.charAt(0).toUpperCase()+connState.slice(1)">Connecting</span>
+            </button>
             <button class="button is-primary" @click="showConfigDialog = true">
               <span class="icon">
                 <i class="fas fa-wrench"></i>
@@ -101,6 +103,7 @@
         </div>
       </div>
     </nav>
+
     <div class="notification is-danger mx-5 mt-5" x-show="errorMessage" x-cloak>
       <p class="title is-3">💀 A terrible thing happened!</p>
       <div x-html="errorMessage"></div>

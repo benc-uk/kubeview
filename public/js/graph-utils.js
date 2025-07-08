@@ -1,9 +1,27 @@
 //@ts-check
 
+import { getConfig } from './config.js'
+
 // ==========================================================================================
 // More graph utility functions, mainly as G6 lacks some higher level features
 // And has some outright bugs
 // ==========================================================================================
+
+// Default layout configurations for G6 graphs
+export const dagreLayout = {
+  type: 'antv-dagre',
+  rankdir: 'TB',
+  ranker: 'network-simplex',
+  nodeSize: getConfig().spacing || 100,
+}
+
+export const forceLayout = {
+  type: 'force-atlas2',
+  preventOverlap: true,
+  kr: 20,
+  ks: 0.3,
+  nodeSize: getConfig().spacing || 100,
+}
 
 /**
  * Filters the graph nodes and edges based on the provided label query.
@@ -21,7 +39,6 @@ export function nodeVisByLabel(graph, labelQuery) {
         style: {
           ...node.style,
           visibility: 'visible',
-          opacity: 1,
         },
       })),
     )
@@ -33,10 +50,10 @@ export function nodeVisByLabel(graph, labelQuery) {
         style: {
           ...edge.style,
           visibility: 'visible',
-          opacity: 1,
         },
       })),
     )
+
     return graph.getNodeData().length // Return total count of nodes
   } else {
     // Filter nodes based on labelText
@@ -50,7 +67,6 @@ export function nodeVisByLabel(graph, labelQuery) {
         style: {
           ...node.style,
           visibility: matches ? 'visible' : 'hidden',
-          opacity: matches ? 1 : 0,
         },
       }
     })
@@ -73,7 +89,6 @@ export function nodeVisByLabel(graph, labelQuery) {
         style: {
           ...edge.style,
           visibility: edgeVisible ? 'visible' : 'hidden',
-          opacity: edgeVisible ? 1 : 0,
         },
       }
     })
@@ -97,7 +112,7 @@ export async function fitToVisible(graph, animation = true) {
   try {
     // Get all nodes and filter for visible ones
     const allNodes = graph.getNodeData()
-    const visibleNodes = allNodes.filter((node) => node.style?.visibility !== 'hidden' && node.style?.opacity !== 0)
+    const visibleNodes = allNodes.filter((node) => node.style?.visibility !== 'hidden')
 
     if (visibleNodes.length === 0) {
       console.warn('No visible nodes to fit to')

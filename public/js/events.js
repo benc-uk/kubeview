@@ -8,6 +8,8 @@
 import { layout, removeResource, addResource, updateResource } from './graph.js'
 import { getConfig } from './config.js'
 
+let state = 'connecting' // 'connecting', 'connected', 'disconnected', 'paused'
+
 /**
  * Get a unique client ID for this session, stored in localStorage.
  * If no ID exists, generate a new one and store it.
@@ -26,8 +28,6 @@ export function getClientId() {
   return clientID
 }
 
-let disconnected = false
-
 /**
  * Set up the event streaming connection to receive live updates
  * from the server for Kubernetes resources
@@ -35,10 +35,13 @@ let disconnected = false
 export function initEventStreaming() {
   console.log('🌐 Opening event stream...')
   const updateStream = new EventSource(`updates?clientID=${getClientId()}`, {})
-  disconnected = false
+  state = 'connecting'
+  notifyStateChange()
 
   // Handle resource add events from the server
   updateStream.addEventListener('add', async function (event) {
+    if (state === 'paused') return
+
     /** @type {Resource} */
     let res
     try {
@@ -56,6 +59,8 @@ export function initEventStreaming() {
 
   // Handle resource delete events from the server
   updateStream.addEventListener('delete', async function (event) {
+    if (state === 'paused') return
+
     /** @type {Resource} */
     let res
     try {
@@ -73,6 +78,8 @@ export function initEventStreaming() {
 
   // Handle resource update events from the server
   updateStream.addEventListener('update', async function (event) {
+    if (state === 'paused') return
+
     /** @type {Resource} */
     let res
     try {
@@ -91,36 +98,40 @@ export function initEventStreaming() {
   // Notify when the stream is connected
   updateStream.onopen = function () {
     console.log('✅ Event stream ready:', updateStream.readyState === 1)
-    const statusIcon = document.getElementById('eventStatusIcon')
 
-    if (updateStream.readyState === 1 && statusIcon) {
-      statusIcon.classList.remove('is-danger', 'is-warning')
-      statusIcon.classList.add('is-success')
-      if (disconnected) {
-        disconnected = false
-        console.log('▶️ Reconnected to event stream')
-        // Inform main app that the stream has reconnected
-        window.dispatchEvent(new CustomEvent('reconnect', {}))
-      }
-    } else if (statusIcon) {
-      statusIcon.classList.remove('is-success')
-      statusIcon.classList.add('is-warning')
+    if (updateStream.readyState === 1) {
+      state = 'connected'
     }
+
+    notifyStateChange()
   }
 
   updateStream.onerror = function (event) {
     console.error('‼️ Event stream error:', event)
-    if (!disconnected) {
-      // Inform main app that the stream has disconnected
-      window.dispatchEvent(new CustomEvent('disconnect', {}))
-    }
-    disconnected = true
-
-    const statusIcon = document.getElementById('eventStatusIcon')
-
-    if (statusIcon) {
-      statusIcon.classList.remove('is-success')
-      statusIcon.classList.add('is-danger')
-    }
+    state = 'disconnected'
+    notifyStateChange()
   }
+}
+
+/**
+ * Toggle the paused state of the event stream.
+ */
+export function togglePaused() {
+  if (state === 'paused') {
+    state = 'connected'
+  } else if (state === 'connected') {
+    state = 'paused'
+  } else {
+    return
+  }
+
+  notifyStateChange()
+}
+
+function notifyStateChange() {
+  const stateEvent = new CustomEvent('connectionStateChange', {
+    detail: { state },
+  })
+
+  window.dispatchEvent(stateEvent)
 }

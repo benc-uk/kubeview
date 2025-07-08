@@ -28,7 +28,7 @@ Note: This is a v2 and complete rewrite the original KubeView project [see below
 
 ## 🏗️ Architecture & Design
 
-KubeView is built using Go for the backend, exposing a REST API that provides the data for the frontend, and serves static HTML/JS. The frontend is a static web application that uses HTML, CSS, and plain modern JavaScript (ES6) to render the user interface. It uses [Cytoscape.js](https://js.cytoscape.org/) for graph visualization, [Alpine.js](https://alpinejs.dev/) for client-side interactivity, and [Bulma](https://bulma.io/) for styling.
+KubeView is built using Go for the backend, exposing a REST API that provides the data for the frontend, and serves static HTML/JS. The frontend is a static web application that uses HTML, CSS, and plain modern JavaScript (ES6) to render the user interface. It uses [G6](https://g6.antv.antgroup.com/en) for graph visualization, [Alpine.js](https://alpinejs.dev/) for client-side interactivity, and [Bulma](https://bulma.io/) for styling.
 
 The backend uses the Go client for Kubernetes to retrieve resource information, including setting up watchers for real-time updates streamed using SSE. The data is then processed and sent to the frontend as JSON, which the frontend uses to render the graph and update the UI.
 
@@ -120,7 +120,7 @@ The project is structured as follows:
  ├── docs
  ├── public           # Static files served by the web server
  │   ├── css          # Stylesheets
- │   ├── ext          # External libraries (e.g., Cytoscape.js, Alpine.js)
+ │   ├── ext          # External libraries (G6, Alpine.js etc.)
  │   ├── img          # Images and icons
  │   ├── js           # All client side JavaScript, see main.js for entry point
  │   └── fragments    # HTML fragments for Alpine.js components
@@ -133,12 +133,13 @@ The project is structured as follows:
 The goal of this rewrite was to create a more maintainable codebase from the original KubeView. Some choices that have been made in this rewrite include:
 
 - Removal of Vue.js, and no bundling or NPM required.
+- Switch from Cytoscape.js to G6 for graph visualization, as it is (mostly) easier to work with and has more modern features.
 - Using SSE (Server-Sent Events) for real-time updates instead of polling.
 - Use of [Alpine.js](https://alpinejs.dev/) for managing client side behaviour.
 - Switch to [Bulma](https://bulma.io/) for CSS and themes.
 - Clean up & refactor messy parsing logic for resources and their relationships (but it's still pretty messy!).
 
-The rewrite originally used HTMX for fetching data and HTML fragments from the server. This worked but ended up unnecessarily complicated with so many interactions between the frontend and backend, esp with Cytoscape. The resulting code was also hard to follow and understand. As a result the current rewrite is more of an iteration of v1, the Vue.js code has been removed and replaced with a simpler static HTML/JS app that uses Alpine.js for interactivity. The backend API has been clear separation of concerns and now dynamically handles updates using SSE.
+The rewrite originally used HTMX for fetching data and HTML fragments from the server. This worked but ended up unnecessarily complicated with so many interactions between the frontend and backend. The resulting code was also hard to follow and understand. As a result the current rewrite is more of an iteration of v1, the Vue.js code has been removed and replaced with a simpler static HTML/JS app that uses Alpine.js for interactivity. The backend API has been clear separation of concerns and now dynamically handles updates using SSE.
 
 ## Appendix A: Kubernetes Permissions
 

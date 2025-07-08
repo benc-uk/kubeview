@@ -10,28 +10,14 @@ import Alpine from '../ext/alpinejs.esm.min.js'
 import { Graph, GraphEvent } from '../ext/g6-esm.js'
 
 import { getConfig, saveConfig } from './config.js'
-import { getClientId, initEventStreaming } from './events.js'
+import { getClientId, initEventStreaming, togglePaused } from './events.js'
 import { addResource, processLinks, clearCache, layout } from './graph.js'
 import { showToast } from '../ext/toast.js'
+import { dagreLayout, fitToVisible, forceLayout, nodeVisByLabel } from './graph-utils.js'
 import sidePanel from './side-panel.js'
 import eventsDialog from './events-dialog.js'
-import { fitToVisible, nodeVisByLabel } from './graph-utils.js'
 
-const dagreLayout = {
-  type: 'antv-dagre',
-  rankdir: 'TB',
-  ranker: 'network-simplex',
-  nodeSize: getConfig().spacing || 100,
-}
-
-const forceLayout = {
-  type: 'force-atlas2',
-  preventOverlap: true,
-  kr: 20,
-  ks: 0.3,
-  nodeSize: getConfig().spacing || 100,
-}
-
+// Global G6 graph instance
 export const graph = new Graph({
   container: 'mainView',
   data: {},
@@ -104,6 +90,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initEventStreaming()
 })
 
+// Communicate between different Kubeview tabs open at once, it's not critical
 export const channel = new BroadcastChannel('kubeview')
 
 // Alpine.js component for the main application
@@ -122,6 +109,9 @@ Alpine.data('mainApp', () => ({
   showEventsDialog: false,
   showLogsDialog: false,
   logs: '',
+  connState: 'connecting', // 'connecting', 'connected', 'disconnected'
+  togglePaused,
+  connStateClass: 'is-warning',
 
   /** @type {Record<string, string>} */
   serviceMetadata: {
@@ -147,17 +137,41 @@ Alpine.data('mainApp', () => ({
       }
     }
 
-    // These two handlers syncs us with the EventSource in events.js
-    window.addEventListener('reconnect', () => {
-      showToast('Reconnected to the server!<br>Resuming live updates', 3000, 'top-center', 'success')
-      this.fetchNamespace()
-    })
+    // Syncs us with the connection state in events.js
+    window.addEventListener('connectionStateChange', (event) => {
+      const newState = /** @type {CustomEvent} */ (event).detail.state
+      if (this.connState === 'disconnected' && newState === 'connected') {
+        showToast('Reconnected to the server!<br>Resuming live updates', 3000, 'top-center', 'success')
+        this.fetchNamespace()
+      }
 
-    window.addEventListener('disconnect', () => {
-      showToast('Disconnected from the server!<br>Live updates are paused', 3000, 'top-center', 'error')
+      if (this.connState === 'connected' && newState === 'disconnected') {
+        showToast('Disconnected from the server!<br>Live updates are paused', 3000, 'top-center', 'error')
+      }
+
+      switch (newState) {
+        case 'connecting':
+          this.connStateClass = 'is-warning'
+          break
+        case 'connected':
+          this.connStateClass = 'is-success'
+          break
+        case 'disconnected':
+          this.connStateClass = 'is-danger'
+          break
+        case 'paused':
+          this.connStateClass = 'is-grey'
+          showToast('Live updates paused', 2000, 'top-center', 'info')
+          break
+        default:
+          this.connStateClass = 'is-warning'
+      }
+
+      this.connState = newState
     })
 
     // Listen for resource addition events, and re-run the search & filtering
+    // TODO: replace with G6 event
     window.addEventListener('nodeAdded', () => {
       // Re-apply current filter if there is one
       if (this.searchQuery) {
@@ -256,8 +270,8 @@ Alpine.data('mainApp', () => ({
       return
     }
 
-    this.searchQuery = ''
     this.isLoading = true
+    this.searchQuery = ''
 
     window.history.replaceState({}, '', `?ns=${this.namespace}`)
     await graph.clear()
@@ -316,18 +330,18 @@ Alpine.data('mainApp', () => ({
    * @param {string} query The search term to filter nodes by
    */
   async filterView(query) {
-    const q = query.trim().toLowerCase()
+    query = query.trim().toLowerCase()
 
     // Filters the graph nodes and edges based on the provided label query
-    const visCount = await nodeVisByLabel(graph, q)
+    const visCount = nodeVisByLabel(graph, query)
 
     // Re-layout the graph to organize visible nodes
     await layout()
 
     // Show toast with filter results
-    if (visCount === 0) {
+    if (visCount === 0 && graph.getNodeData().length > 0) {
       showToast(`No nodes found matching "${query}"`, 2000, 'top-center', 'warning')
-    } else if (q === '') {
+    } else if (query === '') {
       showToast('Filter cleared, showing all nodes and edges', 2000, 'top-center', 'info')
     } else {
       showToast(`Found ${visCount} node(s) matching "${query}"`, 2000, 'top-center', 'info')
@@ -348,6 +362,13 @@ Alpine.data('mainApp', () => ({
 
     this.fetchNamespace()
   },
+
+  // togglePause() {
+  //   const isPaused = togglePaused()
+  //   if (isPaused === null) return
+
+  //   showToast(`Live updates ${isPaused ? 'paused' : 'resumed'}`, 2000, 'top-center', isPaused ? 'info' : 'success')
+  // },
 
   async toolbarFit() {
     await fitToVisible(graph, true)
