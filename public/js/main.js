@@ -11,7 +11,8 @@ import { Graph, GraphEvent } from '../ext/g6-esm.js'
 
 import { getConfig, saveConfig } from './config.js'
 import { getClientId, initEventStreaming, togglePaused } from './events.js'
-import { addResource, processLinks, clearCache, layout } from './graph.js'
+import { addResource, processLinks, layout } from './graph.js'
+import { clearCache } from './cache.js'
 import { showToast } from '../ext/toast.js'
 import { dagreLayout, fitToVisible, forceLayout, nodeVisByLabel } from './graph-utils.js'
 import sidePanel from './side-panel.js'
@@ -171,14 +172,13 @@ Alpine.data('mainApp', () => ({
     })
 
     // Listen for resource addition events, and re-run the search & filtering
-    // TODO: replace with G6 event
-    window.addEventListener('nodeAdded', () => {
-      // Re-apply current filter if there is one
+    graph.on(GraphEvent.BEFORE_ELEMENT_CREATE, () => {
       if (this.searchQuery) {
-        console.log(`🔄 Node added, re-applying filter: "${this.searchQuery}"`)
         this.filterView(this.searchQuery)
       }
     })
+
+    this.$watch('searchQuery', (query) => this.filterView(query))
 
     this.$watch('namespace', () => {
       console.log(`🔄 Namespace changed to: ${this.namespace}`)
@@ -188,8 +188,6 @@ Alpine.data('mainApp', () => ({
       // This is a workaround to notify other tabs about the namespace change
       channel.postMessage({ type: 'namespaceChange', namespace: this.namespace })
     })
-
-    this.$watch('searchQuery', (query) => this.filterView(query))
 
     // Check if the URL has a namespace parameter
     const urlParams = new URLSearchParams(window.location.search)
@@ -236,6 +234,17 @@ Alpine.data('mainApp', () => ({
     }
 
     console.log(`📚 Found ${this.namespaces ? this.namespaces.length : 0} namespaces in cluster`)
+  },
+
+  /**
+   * Refresh all data in the application
+   * This will refresh the list of namespaces AND fetch the current namespace data
+   */
+  async refreshAll() {
+    await this.refreshNamespaces()
+    if (this.namespace) {
+      await this.fetchNamespace()
+    }
   },
 
   /**

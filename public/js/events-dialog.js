@@ -2,7 +2,7 @@
 /// <reference path="./types/custom.d.ts" />
 
 import { showToast } from '../ext/toast.js'
-import { getEvents } from './graph.js'
+import { getEvents } from './cache.js'
 
 // ==========================================================================================
 // Events dialog component for displaying Kubernetes events

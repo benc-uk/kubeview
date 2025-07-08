@@ -7,68 +7,12 @@
 // Also processes links between resources in the G6 graph
 // ==========================================================================================
 
+import { findResByName, queryRes, remove, store } from './cache.js'
 import { getConfig } from './config.js'
 import { fitToVisible } from './graph-utils.js'
 import { graph } from './main.js'
 
 const ICON_PATH = 'public/img/res'
-
-// A map & cache of resources by their UID, used in a bunch of places
-const resMap = {}
-const eventMap = {}
-
-/**
- * Query the resource map with a filter function
- * @param {any} filterFn A function that takes a Resource and returns true if it should be included
- * @returns {any[]} An array of resources that match the filter function
- */
-export function queryRes(filterFn) {
-  return Object.values(resMap).filter(filterFn)
-}
-
-export function searchResName(name) {
-  return Object.values(resMap).filter((res) => {
-    return res.metadata.name.toLowerCase().includes(name.toLowerCase())
-  })
-}
-
-export function getAllResources() {
-  return Object.values(resMap)
-}
-
-/**
- * Get a cached resource by its ID
- * @param {string} id
- * @returns {Resource | null} The resource object or null if not found
- */
-export function getResource(id) {
-  return resMap[id] || null
-}
-
-/**
- * Get events from the cache
- * @param {number} [count=100] The maximum number of events to return, defaults to 100
- * @return {Resource[]} An array of all events in the event map
- */
-export function getEvents(count = 100) {
-  const sortedEvents = Object.values(eventMap)
-    .sort((a, b) => {
-      return Date.parse(b.lastTimestamp) - Date.parse(a.lastTimestamp)
-    })
-    .slice(0, count)
-
-  return sortedEvents
-}
-
-/**
- * Clear the resource and event cache
- * This is used to reset the graph state, e.g. when switching namespaces
- * @returns {void}
- */
-export function clearCache() {
-  Object.keys(resMap).forEach((key) => delete resMap[key])
-  Object.keys(eventMap).forEach((key) => delete eventMap[key])
-}
 
 /**
  * Used to add a resource to the graph
@@ -77,14 +21,14 @@ export function clearCache() {
 export function addResource(res) {
   // Endpoints are stored in the resmap but not added to the graph
   if (res.kind === 'Endpoints' || res.kind === 'EndpointSlice') {
-    resMap[res.metadata.uid] = res
+    store(res)
     processLinks(res)
     return
   }
 
   // Events are special, they are not added to the graph
   if (res.kind === 'Event') {
-    eventMap[res.metadata.uid] = res
+    store(res)
 
     // Notify the events dialog that a new event has been added
     window.dispatchEvent(new CustomEvent('kubeEventAdded', { detail: res }))
@@ -104,7 +48,7 @@ export function addResource(res) {
     const event = new CustomEvent('nodeAdded', { detail: res.metadata.uid })
     window.dispatchEvent(event)
 
-    resMap[res.metadata.uid] = res
+    store(res)
     return res.metadata.uid
   } catch (e) {
     if (getConfig().debug) {
@@ -119,15 +63,16 @@ export function addResource(res) {
  * @param {Resource} res The k8s resource to update
  */
 export async function updateResource(res) {
-  // Endpoints are stored in the resmap but not added to the graph
+  // Endpoints are stored in the lookup cache but not added to the graph
   if (res.kind === 'Endpoints') {
-    resMap[res.metadata.uid] = res
+    store
     processLinks(res)
     return
   }
-  // Events are special, they are not added to the graph
+
+  // Events are also special, they are not added to the graph
   if (res.kind === 'Event') {
-    eventMap[res.metadata.uid] = res
+    store(res)
     window.dispatchEvent(new CustomEvent('eventsUpdated', { detail: res }))
     return
   }
@@ -148,7 +93,7 @@ export async function updateResource(res) {
     graph.updateNodeData([makeNode(res)])
   } catch (_err) {}
 
-  resMap[res.metadata.uid] = res
+  store(res)
   processLinks(res)
 }
 
@@ -173,7 +118,7 @@ export function removeResource(res) {
     graph.removeNodeData([res.metadata.uid])
   } catch (_err) {}
 
-  delete resMap[res.metadata.uid]
+  remove(res.metadata.uid)
 }
 
 /**
@@ -225,9 +170,9 @@ export function processLinks(res) {
           if (path.backend && path.backend.service && path.backend.service.name) {
             if (getConfig().debug) console.log(`🔗 Linking Ingress ${res.metadata.name} to Service ${path.backend.service.name}`)
             const serviceName = path.backend.service.name
-            const services = queryRes((r) => r.kind === 'Service' && r.metadata.name === serviceName)
-            if (services.length > 0) {
-              addEdge(res.metadata.uid, services[0].metadata.uid)
+            const service = findResByName('Service', serviceName)
+            if (service) {
+              addEdge(res.metadata.uid, service.metadata.uid)
             }
           }
         }
@@ -237,7 +182,7 @@ export function processLinks(res) {
 
   // If the resource is a Service, we link it to the Pods using endpoint subnet and podID
   if (res.kind === 'Service') {
-    const ep = Object.values(resMap).find((r) => r.kind === 'Endpoints' && r.metadata.name === res.metadata.name)
+    const ep = findResByName('Endpoints', res.metadata.name)
     if (ep) {
       for (const subset of ep.subsets || []) {
         for (const addr of subset.addresses || []) {
@@ -252,43 +197,29 @@ export function processLinks(res) {
     }
   }
 
-  // // If the resource is a endpoint, we find matching service and link it to the pods
-  // if (res.kind === 'Endpoints') {
-  //   const service = cy.$(`node[kind = "Service"][label = "${res.metadata.name}"]`)
-  //   if (service.length == 1) {
-  //     // find the pods in the endpoints and link them to the service
-  //     for (const subset of res.subsets || []) {
-  //       for (const addr of subset.addresses || []) {
-  //         const pod = cy.$(`node[kind = "Pod"][ip = "${addr.ip}"]`)
-  //         if (pod.length > 0) {
-  //           if (getConfig().debug) console.log(`🔗 Linking Endpoints ${res.metadata.name} to PodIP ${addr.ip} (${pod.data('label')})`)
-  //           addEdge(service.id(), pod.id())
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-  // // Handle endpoint slices, these replace Endpoints in newer Kubernetes versions
-  // // If the server version is 1.33 or higher, we will use EndpointSlices instead of Endpoints
-  // // See https://kubernetes.io/blog/2025/04/24/endpoints-deprecation/
-  // if (res.kind === 'EndpointSlice') {
-  //   const serviceName = res.metadata?.labels?.['kubernetes.io/service-name']
-  //   const service = cy.$(`node[kind = "Service"][label = "${serviceName}"]`)
-  //   if (service.length == 1) {
-  //     for (const ep of res.endpoints || []) {
-  //       if (ep.addresses && ep.addresses.length > 0) {
-  //         const addr = ep.addresses[0]
-  //         const pod = cy.$(`node[kind = "Pod"][ip = "${addr}"]`)
-  //         if (pod.length > 0) {
-  //           if (getConfig().debug) console.log(`🔗 Linking EndpointSlice ${res.metadata.name} to PodIP ${addr} (${pod.data('label')})`)
-  //           addEdge(service.id(), pod.id())
-  //         } else {
-  //           if (getConfig().debug) console.warn(`🔗 No Pod found for EndpointSlice ${res.metadata.name} with IP ${addr}`)
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  // Handle endpoint slices, these replace Endpoints in newer Kubernetes versions
+  // If the server version is 1.33 or higher, we will use EndpointSlices instead of Endpoints
+  // See https://kubernetes.io/blog/2025/04/24/endpoints-deprecation/
+  if (res.kind === 'EndpointSlice') {
+    const serviceName = res.metadata?.labels?.['kubernetes.io/service-name']
+    const service = findResByName('Service', serviceName)
+    if (service) {
+      for (const ep of res.endpoints || []) {
+        if (ep.addresses && ep.addresses.length > 0) {
+          const addr = ep.addresses[0]
+          const pods = queryRes((r) => r.kind === 'Pod' && r.status?.podIP === addr)
+          if (pods.length > 0) {
+            const pod = pods[0]
+            if (getConfig().debug) console.log(`🔗 Linking EndpointSlice ${res.metadata.name} to PodIP ${addr} (${pod.metadata.name})`)
+            addEdge(service.metadata.uid, pod.metadata.uid)
+          } else {
+            if (getConfig().debug) console.warn(`🔗 No Pod found for EndpointSlice ${res.metadata.name} with IP ${addr}`)
+          }
+        }
+      }
+    }
+  }
+
   // Try to link a pod with a volume claim to the PVC resource
   if (res.kind === 'Pod' && res.spec?.volumes) {
     for (const volume of res.spec.volumes) {
@@ -301,38 +232,41 @@ export function processLinks(res) {
       }
     }
   }
-  // // Try to link config maps and secrets to pods
-  // if (res.kind === 'Pod' && res.spec?.volumes) {
-  //   for (const volume of res.spec.volumes) {
-  //     if (volume.configMap && volume.configMap.name) {
-  //       const cm = cy.$(`node[kind = "ConfigMap"][label = "${volume.configMap.name}"]`)
-  //       if (cm.length > 0) {
-  //         if (getConfig().debug) console.log(`🔗 Linking Pod ${res.metadata.name} to ConfigMap ${volume.configMap.name}`)
-  //         addEdge(res.metadata.uid, cm.id())
-  //       }
-  //     }
-  //     if (volume.secret && volume.secret.secretName) {
-  //       const secret = cy.$(`node[kind = "Secret"][label = "${volume.secret.secretName}"]`)
-  //       if (secret.length > 0) {
-  //         if (getConfig().debug) console.log(`🔗 Linking Pod ${res.metadata.name} to Secret ${volume.secret.secretName}`)
-  //         addEdge(res.metadata.uid, secret.id())
-  //       }
-  //     }
-  //   }
-  // }
+
+  // Try to link config maps and secrets to pods
+  if (res.kind === 'Pod' && res.spec?.volumes) {
+    for (const volume of res.spec.volumes) {
+      if (volume.configMap && volume.configMap.name) {
+        // const cm = cy.$(`node[kind = "ConfigMap"][label = "${volume.configMap.name}"]`)
+        const cm = findResByName('ConfigMap', volume.configMap.name)
+        if (cm) {
+          if (getConfig().debug) console.log(`🔗 Linking Pod ${res.metadata.name} to ConfigMap ${volume.configMap.name}`)
+          addEdge(res.metadata.uid, cm.metadata.uid)
+        }
+      }
+      if (volume.secret && volume.secret.secretName) {
+        const secret = findResByName('Secret', volume.secret.secretName)
+        if (secret) {
+          if (getConfig().debug) console.log(`🔗 Linking Pod ${res.metadata.name} to Secret ${volume.secret.secretName}`)
+          addEdge(res.metadata.uid, secret.metadata.uid)
+        }
+      }
+    }
+  }
+
   // // Try to link a HPA to the target resource
-  // if (res.kind === 'HorizontalPodAutoscaler' && res.spec?.scaleTargetRef) {
-  //   const targetKind = res.spec.scaleTargetRef.kind
-  //   const targetName = res.spec.scaleTargetRef.name
-  //   // Find the target resource in the graph
-  //   const targetNode = cy.$(`node[kind = "${targetKind}"][label = "${targetName}"]`)
-  //   if (targetNode.length > 0) {
-  //     if (getConfig().debug) console.log(`🔗 Linking HPA ${res.metadata.name} to ${targetKind} ${targetName}`)
-  //     addEdge(res.metadata.uid, targetNode.id())
-  //   } else {
-  //     if (getConfig().debug) console.warn(`🔗 No target resource found for HPA ${res.metadata.name}`)
-  //   }
-  // }
+  if (res.kind === 'HorizontalPodAutoscaler' && res.spec?.scaleTargetRef) {
+    const targetKind = res.spec.scaleTargetRef.kind
+    const targetName = res.spec.scaleTargetRef.name
+    // Find the target resource in the graph
+    const targetNode = findResByName(targetKind, targetName)
+    if (targetNode) {
+      if (getConfig().debug) console.log(`🔗 Linking HPA ${res.metadata.name} to ${targetKind} ${targetName}`)
+      addEdge(res.metadata.uid, targetNode.metadata.uid)
+    } else {
+      if (getConfig().debug) console.warn(`🔗 No target resource found for HPA ${res.metadata.name}`)
+    }
+  }
 }
 
 /**

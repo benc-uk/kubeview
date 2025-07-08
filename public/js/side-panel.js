@@ -3,7 +3,7 @@
 
 import { NodeEvent, CanvasEvent, GraphEvent } from '../ext/g6-esm.js'
 import { graph } from './main.js'
-import { getResource } from './graph.js'
+import { getResById } from './cache.js'
 
 // ==========================================================================================
 // Component for the side panel showing information about a resource
@@ -34,7 +34,7 @@ export default () => ({
     // When nodes are tapped or clicked, show the side panel with the resource details
     graph.on(NodeEvent.CLICK, (evt) => {
       const { target: node } = evt
-      const res = getResource(node.id)
+      const res = getResById(node.id)
       if (!res) return
       this.updateData(res)
       this.open = true
@@ -61,7 +61,7 @@ export default () => ({
         const nodeId = evt.data.id
         if (this.panelData && this.panelData.id === nodeId) {
           this.$nextTick(() => {
-            const res = getResource(nodeId)
+            const res = getResById(nodeId)
             if (res) this.updateData(res)
           })
         }
