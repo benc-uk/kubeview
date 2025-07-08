@@ -18,10 +18,10 @@
   <body x-data="mainApp">
     <nav class="navbar is-dark" role="navigation">
       <div class="navbar-brand">
-        <a class="navbar-item" href="/">
+        <div class="navbar-item">
           <img src="public/img/icon.png" alt="Logo" width="32" height="32" />
           <span class="is-size-4 has-text-weight-semibold">KubeView</span>
-        </a>
+        </div>
       </div>
       <div class="navbar-start">
         <div class="navbar-item is-hidden-touch">
@@ -41,7 +41,7 @@
               </select>
             </template>
           </div>
-          <button class="button is-info" type="button" @click="refreshNamespaces()" :disabled="isLoading" title="Refresh Namespaces">
+          <button class="button is-info" type="button" @click="refreshAll()" :disabled="isLoading" title="Refresh Namespaces">
             <span class="icon"><i class="fas fa-rotate"></i></span>
           </button>
 
