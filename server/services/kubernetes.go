@@ -1,5 +1,5 @@
 // ==========================================================================================
-// All Kubernetes interaction and API calls are handled in this asbtracted service
+// All Kubernetes interaction and API calls are handled in this abstracted service
 // ==========================================================================================
 
 package services
@@ -58,6 +58,8 @@ const (
 	PingEvent EventTypeEnum = "ping"
 )
 
+// NewKubernetes creates a new Kubernetes service instance
+// - needs an SSE broker to send events to connected clients
 func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*Kubernetes, error) {
 	var kubeConfig *rest.Config
 
