@@ -143,3 +143,183 @@ pre {
 .clickable {
   cursor: pointer;
 }
+
+/* Bright Green Theme Overrides for Bulma */
+:root {
+  --bright-green: #00ff66;
+  --bright-green-light: #33ff7f;
+  --bright-green-dark: #00cc52;
+  --bright-green-darker: #009940;
+  --bright-green-text: #ffffff;
+  --bright-green-shadow: rgba(0, 255, 102, 0.25);
+}
+
+/* Primary color overrides */
+.button.is-primary,
+.button.is-success {
+  background-color: var(--bright-green) !important;
+  border-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+.button.is-primary:hover,
+.button.is-success:hover {
+  background-color: var(--bright-green-light) !important;
+  border-color: var(--bright-green-light) !important;
+}
+
+.button.is-primary:active,
+.button.is-success:active {
+  background-color: var(--bright-green-dark) !important;
+  border-color: var(--bright-green-dark) !important;
+}
+
+/* Tag overrides */
+.tag.is-primary,
+.tag.is-success {
+  background-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+/* Progress bar overrides */
+.progress.is-primary,
+.progress.is-success {
+  background-color: var(--bright-green) !important;
+}
+
+/* Notification overrides */
+.notification.is-primary,
+.notification.is-success {
+  background-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+/* Input and select focus states */
+.input:focus,
+.textarea:focus,
+.select select:focus {
+  border-color: var(--bright-green) !important;
+  box-shadow: 0 0 0 0.125em var(--bright-green-shadow) !important;
+}
+
+/* Checkbox and radio overrides */
+.checkbox input[type='checkbox']:checked + label::before,
+.radio input[type='radio']:checked + label::before {
+  background-color: var(--bright-green) !important;
+  border-color: var(--bright-green) !important;
+}
+
+/* Link overrides */
+.has-text-primary,
+.has-text-success {
+  color: var(--bright-green) !important;
+}
+
+.has-background-primary,
+.has-background-success {
+  background-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+/* Navbar overrides for green accents */
+.navbar.is-primary,
+.navbar.is-success {
+  background-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+/* Hero overrides */
+.hero.is-primary,
+.hero.is-success {
+  background-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+/* Table hover states */
+.table tr:hover {
+  background-color: rgba(0, 255, 102, 0.1) !important;
+}
+
+/* Pagination overrides */
+.pagination-link.is-current {
+  background-color: var(--bright-green) !important;
+  border-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+.pagination-link:hover {
+  border-color: var(--bright-green) !important;
+  color: var(--bright-green) !important;
+}
+
+/* Modal overrides */
+.modal-card-head {
+  background-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+/* Dropdown overrides */
+.dropdown-item:hover,
+.dropdown-item.is-active {
+  background-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+/* Menu overrides */
+.menu-list a:hover,
+.menu-list a.is-active {
+  background-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+/* Tabs overrides */
+.tabs li.is-active a {
+  border-bottom-color: var(--bright-green) !important;
+  color: var(--bright-green) !important;
+}
+
+.tabs a:hover {
+  border-bottom-color: var(--bright-green-light) !important;
+  color: var(--bright-green) !important;
+}
+
+/* Message overrides */
+.message.is-primary .message-header,
+.message.is-success .message-header {
+  background-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+.message.is-primary .message-body,
+.message.is-success .message-body {
+  border-color: var(--bright-green) !important;
+}
+
+/* Panel overrides */
+.panel-heading.is-primary,
+.panel-heading.is-success {
+  background-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
+
+.panel-tabs a.is-active {
+  border-bottom-color: var(--bright-green) !important;
+  color: var(--bright-green) !important;
+}
+
+/* Breadcrumb overrides */
+.breadcrumb a:hover {
+  color: var(--bright-green) !important;
+}
+
+.breadcrumb li.is-active a {
+  color: var(--bright-green) !important;
+}
+
+/* File upload overrides */
+.file.is-primary .file-cta,
+.file.is-success .file-cta {
+  background-color: var(--bright-green) !important;
+  border-color: var(--bright-green) !important;
+  color: var(--bright-green-text) !important;
+}
