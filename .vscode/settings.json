@@ -2,5 +2,6 @@
   "prettier.configPath": ".dev/.prettierrc",
   "eslint.options": {
     "overrideConfigFile": ".dev/eslint.config.mjs"
-  }
+  },
+  "chat.promptFiles": true
 }
