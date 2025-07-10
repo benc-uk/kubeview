@@ -3,11 +3,9 @@
 // VSCode will use this file to provide type checking & intellisense via JSDoc comments. Neat eh?
 
 declare type ResNode = {
+  id: string
+  style: Record<string, string>
   data: {
-    resource: boolean
-    id: string
-    label: string
-    icon: string
     kind: string
     ip: string | null
   }
@@ -17,6 +15,7 @@ declare type Config = {
   debug: boolean
   shortenNames: boolean
   resFilter: string[]
+  spacing: number
 }
 
 // Represents a generic Kubernetes resource

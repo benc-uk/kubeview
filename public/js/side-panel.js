@@ -1,13 +1,14 @@
 //@ts-check
 /// <reference path="./types/custom.d.ts" />
 
-import { cy } from './main.js'
-import { getResource } from './graph.js'
+import { NodeEvent, CanvasEvent, GraphEvent } from '../ext/g6-esm.js'
+import { graph } from './main.js'
+import { getResById } from './cache.js'
 
 // ==========================================================================================
 // Component for the side panel showing information about a resource
 // Also responsible for showing pod logs
-// Responds to clicks in the Cytoscape graph & other events
+// Responds to clicks in the graph & other events
 // ==========================================================================================
 
 export default () => ({
@@ -31,42 +32,46 @@ export default () => ({
 
   init() {
     // When nodes are tapped or clicked, show the side panel with the resource details
-    cy.on('tap', 'node', (evt) => {
-      const node = evt.target
-      if (node.data('resource')) {
-        const res = getResource(node.id())
-        if (!res) return
-
-        this.updateData(res)
-        this.open = true
-      }
+    graph.on(NodeEvent.CLICK, (evt) => {
+      const { target: node } = evt
+      const res = getResById(node.id)
+      if (!res) return
+      this.updateData(res)
+      this.open = true
     })
 
     // Hide the side panel when clicking outside of a node
-    cy.on('tap', (evt) => {
-      if (evt.target === cy) {
+    graph.on(CanvasEvent.CLICK, (_evt) => {
+      this.open = false
+    })
+
+    graph.on(GraphEvent.AFTER_ELEMENT_DESTROY, (evt) => {
+      if (evt.elementType === 'node') {
+        const nodeId = evt.data.id
+        if (this.panelData && this.panelData.id === nodeId) {
+          this.$nextTick(() => {
+            this.open = false
+          })
+        }
+      }
+    })
+
+    graph.on(GraphEvent.AFTER_ELEMENT_UPDATE, (evt) => {
+      if (evt.elementType === 'node') {
+        const nodeId = evt.data.id
+        if (this.panelData && this.panelData.id === nodeId) {
+          this.$nextTick(() => {
+            const res = getResById(nodeId)
+            if (res) this.updateData(res)
+          })
+        }
+      }
+    })
+
+    window.addEventListener('closePanel', () => {
+      this.$nextTick(() => {
         this.open = false
-      }
-    })
-
-    // Handle node removal events
-    cy.on('remove', 'node', (evt) => {
-      if (this.panelData && evt.target.id() === this.panelData.id) {
-        this.$nextTick(() => {
-          this.open = false
-        })
-      }
-    })
-
-    // Handle data updates for nodes
-    cy.on('data', 'node', (evt) => {
-      const node = evt.target
-      if (this.panelData && node.id() === this.panelData.id) {
-        this.$nextTick(() => {
-          const res = getResource(node.id())
-          if (res) this.updateData(res)
-        })
-      }
+      })
     })
   },
 

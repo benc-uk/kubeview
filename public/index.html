@@ -1,139 +1,138 @@
 <html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1" />
+    <title>KubeView</title>
+    <link rel="icon" href="public/img/icon.png" type="image/png" />
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1" />
-  <title>KubeView</title>
-  <link rel="icon" href="public/img/icon.png" type="image/png" />
-  <link rel="stylesheet" href="public/ext/bulma.min.css" />
-  <link rel="stylesheet" href="public/css/main.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+    <!-- External CSS libs -->
+    <link rel="stylesheet" href="public/css/bulma.min.css" />
+    <link rel="stylesheet" href="public/ext/fa/css/all.min.css" />
 
-  <script src="public/js/main.js" type="module"></script>
-  <script src="public/js/loader.js"></script>
-</head>
+    <!-- Kubeview app -->
+    <link rel="stylesheet" href="public/css/main.css" />
+    <script src="public/js/main.js" type="module"></script>
+    <script src="public/js/loader.js"></script>
+  </head>
 
-<body x-data="mainApp">
-  <nav class="navbar is-dark" role="navigation">
-    <div class="navbar-brand">
-      <a class="navbar-item" href="/">
-        <img src="public/img/icon.png" alt="Logo" width="32" height="32" />
-        <span class="is-size-4 has-text-weight-semibold">KubeView</span>
-      </a>
-    </div>
-    <div class="navbar-start">
-      <div class="navbar-item is-hidden-touch">
-        <!-- Main namespace selector -->
-        <div class="select">
-          <template x-if="namespaces !== null">
-            <select x-model="namespace" :disabled="isLoading || namespaces.length === 1">
-              <option value="" disabled>Choose a namespace</option>
-              <template x-for="ns in namespaces" :key="ns">
-                <option :value="ns" x-text="ns" :selected="ns == namespace"></option>
-              </template>
-            </select>
-          </template>
-          <template x-if="namespaces === null">
-            <select>
-              <option value="" disabled selected>🔁 Loading...</option>
-            </select>
-          </template>
-        </div>
-        <button class="button is-info" type="button" @click="refreshNamespaces()" :disabled="isLoading"
-          title="Refresh Namespaces">
-          <span class="icon"><i class="fas fa-rotate"></i></span>
-        </button>
-
-        <button class="button is-info is-hidden-touch is-hidden-desktop-only"
-          @click="showEventsDialog = !showEventsDialog" title="Events" :disabled="isLoading || showWelcome">
-          <span class="icon"><i class="fas fa-list-check"></i></span>
-          <span>Events</span>
-        </button>
-
-        <!-- Toolbar of buttons -->
-        <div class="is-hidden-touch">
-          <button class="button is-primary" @click="toolbarTreeLayout()" title="Tree Layout"
-            :disabled="isLoading || showWelcome">
-            <span class="icon"><i class="fas fa-chart-diagram"></i></span>
-          </button>
-          <button class="button is-primary" @click="toolbarCoseLayout()" title="Cose Layout"
-            :disabled="isLoading || showWelcome">
-            <span class="icon"><i class="fas fa-circle-nodes"></i></span>
-          </button>
-          <button class="button is-primary" @click="toolbarFit()" title="Fit View" :disabled="isLoading || showWelcome">
-            <span class="icon"><i class="fas fa-expand"></i></span>
-          </button>
-          <button class="button is-primary" @click="toolbarSavePNG()" title="Save View as PNG"
-            :disabled="isLoading || showWelcome">
-            <span class="icon"><i class="fas fa-camera"></i></span>
-          </button>
+  <body x-data="mainApp">
+    <nav class="navbar is-dark" role="navigation">
+      <div class="navbar-brand">
+        <div class="navbar-item">
+          <img src="public/img/icon.png" alt="Logo" width="32" height="32" />
+          <span class="is-size-4 has-text-weight-semibold">KubeView</span>
         </div>
       </div>
-
-      <!-- Search bar -->
-      <div class="navbar-item is-hidden-touch is-hidden-desktop-only">
-        <div class="field">
-          <p class="control has-icons-left">
-            <input class="input" type="text" placeholder="Search resources..." x-model.debounce="searchQuery" />
-            <span class="icon is-left">
-              <i class="fas fa-search"></i>
-            </span>
-          </p>
-        </div>
-      </div>
-
-
-    </div>
-
-    <!-- Right side of the navbar -->
-    <div class="navbar-end is-hidden-touch is-hidden-desktop-only">
-      <div class="navbar-item">
-        <div class="buttons">
-          <div class="tag is-warning is-medium" id="eventStatusIcon">
-            <span class="icon">
-              <i class="fas fa-plug"></i>
-            </span>&nbsp;Status
+      <div class="navbar-start">
+        <div class="navbar-item is-hidden-touch">
+          <!-- Main namespace selector -->
+          <div class="select">
+            <template x-if="namespaces !== null">
+              <select x-model="namespace" :disabled="isLoading || namespaces.length === 1">
+                <option value="" disabled>Choose a namespace</option>
+                <template x-for="ns in namespaces" :key="ns">
+                  <option :value="ns" x-text="ns" :selected="ns == namespace"></option>
+                </template>
+              </select>
+            </template>
+            <template x-if="namespaces === null">
+              <select>
+                <option value="" disabled selected>🔁 Loading...</option>
+              </select>
+            </template>
           </div>
-          <button class="button is-primary" @click="showConfigDialog = true">
-            <span class="icon">
-              <i class="fas fa-wrench"></i>
-            </span>
+          <button class="button is-info" type="button" @click="refreshAll()" :disabled="isLoading" title="Refresh Namespaces">
+            <span class="icon"><i class="fas fa-rotate"></i></span>
           </button>
+
+          <button
+            class="button is-info is-hidden-touch is-hidden-desktop-only"
+            @click="showEventsDialog = !showEventsDialog"
+            title="Events"
+            :disabled="isLoading || showWelcome"
+          >
+            <span class="icon"><i class="fas fa-list-check"></i></span>
+            <span>Events</span>
+          </button>
+
+          <!-- Toolbar of buttons -->
+          <div class="is-hidden-touch">
+            <button class="button is-primary" @click="toolbarFit()" title="Fit View" :disabled="isLoading || showWelcome">
+              <span class="icon"><i class="fas fa-expand"></i></span>
+            </button>
+            <button class="button is-primary" @click="toolbarDagreLayout()" title="Layout structured" :disabled="isLoading || showWelcome">
+              <span class="icon"><i class="fas fa-network-wired"></i></span>
+            </button>
+            <button class="button is-primary" @click="toolbarForceLayout()" title="Layout organic" :disabled="isLoading || showWelcome">
+              <span class="icon"><i class="fas fa-circle-nodes"></i></span>
+            </button>
+            <button class="button is-primary" @click="toolbarSavePNG()" title="Save View as PNG" :disabled="isLoading || showWelcome">
+              <span class="icon"><i class="fas fa-camera"></i></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Search bar -->
+        <div class="navbar-item is-hidden-touch is-hidden-desktop-only">
+          <div class="field">
+            <p class="control has-icons-left">
+              <input class="input" type="text" placeholder="Search resources..." x-model.debounce="searchQuery" />
+              <span class="icon is-left">
+                <i class="fas fa-search"></i>
+              </span>
+            </p>
+          </div>
         </div>
       </div>
+
+      <!-- Right side of the navbar -->
+      <div class="navbar-end is-hidden-touch is-hidden-desktop-only">
+        <div class="navbar-item">
+          <div class="buttons">
+            <!-- Connection indicator -->
+            <button class="button" :class="connStateClass" id="eventStatusIcon" @click="togglePaused()">
+              <span class="icon"><i class="fas fa-plug"></i></span>
+              <span x-text="connState.charAt(0).toUpperCase()+connState.slice(1)">Connecting</span>
+            </button>
+            <button class="button is-primary" @click="showConfigDialog = true">
+              <span class="icon">
+                <i class="fas fa-wrench"></i>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="notification is-danger mx-5 mt-5" x-show="errorMessage" x-cloak>
+      <p class="title is-3">💀 A terrible thing happened!</p>
+      <div x-html="errorMessage"></div>
+      <br />
+      <button class="button is-outline" @click="window.location.reload()">Reload</button>
     </div>
-  </nav>
-  <div class="notification is-danger mx-5 mt-5" x-show="errorMessage" x-cloak>
-    <p class="title is-3">💀 A terrible thing happened!</p>
-    <div x-html="errorMessage"></div><br>
-    <button class="button is-outline" @click="window.location.reload()">Reload</button>
-  </div>
 
-  <div class="notification is-light mx-5 mt-5" id="welcome" x-show="showWelcome" x-cloak>
-    <div class="mb-4 has-background-light p-2 rounded">
-      <img src="public/img/icon.png" class="logo"><span class="logotext">Welcome to KubeView</span>
+    <div class="notification is-light mx-5 mt-5" id="welcome" x-show="showWelcome" x-cloak>
+      <div class="mb-4 has-background-light p-2 rounded">
+        <img src="public/img/icon.png" class="logo" /><span class="logotext">Welcome to KubeView</span>
+      </div>
+      <p class="has-text-dark">
+        To get started, select a namespace from the dropdown above.<br />
+        Use the buttons to switch between layouts, or fit the view to the screen. Click on any resource to see its details in the info panel.
+      </p>
     </div>
-    <p class="has-text-dark">
-      To get started, select a namespace from the dropdown above.<br>
-      Use the buttons to switch between layouts, or fit the view to the screen.
-      Click on any resource to see its details in the info panel.
-    </p>
-  </div>
 
-  <!-- This is the main view where the graph will be rendered -->
-  <div id="mainView" x-show="!errorMessage" x-cloak></div>
+    <!-- This is the main view where the graph will be rendered -->
+    <div id="mainView" x-show="!errorMessage" x-cloak></div>
 
-  <div id="loading" x-show="isLoading" x-cloak>
-    <img src="public/img/loading.svg" width="200" height="200" />
-  </div>
+    <div id="loading" x-show="isLoading" x-cloak>
+      <img src="public/img/loading.svg" width="200" height="200" />
+    </div>
 
-  <!-- To reduce size of the index page some parts are loaded dynamically -->
-  <!-- See loader.js -->
-  <div data-fragment="config-dialog"></div>
-  <div data-fragment="logs-dialog"></div>
-  <div data-fragment="side-panel"></div>
-  <div data-fragment="events-dialog"></div>
-
-</body>
-
+    <!-- To reduce size of the index page some parts are loaded dynamically -->
+    <!-- See loader.js -->
+    <div data-fragment="config-dialog"></div>
+    <div data-fragment="logs-dialog"></div>
+    <div data-fragment="side-panel"></div>
+    <div data-fragment="events-dialog"></div>
+  </body>
 </html>

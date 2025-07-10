@@ -37,7 +37,7 @@ toastStyles.innerHTML = `
   background-color:rgb(58, 138, 58);
 }
 .info {
-  background-color: #5bc0de;
+  background-color:rgb(60, 167, 199);
 }
 `
 document.body.appendChild(toastStyles)

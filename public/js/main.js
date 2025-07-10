@@ -3,30 +3,87 @@
 
 // ==========================================================================================
 // Main JavaScript entry point for KubeView
-// Handles the main cytoscape graph and data load from the server
+// Handles the main G6 graph and data load from the server
 // Provides functions to add, update, and remove resources from the graph
 // ==========================================================================================
-import cytoscape from '../ext/cytoscape.esm.min.mjs'
 import Alpine from '../ext/alpinejs.esm.min.js'
+import { Graph, GraphEvent } from '../ext/g6-esm.js'
 
 import { getConfig, saveConfig } from './config.js'
-import { getClientId, initEventStreaming } from './events.js'
-import { styleSheet } from './styles.js'
-import { addResource, processLinks, layout, coseLayout, clearCache } from './graph.js'
-import { hideToast, showToast } from '../ext/toast.js'
+import { getClientId, initEventStreaming, togglePaused } from './events.js'
+import { addResource, processLinks, layout } from './graph.js'
+import { clearCache } from './cache.js'
+import { showToast } from '../ext/toast.js'
+import { dagreLayout, fitToVisible, forceLayout, nodeVisByLabel } from './graph-utils.js'
 import sidePanel from './side-panel.js'
 import eventsDialog from './events-dialog.js'
 
-// This is why we are here, Cytoscape will be used to render all the data
-// It's global and exposed so that other modules can access it
-export const cy = cytoscape({
-  container: document.getElementById('mainView'),
-  style: styleSheet,
+// Global G6 graph instance
+export const graph = new Graph({
+  container: 'mainView',
+  data: {},
+  zoomRange: [0.1, 10],
+  padding: 25,
+  animation: {
+    duration: 250,
+    delay: 0,
+  },
+  background: '#0a0b0d',
+
+  // Node defaults
+  node: {
+    type: 'image',
+    style: {
+      size: 100,
+      labelFill: '#cccccc',
+      labelFontSize: 20,
+      labelPlacement: 'bottom',
+      stroke: '#fff',
+      lineWidth: 2,
+      fillOpacity: 0.5,
+      cursor: 'pointer',
+      haloStroke: '#3153D5',
+    },
+    state: {
+      selected: {
+        halo: true,
+        haloLineWidth: 12,
+        haloStrokeOpacity: 0.8,
+        labelFontSize: 20,
+      },
+    },
+  },
+
+  edge: {
+    type: 'cubic-vertical',
+    style: {
+      endArrow: true,
+      endArrowSize: 16,
+      lineWidth: 4,
+      stroke: '#666',
+    },
+  },
+
+  layout: dagreLayout,
+
+  behaviors: [
+    'drag-canvas',
+    'drag-element',
+    {
+      type: 'zoom-canvas',
+      sensitivity: 0.4,
+    },
+    {
+      type: 'click-select',
+      key: 'click-select-1',
+      unselectedState: 'unselected',
+    },
+  ],
 })
 
-window.addEventListener('resize', function () {
-  cy.resize()
-  cy.fit(null, 10)
+window.addEventListener('resize', async function () {
+  graph.resize()
+  await graph.fitView({ when: 'always' })
 })
 
 // Set up the event streaming for live updates once the DOM is loaded
@@ -34,6 +91,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initEventStreaming()
 })
 
+// Communicate between different Kubeview tabs open at once, it's not critical
 export const channel = new BroadcastChannel('kubeview')
 
 // Alpine.js component for the main application
@@ -52,6 +110,9 @@ Alpine.data('mainApp', () => ({
   showEventsDialog: false,
   showLogsDialog: false,
   logs: '',
+  connState: 'connecting', // 'connecting', 'connected', 'disconnected'
+  togglePaused,
+  connStateClass: 'is-warning',
 
   /** @type {Record<string, string>} */
   serviceMetadata: {
@@ -77,18 +138,47 @@ Alpine.data('mainApp', () => ({
       }
     }
 
-    // These two handlers syncs us with the EventSource in events.js
-    window.addEventListener('reconnect', () => {
-      showToast('Reconnected to the server!<br>Resuming live updates', 3000, 'top-center', 'success')
-      this.fetchNamespace()
-    })
+    // Syncs us with the connection state in events.js
+    window.addEventListener('connectionStateChange', (event) => {
+      const newState = /** @type {CustomEvent} */ (event).detail.state
+      if (this.connState === 'disconnected' && newState === 'connected') {
+        showToast('Reconnected to the server!<br>Resuming live updates', 3000, 'top-center', 'success')
+        this.fetchNamespace()
+      }
 
-    window.addEventListener('disconnect', () => {
-      showToast('Disconnected from the server!<br>Live updates are paused', 3000, 'top-center', 'error')
+      if (this.connState === 'connected' && newState === 'disconnected') {
+        showToast('Disconnected from the server!<br>Live updates are paused', 3000, 'top-center', 'error')
+      }
+
+      switch (newState) {
+        case 'connecting':
+          this.connStateClass = 'is-warning'
+          break
+        case 'connected':
+          this.connStateClass = 'is-success'
+          break
+        case 'disconnected':
+          this.connStateClass = 'is-danger'
+          break
+        case 'paused':
+          this.connStateClass = 'is-grey'
+          showToast('Live updates paused', 2000, 'top-center', 'info')
+          break
+        default:
+          this.connStateClass = 'is-warning'
+      }
+
+      this.connState = newState
     })
 
     // Listen for resource addition events, and re-run the search & filtering
-    cy.on('add', () => this.filterView(this.searchQuery))
+    graph.on(GraphEvent.BEFORE_ELEMENT_CREATE, () => {
+      if (this.searchQuery) {
+        this.filterView(this.searchQuery)
+      }
+    })
+
+    this.$watch('searchQuery', (query) => this.filterView(query))
 
     this.$watch('namespace', () => {
       console.log(`🔄 Namespace changed to: ${this.namespace}`)
@@ -98,8 +188,6 @@ Alpine.data('mainApp', () => ({
       // This is a workaround to notify other tabs about the namespace change
       channel.postMessage({ type: 'namespaceChange', namespace: this.namespace })
     })
-
-    this.$watch('searchQuery', (query) => this.filterView(query))
 
     // Check if the URL has a namespace parameter
     const urlParams = new URLSearchParams(window.location.search)
@@ -112,9 +200,9 @@ Alpine.data('mainApp', () => ({
     // Load the initial namespaces
     await this.refreshNamespaces()
 
-    // Handle layout stop event to show a toast if no nodes are present
-    cy.on('layoutstop', () => {
-      if (cy.nodes().length === 0) {
+    // Handle post render event to show a toast if no nodes are present
+    graph.on(GraphEvent.AFTER_RENDER, () => {
+      if (graph.getNodeData().length === 0) {
         showToast('No resources found in this namespace<br>Check your filter settings', 3000, 'top-center', 'warning')
       }
     })
@@ -149,6 +237,17 @@ Alpine.data('mainApp', () => ({
   },
 
   /**
+   * Refresh all data in the application
+   * This will refresh the list of namespaces AND fetch the current namespace data
+   */
+  async refreshAll() {
+    await this.refreshNamespaces()
+    if (this.namespace) {
+      await this.fetchNamespace()
+    }
+  },
+
+  /**
    * Display an error message in the UI and log it to the console
    * @param {string} message
    * @param {Object} res
@@ -180,11 +279,13 @@ Alpine.data('mainApp', () => ({
       return
     }
 
-    this.searchQuery = ''
     this.isLoading = true
+    this.searchQuery = ''
 
     window.history.replaceState({}, '', `?ns=${this.namespace}`)
-    cy.elements().remove() // Clear the graph before loading new data
+    await graph.clear()
+
+    window.dispatchEvent(new CustomEvent('closePanel'))
 
     let data
     let res
@@ -223,50 +324,36 @@ Alpine.data('mainApp', () => ({
       }
     }
 
-    layout()
+    try {
+      await graph.render()
+      await fitToVisible(graph, true)
+    } catch (e) {
+      console.error('💥 Error rendering graph:', e)
+      return
+    }
   },
 
   /**
    * Search for resources in the graph based on a query string
-   * @param {string} query
+   * Filters nodes by their labelText property, hiding non-matching nodes
+   * @param {string} query The search term to filter nodes by
    */
-  filterView(query) {
-    const q = query.trim().toLowerCase()
+  async filterView(query) {
+    query = query.trim().toLowerCase()
 
-    if (q.length === 0) {
-      // If the search query is empty, show everything
-      cy.elements().style({
-        display: 'element',
-        visibility: 'visible',
-      })
-      hideToast(20)
-      this.toolbarFit()
-      return
-    }
+    // Filters the graph nodes and edges based on the provided label query
+    const visCount = nodeVisByLabel(graph, query)
 
-    const visCountBefore = cy.$(':visible').length
+    // Re-layout the graph to organize visible nodes
+    await layout()
 
-    // Set all nodes that match the search query to be visible
-    // And hide all nodes that do not match
-    const result = cy.$('node[label*="' + q + '"]')
-    result.style({
-      display: 'element',
-      visibility: 'visible',
-    })
-    result.symdiff('node').style({
-      display: 'none',
-      visibility: 'hidden',
-    })
-
-    const visCountAfter = cy.$(':visible').length
-    if (visCountAfter <= 0) {
-      showToast('No resources found matching the search query', 2000, 'top-center')
+    // Show toast with filter results
+    if (visCount === 0 && graph.getNodeData().length > 0) {
+      showToast(`No nodes found matching "${query}"`, 2000, 'top-center', 'warning')
+    } else if (query === '') {
+      showToast('Filter cleared, showing all nodes and edges', 2000, 'top-center', 'info')
     } else {
-      hideToast(20)
-    }
-
-    if (visCountBefore != visCountAfter) {
-      this.toolbarFit()
+      showToast(`Found ${visCount} node(s) matching "${query}"`, 2000, 'top-center', 'info')
     }
   },
 
@@ -275,38 +362,51 @@ Alpine.data('mainApp', () => ({
     saveConfig(this.cfg)
     this.showConfigDialog = false
     showToast('Configuration saved successfully', 3000, 'top-center', 'success')
+
+    // Update the graph layout with new spacing
+    graph.setLayout({
+      ...graph.getLayout(),
+      nodeSize: this.cfg.spacing,
+    })
+
     this.fetchNamespace()
   },
 
-  toolbarCoseLayout: coseLayout,
+  // togglePause() {
+  //   const isPaused = togglePaused()
+  //   if (isPaused === null) return
 
-  toolbarFit() {
-    cy.resize()
-    cy.fit(null, 10)
+  //   showToast(`Live updates ${isPaused ? 'paused' : 'resumed'}`, 2000, 'top-center', isPaused ? 'info' : 'success')
+  // },
+
+  async toolbarFit() {
+    await fitToVisible(graph, true)
   },
 
-  toolbarTreeLayout: layout,
+  async toolbarForceLayout() {
+    graph.setLayout(forceLayout)
+    await graph.render()
+    await fitToVisible(graph, true)
+  },
+
+  async toolbarDagreLayout() {
+    graph.setLayout(dagreLayout)
+    await graph.render()
+    await fitToVisible(graph, true)
+  },
 
   async toolbarSavePNG() {
-    const blob = await cy.png({
-      full: true,
-      scale: 2,
-      bg: '#050505',
-      output: 'blob-promise',
+    const imageData = await graph.toDataURL({
+      type: 'image/png',
     })
 
-    const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url
+    a.href = imageData
     a.download = `kubeview-${this.namespace}.png`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  },
-
-  showLogs() {
-    console.log('Show logs for', this.panelData.id)
+    URL.revokeObjectURL(imageData)
   },
 }))
 

@@ -143,3 +143,8 @@ pre {
 .clickable {
   cursor: pointer;
 }
+
+.is-grey {
+  background-color: #aaa !important;
+  color: #161616 !important;
+}
