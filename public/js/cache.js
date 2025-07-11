@@ -61,6 +61,7 @@ export function findResByName(kind, name) {
   const list = Object.values(resMap).filter((res) => {
     return res.kind === kind && res.metadata.name.toLowerCase().includes(name.toLowerCase())
   })
+  list.sort((a, b) => a.metadata.name.length - b.metadata.name.length)
 
   return list[0]
 }
