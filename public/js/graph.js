@@ -163,19 +163,28 @@ export function processLinks(res) {
   }
 
   // If the resource is a Ingress, we link it to the Service via the backend service name
-  if (res.kind === 'Ingress' && res.spec?.rules) {
-    for (const rule of res.spec.rules) {
-      if (rule.http && rule.http.paths) {
-        for (const path of rule.http.paths) {
-          if (path.backend && path.backend.service && path.backend.service.name) {
-            if (getConfig().debug) console.log(`🔗 Linking Ingress ${res.metadata.name} to Service ${path.backend.service.name}`)
-            const serviceName = path.backend.service.name
-            const service = findResByName('Service', serviceName)
-            if (service) {
-              addEdge(res.metadata.uid, service.metadata.uid)
+  if (res.kind === 'Ingress') {
+    if (res.spec?.rules) {
+      for (const rule of res.spec.rules) {
+        if (rule.http && rule.http.paths) {
+          for (const path of rule.http.paths) {
+            if (path.backend && path.backend.service && path.backend.service.name) {
+              if (getConfig().debug) console.log(`🔗 Linking Ingress ${res.metadata.name} to Service ${path.backend.service.name}`)
+              const serviceName = path.backend.service.name
+              const service = findResByName('Service', serviceName)
+              if (service) {
+                addEdge(res.metadata.uid, service.metadata.uid)
+              }
             }
           }
         }
+      }
+    }
+    const defaultBackendServiceName = res.spec.defaultBackend?.service.name
+    if (defaultBackendServiceName) {
+      const defaultBackendService = findResByName('Service', defaultBackendServiceName)
+      if (defaultBackendService) {
+        addEdge(res.metadata.uid, defaultBackendService.metadata.uid)
       }
     }
   }
