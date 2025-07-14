@@ -19,19 +19,17 @@ const ICON_PATH = 'public/img/res'
  * @param {Resource} res The k8s resource to add
  */
 export function addResource(res) {
-  // Endpoints are stored in the resmap but not added to the graph
+  // Endpoints & EndpointSlice are stored in the cache but not added to the graph
   if (res.kind === 'Endpoints' || res.kind === 'EndpointSlice') {
     store(res)
-    processLinks(res)
     return
   }
 
-  // Events are special, they are not added to the graph
+  // Events are special, not added to the graph but cached for display in the events view
   if (res.kind === 'Event') {
     store(res)
-
-    // Notify the events dialog that a new event has been added
     window.dispatchEvent(new CustomEvent('kubeEventAdded', { detail: res }))
+    return
   }
 
   // Hide resources that are not in the filter
@@ -189,17 +187,19 @@ export function processLinks(res) {
     }
   }
 
-  // If the resource is a Service, we link it to the Pods using endpoint subnet and podID
-  if (res.kind === 'Service') {
-    const ep = findResByName('Endpoints', res.metadata.name)
-    if (ep) {
-      for (const subset of ep.subsets || []) {
+  // If the resource is a Endpoint find the Service and link it to the Pod with the matching IP
+  if (res.kind === 'Endpoints') {
+    const service = findResByName('Service', res.metadata.name)
+    if (service) {
+      for (const subset of res.subsets || []) {
         for (const addr of subset.addresses || []) {
           const pods = queryRes((r) => r.kind === 'Pod' && r.status?.podIP === addr.ip)
           if (pods.length > 0) {
-            const podName = pods[0].metadata?.name || 'Unknown Pod'
-            if (getConfig().debug) console.log(`🔗 Linking Service ${res.metadata.name} to PodIP ${addr.ip} (${podName})`)
-            addEdge(res.metadata.uid, pods[0].metadata?.uid)
+            const pod = pods[0]
+            if (getConfig().debug) console.log(`🔗 Linking Endpoints ${res.metadata.name} to PodIP ${addr.ip} (${pod.metadata.name})`)
+            addEdge(service.metadata.uid, pod.metadata.uid)
+          } else {
+            if (getConfig().debug) console.warn(`🔗 No Pod found for Endpoints ${res.metadata.name} with IP ${addr.ip}`)
           }
         }
       }
