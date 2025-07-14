@@ -78,7 +78,7 @@ export function getResById(id) {
 export function getEvents(count = 100) {
   const sortedEvents = Object.values(eventMap)
     .sort((a, b) => {
-      return Date.parse(b.lastTimestamp) - Date.parse(a.lastTimestamp)
+      return Date.parse(getTimestamp(b)) - Date.parse(getTimestamp(a)) // Sort by event time, newest first
     })
     .slice(0, count)
 
@@ -93,4 +93,14 @@ export function getEvents(count = 100) {
 export function clearCache() {
   Object.keys(resMap).forEach((key) => delete resMap[key])
   Object.keys(eventMap).forEach((key) => delete eventMap[key])
+}
+
+/**
+ * Get the timestamp of an event resource
+ * @param {EventResource} event The event resource
+ * @returns {string} The event timestamp, either from eventTime or lastTimestamp
+ */
+export function getTimestamp(event) {
+  // Use eventTime if available, otherwise fall back to lastTimestamp
+  return event.eventTime || event.lastTimestamp || event.metadata.creationTimestamp || ''
 }

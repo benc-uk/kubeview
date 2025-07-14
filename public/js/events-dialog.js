@@ -2,7 +2,7 @@
 /// <reference path="./types/custom.d.ts" />
 
 import { showToast } from '../ext/toast.js'
-import { getEvents } from './cache.js'
+import { getEvents, getTimestamp } from './cache.js'
 
 // ==========================================================================================
 // Events dialog component for displaying Kubernetes events
@@ -20,9 +20,9 @@ export default () => ({
       }
     })
 
-    // Listen for events updated from the graph module
+    // Listen for events as they are added to the cache
     window.addEventListener('kubeEventAdded', () => {
-      // Fetch all the events again, because we don't know which one was added
+      // Fetch *all* the events again, because we don't know which one was added
       // We'd have to iterate through the events to put the new one in the right place anyhow
       if (this.showEventsDialog) {
         this.updateEvents()
@@ -30,9 +30,7 @@ export default () => ({
     })
   },
 
-  /**
-   * Update the list of events in our UI state, from the graph module
-   */
+  // Update the list of events in our UI state, from the cache
   updateEvents() {
     // Note this fetches ALL the events, but we're only talking about ~100 events at a time
     // And we're just copying the data from one array to another
@@ -47,16 +45,17 @@ export default () => ({
     }
   },
 
-  // See https://kubernetes.io/docs/reference/kubernetes-api/cluster-resources/event-v1/
   // Warning events are red, Normal events are green
+  // See https://kubernetes.io/docs/reference/kubernetes-api/cluster-resources/event-v1/
   textColour(event) {
     if (event.type === 'Warning') return 'has-text-danger'
 
     return 'has-text-success'
   },
 
-  // Format the event timestamp to a more readable format
+  // Format the event message for display
   niceDate(event) {
-    return event.lastTimestamp.replaceAll('T', ' ').replaceAll('Z', ' ').substr(5)
+    const date = new Date(getTimestamp(event))
+    return date.toLocaleString()
   },
 })

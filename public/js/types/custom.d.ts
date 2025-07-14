@@ -41,6 +41,17 @@ declare type Resource = {
   data?: any // For Secret and ConfigMap
 }
 
+declare type EventResource = {
+  lastTimestamp: string
+  eventTime: string
+  message: string
+  reason: string
+  count: number
+  metadata: {
+    creationTimestamp: string
+  }
+}
+
 declare type PanelData = {
   id: string
   kind: string
