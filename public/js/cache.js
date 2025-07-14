@@ -58,11 +58,7 @@ export function queryRes(filterFn) {
  * @returns {Resource | null} The first resource that matches the kind and name, or null if not found
  */
 export function findResByName(kind, name) {
-  const list = Object.values(resMap).filter((res) => {
-    return res.kind === kind && res.metadata.name.toLowerCase().includes(name.toLowerCase())
-  })
-
-  return list[0]
+  return Object.values(resMap).find((res) => res.kind === kind && res.metadata.name === name)
 }
 
 /**
