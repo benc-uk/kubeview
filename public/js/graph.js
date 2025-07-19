@@ -263,7 +263,32 @@ export function processLinks(res) {
     }
   }
 
-  // // Try to link a HPA to the target resource
+  // Search for environment variables in the Pod spec that reference ConfigMaps or Secrets
+  if (res.kind === 'Pod' && res.spec?.containers) {
+    for (const container of res.spec.containers) {
+      if (container.env) {
+        for (const env of container.env) {
+          if (env.valueFrom && env.valueFrom.secretKeyRef && env.valueFrom.secretKeyRef.name) {
+            const secret = findResByName('Secret', env.valueFrom.secretKeyRef.name)
+            if (secret) {
+              if (getConfig().debug)
+                console.log(`🔗 Linking Pod ${res.metadata.name} to Secret ${env.valueFrom.secretKeyRef.name} (env var ${env.name})`)
+              addEdge(res.metadata.uid, secret.metadata.uid)
+            }
+          } else if (env.valueFrom && env.valueFrom.configMapKeyRef && env.valueFrom.configMapKeyRef.name) {
+            const configMap = findResByName('ConfigMap', env.valueFrom.configMapKeyRef.name)
+            if (configMap) {
+              if (getConfig().debug)
+                console.log(`🔗 Linking Pod ${res.metadata.name} to ConfigMap ${env.valueFrom.configMapKeyRef.name} (env var ${env.name})`)
+              addEdge(res.metadata.uid, configMap.metadata.uid)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Try to link a HPA to the target resource
   if (res.kind === 'HorizontalPodAutoscaler' && res.spec?.scaleTargetRef) {
     const targetKind = res.spec.scaleTargetRef.kind
     const targetName = res.spec.scaleTargetRef.name
