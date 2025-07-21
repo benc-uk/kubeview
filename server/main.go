@@ -29,7 +29,7 @@ func main() {
 	api := NewKubeviewAPI(config)
 	r.Use(api.SimpleCORSMiddleware)
 
-	api.AddHealthEndpoint(r, "health")
+	api.AddHealthEndpoint(r, "health", nil)
 	api.AddStatusEndpoint(r, "api/status")
 
 	api.AddRoutes(r)
