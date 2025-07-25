@@ -33,7 +33,7 @@ func (s *KubeviewAPI) AddRoutes(r *chi.Mux) {
 	// REST API routes
 	r.Get("/api/namespaces", s.handleNamespaceList)
 	r.Get("/api/fetch/{namespace}", s.handleFetchData)
-	r.Get("/api/logs/{namespace}/{podname}", s.GetPodLogs)
+	r.Get("/api/logs/{namespace}/{podname}", s.handlePodLogs)
 }
 
 // Establish the SSE connection for streaming updates each client
@@ -144,7 +144,7 @@ func (s *KubeviewAPI) handleFetchData(w http.ResponseWriter, r *http.Request) {
 }
 
 // Pull logs for a specific pod in a namespace
-func (s *KubeviewAPI) GetPodLogs(w http.ResponseWriter, r *http.Request) {
+func (s *KubeviewAPI) handlePodLogs(w http.ResponseWriter, r *http.Request) {
 	if !s.config.EnablePodLogs {
 		s.ReturnText(w, "Viewing logs has been disabled by the administrator")
 		return
