@@ -39,22 +39,22 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-          {{ if .Values.singleNamespace }}
+          {{- if .Values.singleNamespace }}
             - name: SINGLE_NAMESPACE
               value: {{ ternary .Release.Namespace .Values.singleNamespace (eq (toString .Values.singleNamespace) "true") }}
-          {{ end }}
-          {{ if .Values.namespaceFilter }}
+          {{- end }}
+          {{- if .Values.namespaceFilter }}
             - name: NAMESPACE_FILTER
               value: {{ .Values.namespaceFilter | quote }}
-          {{ end }}
-          {{ if .Values.debug }}
+          {{- end }}
+          {{- if .Values.debug }}
             - name: DEBUG
-              value: true
-          {{ end }}     
-          {{ if .Values.disablePodLogs }}
+              value: "true"
+          {{- end }}
+          {{- if .Values.disablePodLogs }}
             - name: DISABLE_POD_LOGS
-              value: true
-          {{ end }}      
+              value: "true"
+          {{- end }}
           ports:
             - name: http
               containerPort: 8000
