@@ -4,18 +4,18 @@ metadata:
   name: {{ include "kubeview.fullname" . }}
   labels:
     {{- include "kubeview.labels" . | nindent 4 }}
-  {{ if .Values.serviceAnnotations }}
+  {{- if .Values.serviceAnnotations }}
   annotations:
     {{- toYaml .Values.serviceAnnotations | nindent 4 }}
-  {{ end }}
+  {{- end }}
 spec:
-  {{ if .Values.loadBalancer.enabled }}
+  {{- if .Values.loadBalancer.enabled }}
   type: LoadBalancer
-  {{ else if .Values.nodePort.enabled }}
+  {{- else if .Values.nodePort.enabled }}
   type: NodePort
-  {{ else if not .Values.nodePort.enabled }}
+  {{- else if not .Values.nodePort.enabled }}
   type: ClusterIP
-  {{ end }}
+  {{- end }}
   ports:
     - port: 8000
       targetPort: 8000
