@@ -83,7 +83,7 @@ The following environment variables are supported:
 - `NAMESPACE_FILTER`: A regex pattern to filter namespaces. If set, namespaces that match the pattern will be _excluded_ e.g. `NAMESPACE_FILTER=^kube-` will not show system namespaces starting with `kube-`.
 - `DISABLE_POD_LOGS`: If set to `true` or `1`, pod logs will not be available via the API, or to view in the UI. This is useful for environments where you do not want to expose pod logs to users. Default is `false`.
 
-In addition the standard `KUBE_CONFIG` environment variable can be used to specify a custom path to the Kubernetes configuration file. If not set, it defaults to `$HOME/.kube/config`.
+In addition the standard `KUBECONFIG` environment variable can be used to specify a custom path to the Kubernetes configuration file. If not set, it defaults to `$HOME/.kube/config`.
 
 ## ❇️ Deploying to Kubernetes
 
