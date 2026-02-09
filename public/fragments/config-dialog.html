@@ -66,6 +66,13 @@
               </select>
             </div>
           </div>
+          <div class="field mt-4">
+            <label class="checkbox">
+              <input type="checkbox" x-model="cfg.hideEmptyReplicaSets" :disabled="!cfg.resFilter.includes('ReplicaSet')" />
+              Hide ReplicaSets without replicas
+            </label>
+            <p class="help">Only applies when ReplicaSets are enabled in the filter</p>
+          </div>
         </div>
         <div :class="{'is-hidden':configTab!=3}">
           <div class="field">
