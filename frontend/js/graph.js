@@ -38,6 +38,11 @@ export function addResource(res) {
     return
   }
 
+  if (shouldHideEmptyReplicaSet(res)) {
+    if (getConfig().debug) console.warn(`🍇 Skipping ReplicaSet ${res.metadata?.name} with zero replicas`)
+    return
+  }
+
   try {
     graph.addNodeData([makeNode(res)])
     processLinks(res)
@@ -75,6 +80,11 @@ export async function updateResource(res) {
     return
   }
 
+  if (shouldHideEmptyReplicaSet(res)) {
+    removeResource(res)
+    return
+  }
+
   try {
     const node = graph.getNodeData(res.metadata.uid)
     if (node.length === 0) {
@@ -93,6 +103,21 @@ export async function updateResource(res) {
 
   store(res)
   processLinks(res)
+}
+
+/**
+ * Determine whether a ReplicaSet should be hidden because it has no replicas
+ * @param {Resource} res
+ */
+function shouldHideEmptyReplicaSet(res) {
+  if (res.kind !== 'ReplicaSet') return false
+  if (!getConfig().hideEmptyReplicaSets) return false
+
+  const statusReplicas = res.status?.replicas
+  const specReplicas = res.spec?.replicas
+  const replicas = Number(statusReplicas ?? specReplicas ?? 0)
+
+  return replicas === 0
 }
 
 /**

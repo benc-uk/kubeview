@@ -16,6 +16,7 @@ declare type Config = {
   shortenNames: boolean
   resFilter: string[]
   spacing: number
+  hideEmptyReplicaSets: boolean
 }
 
 // Represents a generic Kubernetes resource

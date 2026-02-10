@@ -13,6 +13,7 @@ const defaultConfig = {
   debug: false,
   shortenNames: true,
   spacing: 100,
+  hideEmptyReplicaSets: false,
   resFilter: [
     'Pod',
     'Deployment',
@@ -47,13 +48,20 @@ export function getConfig() {
 
   // Get the config from local storage
   const cfg = JSON.parse(localStorage.getItem('kubeviewConfig') || 'null')
-  config = cfg
+  config = {
+    ...defaultConfig,
+    ...cfg,
+  }
   return config || defaultConfig
 }
 
+/**
+ * Save the configuration object to local storage
+ * @param {Config} newConfig
+ */
 export async function saveConfig(newConfig) {
   // Weird bug where spacing is a string instead of a number
-  newConfig.spacing = parseInt(newConfig.spacing) || 100
+  newConfig.spacing = parseInt(`${newConfig.spacing}`) || 100
 
   // Set the config in local storage
   localStorage.setItem('kubeviewConfig', JSON.stringify(newConfig))
