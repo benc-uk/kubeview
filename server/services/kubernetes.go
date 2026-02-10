@@ -28,8 +28,8 @@ import (
 
 // Kubernetes is a service that connects to a Kubernetes cluster and provides access to its resources
 type Kubernetes struct {
-	client            *dynamic.DynamicClient
-	clientSet         *kubernetes.Clientset
+	dynamicClient     dynamic.Interface
+	clientSet         kubernetes.Interface
 	ClusterHost       string
 	Mode              string // "in-cluster" or "out-of-cluster"
 	KubeVersion       string
@@ -214,7 +214,7 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 	factory.WaitForCacheSync(context.Background().Done())
 
 	return &Kubernetes{
-		client:            dynamicClient,
+		dynamicClient:     dynamicClient,
 		clientSet:         clientSet, // Deprecated, use client instead
 		ClusterHost:       kubeConfig.Host,
 		Mode:              mode,
@@ -230,7 +230,7 @@ func (k *Kubernetes) GetNamespaces() ([]string, error) {
 	// Use the dynamicClient to get the list of namespaces
 	gvr := schema.GroupVersionResource{Group: "", Version: "v1", Resource: "namespaces"}
 
-	l, err := k.client.Resource(gvr).List(context.TODO(), metaV1.ListOptions{})
+	l, err := k.dynamicClient.Resource(gvr).List(context.TODO(), metaV1.ListOptions{})
 	if err != nil {
 		log.Println("💥 Failed to get namespaces:", err)
 		return nil, err
@@ -249,7 +249,7 @@ func (k *Kubernetes) CheckNamespaceExists(ns string) bool {
 	gvr := schema.GroupVersionResource{Group: "", Version: "v1", Resource: "namespaces"}
 
 	// Try to get the namespace
-	_, err := k.client.Resource(gvr).Get(context.TODO(), ns, metaV1.GetOptions{})
+	_, err := k.dynamicClient.Resource(gvr).Get(context.TODO(), ns, metaV1.GetOptions{})
 
 	return err == nil
 }
@@ -326,7 +326,7 @@ func (k *Kubernetes) FetchNamespace(ns string) (map[string][]unstructured.Unstru
 func (k *Kubernetes) GetResources(ns string, grp string, ver string, res string) ([]unstructured.Unstructured, error) {
 	gvr := schema.GroupVersionResource{Group: grp, Version: ver, Resource: res}
 
-	l, err := k.client.Resource(gvr).Namespace(ns).List(context.TODO(), metaV1.ListOptions{Limit: 1000})
+	l, err := k.dynamicClient.Resource(gvr).Namespace(ns).List(context.TODO(), metaV1.ListOptions{Limit: 1000})
 	if err != nil {
 		log.Printf("💥 Failed to get %s %v", res, err)
 		return nil, err
@@ -369,6 +369,7 @@ func inCluster() bool {
 	return false
 }
 
+// getHandlerFuncs returns the event handlers for the Kubernetes informers, which send events through the SSE broker
 func getHandlerFuncs(b *sse.Broker[KubeEvent]) cache.ResourceEventHandlerFuncs {
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
