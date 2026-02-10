@@ -12,7 +12,7 @@ BUILD_PLATFORM ?= linux/amd64
 IMAGE_EXTRA_ARGS ?= 
 
 .EXPORT_ALL_VARIABLES:
-.PHONY: help lint lint-fix run build generate clean image push check-vars helm-docs helm-package
+.PHONY: help lint lint-fix run build generate clean image push check-vars helm-docs helm-package test test-unit test-integration test-coverage
 .DEFAULT_GOAL := help
 
 help: ## 💬 This help message :)
@@ -22,15 +22,15 @@ help: ## 💬 This help message :)
 lint: ## 🔍 Lint & format check only, use for CI
 	@figlet $@ || true
 	cd .dev/; npm install --silent
-	npx --yes eslint -c .dev/eslint.config.mjs public/js
-	npx --yes prettier --check --config .dev/.prettierrc public/js 
+	npx --yes eslint -c .dev/eslint.config.mjs frontend/js
+	npx --yes prettier --check --config .dev/.prettierrc frontend/js 
 	go tool -modfile=.dev/tools.mod golangci-lint run -c .dev/golangci.yaml
 
 lint-fix: ## ✨ Lint & try to format & fix
 	@figlet $@ || true
 	cd .dev/; npm install --silent
-	npx --yes eslint -c .dev/eslint.config.mjs public/js --fix
-	npx --yes prettier --write --config .dev/.prettierrc public/js
+	npx --yes eslint -c .dev/eslint.config.mjs frontend/js --fix
+	npx --yes prettier --write --config .dev/.prettierrc frontend/js
 	go tool -modfile=.dev/tools.mod golangci-lint run -c .dev/golangci.yaml --fix
 
 run: ## 🏃 Run application, used for local development
@@ -41,9 +41,33 @@ build: ## 🔨 Build application binary
 	@figlet $@ || true
 	CGO_ENABLED=0 GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) go build -o bin/kubeview ./server
 
+test: test-unit ## 🧪 Run all tests (unit tests only by default)
+	@figlet $@ || true
+
+test-unit: ## 🧪 Run unit tests only
+	@figlet $@ || true
+	@echo "🚀 Running unit tests..."
+	go test -v ./server/services/ -short
+
+test-integration: ## 🧪 Run integration tests (requires Kubernetes cluster)
+	@figlet $@ || true
+	@echo "🚀 Running integration tests (requires Kubernetes cluster)..."
+	go test -v ./server/services/ -run Integration
+
+test-coverage: ## 📊 Run tests with coverage report
+	@figlet $@ || true
+	@echo "🚀 Running tests with coverage..."
+	@mkdir -p coverage
+	go test -v ./server/services/ -cover -coverprofile=coverage/coverage.out
+	@if command -v go tool cover >/dev/null 2>&1; then \
+		echo "📊 Generating HTML coverage report..."; \
+		go tool cover -html=coverage/coverage.out -o coverage/coverage.html; \
+		echo "✅ Coverage report generated: coverage/coverage.html"; \
+	fi
+
 clean: ## 🧹 Clean up and reset
 	@figlet $@ || true
-	@rm -rf tmp bin
+	@rm -rf tmp bin coverage
 
 image: check-vars ## 📦 Build container image from Dockerfile, with optional push
 	@figlet $@ || true

@@ -4,7 +4,7 @@
 # https://docs.docker.com/build/building/multi-platform/#cross-compiling-a-go-application
 # Note: BUILDPLATFORM is a magic variable that Docker sets when using BuildKit and --platform
 # ==============================================================
-FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS build
 ARG VERSION="0.0.0"
 ARG BUILD_INFO="Unset"
 ARG CGO_ENABLED=0
@@ -32,7 +32,7 @@ RUN CGO_ENABLED=$CGO_ENABLED \
 # Final minimal image
 # Note: Use alpine rather than scratch for easier debugging
 # ==============================================================
-FROM --platform=$BUILDPLATFORM alpine:3.22
+FROM --platform=$BUILDPLATFORM alpine:3.23
 
 WORKDIR /app
 

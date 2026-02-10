@@ -1,5 +1,6 @@
 tmp/
 bin/
+coverage/
 node_modules/
 .env
 release-notes.md
