@@ -6,25 +6,41 @@ package main
 
 import (
 	"errors"
+	"io/fs"
 	"log"
 	"net/http"
 	"regexp"
 	"strconv"
 
 	"github.com/benc-uk/go-rest-api/pkg/problem"
+	kubeview "github.com/benc-uk/kubeview"
 	"github.com/go-chi/chi/v5"
 )
 
 // All application routes are defined here
 func (s *KubeviewAPI) AddRoutes(r *chi.Mux) {
-	// Serve the index.html file from the public folder
+	// Create a sub-filesystem rooted at the "frontend" directory within the embedded FS
+	frontendFS, err := fs.Sub(kubeview.FrontendFS, "frontend")
+	if err != nil {
+		log.Fatalf("💥 Failed to create sub-filesystem for embedded frontend dir: %v", err)
+	}
+
+	// Serve the index.html file from the embedded frontend folder
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "public/index.html")
+		index, err := fs.ReadFile(frontendFS, "index.html")
+		if err != nil {
+			http.Error(w, "index.html not found", http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write(index)
 	})
 
-	// Serve the public folder, which contains static files, JS, CSS, images, etc.
+	// Serve the embedded frontend folder, which contains static files, JS, CSS, images, etc.
+	// This is how the frontend is served, it's just static files embedded in the binary
 	r.HandleFunc("/public/*", func(w http.ResponseWriter, r *http.Request) {
-		http.StripPrefix("/public/", http.FileServer(http.Dir("public"))).ServeHTTP(w, r)
+		http.StripPrefix("/public/", http.FileServer(http.FS(frontendFS))).ServeHTTP(w, r)
 	})
 
 	// Special route for SSE streaming events to connected clients
