@@ -1,3 +1,10 @@
+// ==========================================================================================
+// SSE broker for Kubernetes events, this is very intertwined with the Kubernetes service
+//   See services/kubernetes.go for how events are generated and sent to the broker
+// - Handles client connections and disconnections
+// - Broadcasts Kubernetes events to connected clients
+// ==========================================================================================
+
 package main
 
 import (
