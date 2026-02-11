@@ -231,19 +231,19 @@ export default () => ({
     }
   },
 
-  async showLogs(podName) {
-    console.log(`📜 Fetching logs for pod ${podName} in namespace ${this.namespace}`)
+  async showLogs(podName, containerName) {
+    console.log(`📜 Fetching logs for pod ${podName} container ${containerName} in namespace ${this.namespace}`)
     this.isLoading = true
 
     // Note these properties are in the parent mainApp component
     // It didn't work having them here, so we use the parent component's properties
-    this.showLogsDialog = true
+    this.showLogsForContainer = containerName
     this.logs = ''
 
     // Fetch logs from the server, the last 300 lines
     let res
     try {
-      res = await fetch(`api/logs/${this.namespace}/${podName}?max=300`)
+      res = await fetch(`api/logs/${this.namespace}/${podName}/${containerName}?max=300`)
       if (!res.ok) throw new Error(`HTTP error ${res.status}: ${res.statusText}`)
 
       this.isLoading = false

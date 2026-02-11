@@ -1,19 +1,16 @@
 <!-- This shows a side panel filled with info about a resource when clicked -->
-<article class="panel is-link" x-data="sidePanel" id="infoPanel" x-transition:enter="slidein"
-  x-transition:leave="slideout" x-show="open" x-cloak>
+<article class="panel is-link" x-data="sidePanel" id="infoPanel" x-transition:enter="slidein" x-transition:leave="slideout" x-show="open" x-cloak>
   <p class="panel-heading py-2">
     <img :src="`public/img/res/${panelData.icon}.svg`" width="32" height="32" class="valign-middle" />
     <span x-text="panelData.kind" class="valign-middle"></span>
   </p>
   <section>
     <div class="panel-block is-flex">
-      <button class="button is-small is-light mr-1" :class="{'is-outlined':!showLabels}"
-        @click="showLabels=!showLabels; showAnno=false">Labels</button>
-      <button class="button is-small is-light mr-3" :class="{'is-outlined':!showAnno}"
-        @click="showAnno=!showAnno; showLabels=false">Annotations</button>
-      <button class="button is-small is-primary" @click="showLogs(panelData.props.name)" x-show="isPod">
-        <span class="icon"><i class="fas fa-rectangle-list"></i></span>
-        <span>Pod Logs</span>
+      <button class="button is-small is-light mr-1" :class="{'is-outlined':!showLabels}" @click="showLabels=!showLabels; showAnno=false">
+        Labels
+      </button>
+      <button class="button is-small is-light mr-3" :class="{'is-outlined':!showAnno}" @click="showAnno=!showAnno; showLabels=false">
+        Annotations
       </button>
     </div>
     <!-- Labels & Annotations -->
@@ -32,7 +29,8 @@
     <!-- Properties -->
     <div
       class="panel-block has-background-dark py-0 is-flex is-justify-content-space-around is-align-items-center clickable"
-      @click="showProps=!showProps">
+      @click="showProps=!showProps"
+    >
       <label class="label is-flex-grow-1 pt-1 mr-3 clickable">Properties</label>
       <i class="fas" :class="showProps ? 'fa-angles-up' : 'fa-angles-down'"></i>
     </div>
@@ -46,9 +44,15 @@
     <template x-for="(cont, name) in panelData.containers" :key="name">
       <div>
         <div
-          class="panel-block has-background-dark py-0 is-flex is-justify-content-space-around is-align-items-center clickable"
-          @click="showContainers=!showContainers" style="cursor: pointer">
-          <label class="label is-flex-grow-1 pt-1 mr-3 clickable" x-text="`Container: ${name}`"></label>
+          class="panel-block has-background-dark py-0 is-flex is-justify-content-flex-start is-align-items-center clickable"
+          @click="showContainers=!showContainers"
+          style="cursor: pointer"
+        >
+          <label class="label pt-1 mr-2 clickable is-flex-grow-1" x-text="`Container: ${name}`"></label>
+          <button class="button is-small is-primary mr-2" @click.stop="showLogs(panelData.props.name, name)" x-show="isPod">
+            <span class="icon"><i class="fas fa-rectangle-list"></i></span>
+            <span>Container Logs</span>
+          </button>
           <i class="fas" :class="showContainers ? 'fa-angles-up' : 'fa-angles-down'"></i>
         </div>
         <template x-for="(value, prop) in cont" :key="prop">

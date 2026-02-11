@@ -108,7 +108,7 @@ Alpine.data('mainApp', () => ({
   cfg: getConfig(),
   searchQuery: '',
   showEventsDialog: false,
-  showLogsDialog: false,
+  showLogsForContainer: null,
   logs: '',
   connState: 'connecting', // 'connecting', 'connected', 'disconnected'
   togglePaused,

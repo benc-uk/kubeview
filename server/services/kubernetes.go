@@ -336,9 +336,13 @@ func (k *Kubernetes) GetResources(ns string, grp string, ver string, res string)
 }
 
 // Retrieves the logs of a specific pod in a given namespace
-func (k *Kubernetes) GetPodLogs(ns, podName string, lineCount int) (string, error) {
-	if ns == "" || podName == "" {
-		return "", errors.New("namespace or pod name is empty")
+func (k *Kubernetes) GetPodLogs(ns, podName string, containerName string, lineCount int) (string, error) {
+	if ns == "" {
+		return "", errors.New("namespace is empty")
+	} else if podName == "" {
+		return "", errors.New("pod name is empty")
+	} else if containerName == "" {
+		return "", errors.New("container name is empty")
 	}
 
 	if lineCount <= 0 {
@@ -347,6 +351,7 @@ func (k *Kubernetes) GetPodLogs(ns, podName string, lineCount int) (string, erro
 
 	// Get the lines of logs from the pod
 	req := k.clientSet.CoreV1().Pods(ns).GetLogs(podName, &coreV1.PodLogOptions{
+		Container: containerName,
 		TailLines: &[]int64{int64(lineCount)}[0], // We pass in how many lines we want to get
 	})
 

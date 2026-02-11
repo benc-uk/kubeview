@@ -33,7 +33,7 @@ func (s *KubeviewAPI) AddRoutes(r *chi.Mux) {
 	// REST API routes
 	r.Get("/api/namespaces", s.handleNamespaceList)
 	r.Get("/api/fetch/{namespace}", s.handleFetchData)
-	r.Get("/api/logs/{namespace}/{podname}", s.handlePodLogs)
+	r.Get("/api/logs/{namespace}/{podname}/{containername}", s.handlePodLogs)
 }
 
 // Establish the SSE connection for streaming updates each client
@@ -152,6 +152,7 @@ func (s *KubeviewAPI) handlePodLogs(w http.ResponseWriter, r *http.Request) {
 
 	ns := chi.URLParam(r, "namespace")
 	podName := chi.URLParam(r, "podname")
+	containerName := chi.URLParam(r, "containername")
 
 	count := r.URL.Query().Get("max")
 	if count == "" {
@@ -164,7 +165,7 @@ func (s *KubeviewAPI) handlePodLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logs, err := s.kubeService.GetPodLogs(ns, podName, logCount)
+	logs, err := s.kubeService.GetPodLogs(ns, podName, containerName, logCount)
 	if err != nil {
 		// Note: We don't send a problem response here, as we want to return something even if there's an error
 		// This is more graceful as the pod might not be in a state to fetch logs
