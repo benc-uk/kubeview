@@ -27,7 +27,7 @@ jobs:
     name: Build and push images
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set BUILD_INFO based on git log
         run: |
@@ -60,3 +60,37 @@ jobs:
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
           make image IMAGE_EXTRA_ARGS="--push"
+
+  # Matrix job for standalone binary
+  binary-build:
+    name: Build and upload binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [linux, darwin, windows]
+        arch: [amd64, arm64, amd64]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set BUILD_INFO based on git log
+        run: |
+          echo BUILD_INFO="stable $(git log -1 --pretty=format:'%h %ad' --date=short)" >> ${GITHUB_ENV}
+
+      - run: |
+          echo ===== RELEASE ======
+          echo VERSION: $VERSION
+          echo BUILD_INFO: $BUILD_INFO
+          echo OS: ${{ matrix.os }}
+          echo ARCH: ${{ matrix.arch }}
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: make build
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: kubeview-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}
+          path: bin/${{ matrix.os }}/kubeview
