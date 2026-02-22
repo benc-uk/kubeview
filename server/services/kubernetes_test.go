@@ -142,12 +142,14 @@ func TestKubernetes_GetNamespaces(t *testing.T) {
 	expectedNamespaces := []string{"default", "kube-system", "test-namespace"}
 	for _, expectedNs := range expectedNamespaces {
 		found := false
+
 		for _, ns := range namespaces {
 			if ns == expectedNs {
 				found = true
 				break
 			}
 		}
+
 		if !found {
 			t.Errorf("Expected namespace %s not found in result", expectedNs)
 		}
@@ -227,7 +229,8 @@ func TestKubernetes_FetchNamespace(t *testing.T) {
 	secretGvr := schema.GroupVersionResource{Group: "", Version: "v1", Resource: "secrets"}
 
 	_, _ = k.dynamicClient.Resource(podGvr).Namespace("default").Create(context.TODO(), pod, metaV1.CreateOptions{})
-	_, _ = k.dynamicClient.Resource(secretGvr).Namespace("default").Create(context.TODO(), secret, metaV1.CreateOptions{})
+	_, _ = k.dynamicClient.Resource(secretGvr).Namespace("default").
+		Create(context.TODO(), secret, metaV1.CreateOptions{})
 
 	// Test FetchNamespace
 	data, err := k.FetchNamespace("default")
@@ -294,12 +297,14 @@ func TestInCluster(t *testing.T) {
 	}()
 
 	_ = os.Unsetenv("KUBERNETES_SERVICE_HOST")
+
 	if inCluster() {
 		t.Error("Expected inCluster() to return false when KUBERNETES_SERVICE_HOST is not set")
 	}
 
 	// Test when in cluster
 	_ = os.Setenv("KUBERNETES_SERVICE_HOST", "kubernetes.default.svc.cluster.local")
+
 	if !inCluster() {
 		t.Error("Expected inCluster() to return true when KUBERNETES_SERVICE_HOST is set")
 	}
@@ -365,7 +370,7 @@ func TestGetHandlerFuncs(t *testing.T) {
 		t.Error("Expected DeleteFunc to not be nil")
 	}
 
-	// Test handler behavior with a test object
+	// Test handler behaviour with a test object
 	pod := createTestPod("test-pod", "default")
 
 	// Test AddFunc (this won't actually send because there are no subscribers)
@@ -414,12 +419,14 @@ func BenchmarkGetNamespaces(b *testing.B) {
 
 	// Create test namespaces
 	gvr := schema.GroupVersionResource{Group: "", Version: "v1", Resource: "namespaces"}
+
 	for i := 0; i < 10; i++ {
 		ns := createTestNamespace(fmt.Sprintf("ns-%d", i))
 		_, _ = k.dynamicClient.Resource(gvr).Create(context.TODO(), ns, metaV1.CreateOptions{})
 	}
 
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		_, _ = k.GetNamespaces()
 	}
@@ -434,6 +441,7 @@ func BenchmarkCheckNamespaceExists(b *testing.B) {
 	_, _ = k.dynamicClient.Resource(gvr).Create(context.TODO(), ns, metaV1.CreateOptions{})
 
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		k.CheckNamespaceExists("test-namespace")
 	}
@@ -444,12 +452,14 @@ func BenchmarkGetResources(b *testing.B) {
 
 	// Create test pods
 	gvr := schema.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}
+
 	for i := 0; i < 50; i++ {
 		pod := createTestPod(fmt.Sprintf("pod-%d", i), "default")
 		_, _ = k.dynamicClient.Resource(gvr).Namespace("default").Create(context.TODO(), pod, metaV1.CreateOptions{})
 	}
 
 	b.ResetTimer()
+
 	for i := 0; i < b.N; i++ {
 		_, _ = k.GetResources("default", "", "v1", "pods")
 	}

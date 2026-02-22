@@ -54,6 +54,7 @@ func TestNewKubernetes_Integration(t *testing.T) {
 
 	// Check if default namespace exists
 	defaultExists := false
+
 	for _, ns := range namespaces {
 		if ns == "default" {
 			defaultExists = true
