@@ -42,7 +42,7 @@ run: ## 🏃 Run application, used for local development
 
 build: ## 🔨 Build application binary
 	@figlet $@ || true
-	CGO_ENABLED=0 go build -o bin/$$GOOS/kubeview-$$GOARCH ./server
+	CGO_ENABLED=0 go build -o bin/kubeview-$$GOOS-$$GOARCH ./server
 
 test: test-unit ## 🧪 Run all tests (unit tests only by default)
 	@figlet $@ || true

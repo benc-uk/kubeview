@@ -105,7 +105,7 @@ jobs:
         run: |
           SUFFIX=""
           if [ "${{ matrix.os }}" = "windows" ]; then SUFFIX=".exe"; fi
-          cp bin/${{ matrix.os }}/kubeview-${{ matrix.arch }} kubeview-${{ matrix.os }}-${{ matrix.arch }}${SUFFIX}
+          cp bin/kubeview-${{ matrix.os }}-${{ matrix.arch }} kubeview-${{ matrix.os }}-${{ matrix.arch }}${SUFFIX}
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v6
