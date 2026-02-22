@@ -1,4 +1,4 @@
-name: CI Lint & Build
+name: 'CI: Lint, Test & Build'
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   ci-job:
-    name: Lint & Build Job
+    name: Lint, Test & Build Job
     runs-on: ubuntu-latest
 
     steps:
@@ -24,6 +24,9 @@ jobs:
 
       - name: Run lint
         run: make lint
+
+      - name: Run tests
+        run: make test
 
       - name: Run build
         run: make build
