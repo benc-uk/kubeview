@@ -29,13 +29,29 @@ Note: This is a v2 and complete rewrite the original KubeView project [see below
 
 ## 🚀 Quick Start
 
+### From Binary
+
+Running KubeView as binary commandline tool is the easiest way to get started, and you don't need to deploy anything into Kubernetes at all or have Docker/Podman installed.
+
+Pre-reqs:
+
+- A Kubernetes cluster to connect to (can be local e.g. kind or minikube or remote)
+- A valid Kubernetes configuration file, if you're using kubectl, chances are you already have this
+
+Download the latest release for your platform from the [releases page](https://github.com/benc-uk/kubeview/releases/latest) and run the binary with the following command:
+
+```bash
+./kubeview
+```
+
+### From Container
+
 Running KubeView via Podman or Docker is the easiest way to get started, and you don't need to deploy anything into Kubernetes at all.
 
 Pre-reqs:
 
+- As with the binary, you will need a Kubernetes cluster to connect to, and a valid Kubernetes configuration file.
 - Docker or other container runtime like Podman.
-- A Kubernetes cluster to connect to (can be local e.g. kind or minikube or remote)
-- A valid Kubernetes configuration file, if you're using kubectl, chances are you already have this set up.
 
 Start KubeView with the following command:
 
