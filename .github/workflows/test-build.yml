@@ -1,0 +1,42 @@
+name: Test Binary Builds
+
+on:
+  workflow_dispatch:
+
+jobs:
+  binary-build:
+    name: Build binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+          - os: linux
+            arch: arm64
+          - os: darwin
+            arch: amd64
+          - os: darwin
+            arch: arm64
+          - os: windows
+            arch: amd64
+          - os: windows
+            arch: arm64
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set BUILD_INFO based on git log
+        run: |
+          echo BUILD_INFO="test-build $(git log -1 --pretty=format:'%h %ad' --date=short)" >> ${GITHUB_ENV}
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: make build
+
+      - name: List output
+        run: |
+          echo "=== Build output for ${{ matrix.os }}/${{ matrix.arch }} ==="
+          ls -lah bin/${{ matrix.os }}/
+          file bin/${{ matrix.os }}/kubeview || true
