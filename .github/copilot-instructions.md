@@ -219,3 +219,28 @@ Configuration is in `.dev/eslint.config.mjs` and `.dev/.prettierrc`. Run with `m
 - Keep PRs small and focused. Create an issue before starting major features.
 - All contributions are under the MIT license.
 - Environment variables for configuration: `PORT` (default 8000), `SINGLE_NAMESPACE`, `NAMESPACE_FILTER` (regex), `DISABLE_POD_LOGS`, `DEBUG`.
+
+## Release Notes
+
+When using a skill to generate release notes, ensure to include the following sections:
+
+Download binary:
+
+```bash
+curl -sL https://raw.githubusercontent.com/benc-uk/kubeview/x.y.z/scripts/install.sh | sh
+```
+
+Quick run:
+
+```
+docker run --rm -it --volume "$HOME/.kube:/root/.kube" \
+ -p 8000:8000 ghcr.io/benc-uk/kubeview:x.y.z
+```
+
+Helm install:
+
+```bash
+helm repo add kubeview https://code.benco.io/kubeview/deploy/helm
+helm repo update
+helm install kubeview kubeview/kubeview
+```
