@@ -3,5 +3,11 @@
   "eslint.options": {
     "overrideConfigFile": ".dev/eslint.config.mjs"
   },
-  "chat.promptFiles": true
+  "chat.promptFiles": true,
+  "chat.tools.terminal.autoApprove": {
+    "/^bash ~/\\.copilot/skills/create-pr/scripts/git-changes\\.sh$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
 }
