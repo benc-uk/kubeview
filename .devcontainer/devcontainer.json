@@ -1,6 +1,6 @@
 {
   "name": "KubeView Dev Container",
-  "image": "mcr.microsoft.com/devcontainers/go:1-1.25-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/go:1-1.26-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
       "version": "latest",

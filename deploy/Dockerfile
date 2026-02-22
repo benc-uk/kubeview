@@ -5,7 +5,7 @@
 # Note: BUILDPLATFORM, TARGETOS & TARGETARCH are magic variables 
 #   that Docker sets when using BuildKit and the --platform flag
 # ===========================================================================================
-FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
 ARG VERSION="0.0.0"
 ARG BUILD_INFO="Unset"
 ARG CGO_ENABLED=0
