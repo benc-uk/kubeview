@@ -18,6 +18,8 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY server/ ./server/
+COPY frontend/ ./frontend/
+COPY frontend-fs.go ./
 
 # CGO_ENABLED=0 is used to ensure a statically linked binary
 # TARGETOS and TARGETARCH are set to build for the desired platform
@@ -37,10 +39,8 @@ FROM --platform=$BUILDPLATFORM alpine:3.23
 
 WORKDIR /app
 
-# Copy binary and public assets
+# Copy binary (frontend is embedded via go:embed)
 COPY --from=build /build/kubeview .
-# Copy public web assets
-COPY public/ ./public/
 
 ENV PORT=8000
 EXPOSE 8000
