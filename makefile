@@ -11,6 +11,9 @@ BUILD_PLATFORM ?= linux/amd64
 # Set this to '--push' to enable image pushing, e.g. `make image IMAGE_EXTRA_ARGS="--push"`
 IMAGE_EXTRA_ARGS ?= 
 
+GOOS ?= linux
+GOARCH ?= amd64
+
 .EXPORT_ALL_VARIABLES:
 .PHONY: help lint lint-fix run build generate clean image push check-vars helm-docs helm-package test test-unit test-integration test-coverage
 .DEFAULT_GOAL := help
@@ -39,7 +42,7 @@ run: ## 🏃 Run application, used for local development
 
 build: ## 🔨 Build application binary
 	@figlet $@ || true
-	CGO_ENABLED=0 go build -o bin/$$GOOS/kubeview ./server
+	CGO_ENABLED=0 go build -o bin/$$GOOS/kubeview-$$GOARCH ./server
 
 test: test-unit ## 🧪 Run all tests (unit tests only by default)
 	@figlet $@ || true
