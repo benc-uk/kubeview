@@ -48,7 +48,7 @@ func mockKubernetes() *Kubernetes {
 	fakeDynamicClient := fake.NewSimpleDynamicClientWithCustomListKinds(scheme, gvrToListKind)
 
 	// Create fake clientset
-	fakeClientSet := k8sfake.NewSimpleClientset()
+	fakeClientSet := k8sfake.NewClientset()
 
 	return &Kubernetes{
 		dynamicClient:     fakeDynamicClient,
