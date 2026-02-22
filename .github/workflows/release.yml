@@ -20,6 +20,7 @@ env:
   BUILD_PLATFORM: linux/amd64,linux/arm64,darwin/arm64
 
 permissions:
+  contents: write
   packages: write
 
 jobs:
@@ -100,8 +101,25 @@ jobs:
           GOARCH: ${{ matrix.arch }}
         run: make build
 
+      - name: Rename binary for release
+        run: |
+          SUFFIX=""
+          if [ "${{ matrix.os }}" = "windows" ]; then SUFFIX=".exe"; fi
+          cp bin/${{ matrix.os }}/kubeview-${{ matrix.arch }} kubeview-${{ matrix.os }}-${{ matrix.arch }}${SUFFIX}
+
       - name: Upload binary artifact
         uses: actions/upload-artifact@v6
         with:
           name: kubeview-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}
-          path: bin/${{ matrix.os }}/kubeview
+          path: kubeview-${{ matrix.os }}-${{ matrix.arch }}*
+
+      - name: Upload release asset
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SUFFIX=""
+          if [ "${{ matrix.os }}" = "windows" ]; then SUFFIX=".exe"; fi
+          gh release upload "${{ github.event.release.tag_name }}" \
+            "kubeview-${{ matrix.os }}-${{ matrix.arch }}${SUFFIX}" \
+            --clobber

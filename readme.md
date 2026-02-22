@@ -38,7 +38,15 @@ Pre-reqs:
 - A Kubernetes cluster to connect to (can be local e.g. kind or minikube or remote)
 - A valid Kubernetes configuration file, if you're using kubectl, chances are you already have this
 
-Download the latest release for your platform from the [releases page](https://github.com/benc-uk/kubeview/releases/latest) and run the binary with the following command:
+Install the latest release automatically using the install script:
+
+```bash
+curl -sL https://raw.githubusercontent.com/benc-uk/kubeview/main/scripts/install.sh | sh
+```
+
+Or download the latest release for your platform manually from the [releases page](https://github.com/benc-uk/kubeview/releases/latest).
+
+Then run the binary:
 
 ```bash
 ./kubeview
