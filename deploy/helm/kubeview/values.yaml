@@ -76,8 +76,7 @@ replicaCount: 1
 # -- This is for changing the resource limits and requests for the Kubeview pods
 resources:
   limits:
-    cpu: 50m
-    memory: 64Mi
+    memory: 128Mi
   requests:
     cpu: 50m
     memory: 64Mi

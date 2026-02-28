@@ -52,6 +52,8 @@ Then run the binary:
 ./kubeview
 ```
 
+> NOTE: To install to a custom location, or if you don't have permission to write to `/usr/local/bin`, you can specify an alternative directory by setting the `KUBEVIEW_INSTALL_DIR` environment variable e.g. `curl -sL https://raw.githubusercontent.com/benc-uk/kubeview/main/scripts/install.sh | KUBEVIEW_INSTALL_DIR=$HOME/.local/bin sh`
+
 ### From Container
 
 Running KubeView via Podman or Docker is the easiest way to get started, and you don't need to deploy anything into Kubernetes at all.

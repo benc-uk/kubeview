@@ -8,7 +8,7 @@
 image:
   repository: ghcr.io/benc-uk/kubeview
   pullPolicy: Always
-  tag: dev
+  tag: 2.2.0
 
 singleNamespace: false
 namespaceFilter: 'aks-|kube-|azure-wi'
@@ -18,6 +18,6 @@ loadBalancer:
 
 ingress:
   enabled: true
-  host: kubeview.kube.benco.io
-  tlsSecretName: benco-io-cert
+  #host: kubeview.kube.benco.io
+  #tlsSecretName: benco-io-cert
   className: nginx
