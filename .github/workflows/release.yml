@@ -1,4 +1,4 @@
-name: Release Images
+name: Release
 
 on:
   release:
@@ -123,3 +123,31 @@ jobs:
           gh release upload "${{ github.event.release.tag_name }}" \
             "kubeview-${{ matrix.os }}-${{ matrix.arch }}${SUFFIX}" \
             --clobber
+
+  helm-publish:
+    name: Package and publish Helm chart
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Update Chart.yaml with release version
+        run: |
+          sed -i "s/^version:.*/version: $VERSION/" deploy/helm/kubeview/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: '$VERSION'/" deploy/helm/kubeview/Chart.yaml
+          echo "Updated Chart.yaml:"
+          cat deploy/helm/kubeview/Chart.yaml
+
+      - name: Package Helm chart and update index
+        run: make helm-package
+
+      - name: Commit and push Helm chart
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add deploy/helm/kubeview-*.tgz deploy/helm/index.yaml deploy/helm/kubeview/Chart.yaml
+          git commit -m "chore: publish Helm chart $VERSION"
+          git push
