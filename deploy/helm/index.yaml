@@ -7,7 +7,7 @@ entries:
     description: Kubernetes cluster visualiser and visual explorer
     digest: f7a3aa109dd4975b99442efc13a6b39141a280952cbd3b3d6719a235bd9eab2b
     home: https://github.com/benc-uk/kubeview
-    icon: https://kubeview.benco.io/public/img/icon.png
+    icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
     maintainers:
     - email: benc.uk@gmail.com
       name: Ben Coleman
@@ -25,7 +25,7 @@ entries:
     description: Kubernetes cluster visualiser and visual explorer
     digest: 2472949b348dba201b271dbf31687b1d7f37abfde0631a36261831a222c20ed1
     home: https://github.com/benc-uk/kubeview
-    icon: https://kubeview.benco.io/public/img/icon.png
+    icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
     maintainers:
     - email: benc.uk@gmail.com
       name: Ben Coleman
@@ -43,7 +43,7 @@ entries:
     description: Kubernetes cluster visualiser and visual explorer
     digest: 94bc9f275d27741832f3464d4df45737c1410728d0771fa1da7b821586f0740c
     home: https://github.com/benc-uk/kubeview
-    icon: https://kubeview.benco.io/public/img/icon.png
+    icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
     maintainers:
     - email: benc.uk@gmail.com
       name: Ben Coleman
@@ -61,7 +61,7 @@ entries:
     description: Kubernetes cluster visualiser and visual explorer
     digest: b8c39f4184d38caa1274434b16c75376e2ea3d2f08183465d5c76437519529c9
     home: https://github.com/benc-uk/kubeview
-    icon: https://kubeview.benco.io/public/img/icon.png
+    icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
     maintainers:
     - email: benc.uk@gmail.com
       name: Ben Coleman
@@ -79,7 +79,7 @@ entries:
     description: Kubernetes cluster visualiser and visual explorer
     digest: 141bbf01850b6f1be4a01fe48792784fb5dee299c08640cf83d8caf9e9987d03
     home: https://github.com/benc-uk/kubeview
-    icon: https://kubeview.benco.io/public/img/icon.png
+    icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
     maintainers:
     - email: benc.uk@gmail.com
       name: Ben Coleman
@@ -97,7 +97,7 @@ entries:
     description: Kubernetes cluster visualiser and visual explorer
     digest: 5d41894df4888693fbe559d263db728626d258410e23f2c1662e3c6b24265357
     home: https://github.com/benc-uk/kubeview
-    icon: https://kubeview.benco.io/public/img/icon.png
+    icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
     maintainers:
     - email: benc.uk@gmail.com
       name: Ben Coleman
