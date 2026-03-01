@@ -108,7 +108,7 @@ jobs:
           cp bin/kubeview-${{ matrix.os }}-${{ matrix.arch }} kubeview-${{ matrix.os }}-${{ matrix.arch }}${SUFFIX}
 
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: kubeview-${{ matrix.os }}-${{ matrix.arch }}-${{ env.VERSION }}
           path: kubeview-${{ matrix.os }}-${{ matrix.arch }}*
