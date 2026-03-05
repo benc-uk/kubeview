@@ -42,7 +42,7 @@ jobs:
 
       # Needed for building multi-platform images
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       # Also needed for building multi-platform images
       - name: Set up Docker Buildx
