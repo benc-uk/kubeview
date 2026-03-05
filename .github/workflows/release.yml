@@ -46,7 +46,7 @@ jobs:
 
       # Also needed for building multi-platform images
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build & push images - version tagged
         env:
