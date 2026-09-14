@@ -118,6 +118,6 @@ func TestNewKubernetes_SingleNamespace_Integration(t *testing.T) {
 
 // fileExists checks if a file exists
 func fileExists(filename string) bool {
-	_, err := os.Stat(filename)
+	_, err := os.Stat(filename) //nolint:gosec // Test helper intentionally checks the configured kubeconfig path.
 	return !os.IsNotExist(err)
 }

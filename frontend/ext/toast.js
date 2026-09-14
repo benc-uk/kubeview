@@ -15,6 +15,7 @@ toastStyles.innerHTML = `
   cursor: default;
   color: #fff;
   font-size: 1.3rem;
+  white-space: pre-line;
 }
 .toastShown {
   visibility: visible;
@@ -47,7 +48,7 @@ export function showToast(message, duration = 2000, pos = 'top-center', type = '
   const toast = document.createElement(`div`)
   toast.classList.add(`toast`)
   toast.classList.add(`toastHidden`)
-  toast.innerHTML = message
+  toast.textContent = message
   toast.addEventListener('click', () => {
     toast.classList.add(`toastHidden`)
   })

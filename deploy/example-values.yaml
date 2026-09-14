@@ -8,7 +8,7 @@
 image:
   repository: ghcr.io/benc-uk/kubeview
   pullPolicy: Always
-  tag: 2.2.0
+  tag: 2.2.1
 
 singleNamespace: false
 namespaceFilter: 'aks-|kube-|azure-wi'

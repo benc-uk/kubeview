@@ -105,7 +105,7 @@ func createTestSecret(name, namespace string) *unstructured.Unstructured {
 				"name":      name,
 				"namespace": namespace,
 			},
-			"data": map[string]interface{}{
+			"data": map[string]interface{}{ //nolint:gosec // Test fixture contains only dummy credentials.
 				"username": "dGVzdA==", // base64 encoded "test"
 				"password": "c2VjcmV0", // base64 encoded "secret"
 			},
