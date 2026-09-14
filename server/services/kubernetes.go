@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/benc-uk/go-rest-api/pkg/sse"
@@ -82,7 +83,7 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 			kubeconfigFile = os.Getenv("KUBECONFIG")
 		}
 
-		log.Println("🏠 Running outside cluster, will use config file:", kubeconfigFile)
+		log.Printf("🏠 Running outside cluster, will use config file: %s", strconv.Quote(kubeconfigFile))
 		kubeConfig, err = clientcmd.BuildConfigFromFlags("", kubeconfigFile)
 	}
 
@@ -90,7 +91,7 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 		return nil, err
 	}
 
-	log.Println("🌐 Kubernetes host:", kubeConfig.Host)
+	log.Printf("🌐 Kubernetes host: %s", strconv.Quote(kubeConfig.Host))
 
 	// DiscoveryClient is used to discover the Kubernetes API resources
 	// It is used to check the server version and capabilities
@@ -105,7 +106,7 @@ func NewKubernetes(sseBroker *sse.Broker[KubeEvent], singleNamespace string) (*K
 		log.Println("⛔ Failed to connect to Kubernetes API", err)
 		return nil, err
 	} else {
-		log.Println("✅ Connected to Kubernetes API, version:", serverVersion.String())
+		log.Printf("✅ Connected to Kubernetes API, version: %s", strconv.Quote(serverVersion.String()))
 	}
 
 	useEndpointSlices := false

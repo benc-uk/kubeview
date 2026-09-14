@@ -129,7 +129,7 @@ func (s *KubeviewAPI) handleFetchData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("🍵 Fetching resources in", ns)
+	log.Printf("🍵 Fetching resources in %s", strconv.Quote(ns))
 
 	// Check single namespace mode
 	if s.config.SingleNamespace != "" && ns != s.config.SingleNamespace {
