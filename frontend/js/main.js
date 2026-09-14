@@ -134,7 +134,7 @@ Alpine.data('mainApp', () => ({
     // Listen for messages from the BroadcastChannel, just to warn about namespace changes
     channel.onmessage = (event) => {
       if (event.data.type === 'namespaceChange') {
-        showToast(`Namespace was changed on a different tab<br>you will no longer see live updates here!`, 5000, 'top-center', 'warning')
+        showToast(`Namespace was changed on a different tab\nyou will no longer see live updates here!`, 5000, 'top-center', 'warning')
       }
     }
 
@@ -142,12 +142,12 @@ Alpine.data('mainApp', () => ({
     window.addEventListener('connectionStateChange', (event) => {
       const newState = /** @type {CustomEvent} */ (event).detail.state
       if (this.connState === 'disconnected' && newState === 'connected') {
-        showToast('Reconnected to the server!<br>Resuming live updates', 3000, 'top-center', 'success')
+        showToast('Reconnected to the server!\nResuming live updates', 3000, 'top-center', 'success')
         this.fetchNamespace()
       }
 
       if (this.connState === 'connected' && newState === 'disconnected') {
-        showToast('Disconnected from the server!<br>Live updates are paused', 3000, 'top-center', 'error')
+        showToast('Disconnected from the server!\nLive updates are paused', 3000, 'top-center', 'error')
       }
 
       switch (newState) {
@@ -203,7 +203,7 @@ Alpine.data('mainApp', () => ({
     // Handle post render event to show a toast if no nodes are present
     graph.on(GraphEvent.AFTER_RENDER, () => {
       if (graph.getNodeData().length === 0) {
-        showToast('No resources found in this namespace<br>Check your filter settings', 3000, 'top-center', 'warning')
+        showToast('No resources found in this namespace\nCheck your filter settings', 3000, 'top-center', 'warning')
       }
     })
   },
