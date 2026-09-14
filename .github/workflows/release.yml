@@ -20,6 +20,7 @@ env:
   BUILD_PLATFORM: linux/amd64,linux/arm64,darwin/arm64
 
 permissions:
+  actions: write
   contents: write
   packages: write
 
@@ -150,4 +151,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add deploy/helm/kubeview-*.tgz deploy/helm/index.yaml deploy/helm/kubeview/Chart.yaml
           git commit -m "chore: publish Helm chart $VERSION"
-          git push
+          git push origin "HEAD:${{ github.event.repository.default_branch }}"
+
+      - name: Deploy updated Helm repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run gh-pages.yaml --ref "${{ github.event.repository.default_branch }}"

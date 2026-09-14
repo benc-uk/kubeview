@@ -1,112 +1,130 @@
 apiVersion: v1
 entries:
   kubeview:
-    - apiVersion: v2
-      appVersion: 2.2.1
-      created: '2026-09-14T16:30:18.636758725+01:00'
-      description: Kubernetes cluster visualiser and visual explorer
-      digest: 6aeb02dbc158b5e4e2ab4fa3c69d365e3be3147b5b9b77f15d5a307529f3a1b7
-      home: https://github.com/benc-uk/kubeview
-      icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
-      maintainers:
-        - email: benc.uk@gmail.com
-          name: Ben Coleman
-          url: https://github.com/benc-uk/
-      name: kubeview
-      sources:
-        - https://github.com/benc-uk/kubeview
-      type: application
-      urls:
-        - kubeview-2.0.6.tgz
-      version: 2.0.6
-    - apiVersion: v2
-      appVersion: 2.1.1
-      created: '2026-02-28T17:02:36.832521974Z'
-      description: Kubernetes cluster visualiser and visual explorer
-      digest: 2472949b348dba201b271dbf31687b1d7f37abfde0631a36261831a222c20ed1
-      home: https://github.com/benc-uk/kubeview
-      icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
-      maintainers:
-        - email: benc.uk@gmail.com
-          name: Ben Coleman
-          url: https://github.com/benc-uk/
-      name: kubeview
-      sources:
-        - https://github.com/benc-uk/kubeview
-      type: application
-      urls:
-        - kubeview-2.0.5.tgz
-      version: 2.0.5
-    - apiVersion: v2
-      appVersion: 2.0.4
-      created: '2026-02-28T17:02:36.832211321Z'
-      description: Kubernetes cluster visualiser and visual explorer
-      digest: 94bc9f275d27741832f3464d4df45737c1410728d0771fa1da7b821586f0740c
-      home: https://github.com/benc-uk/kubeview
-      icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
-      maintainers:
-        - email: benc.uk@gmail.com
-          name: Ben Coleman
-          url: https://github.com/benc-uk/
-      name: kubeview
-      sources:
-        - https://github.com/benc-uk/kubeview
-      type: application
-      urls:
-        - kubeview-2.0.4.tgz
-      version: 2.0.4
-    - apiVersion: v2
-      appVersion: 2.0.3
-      created: '2026-02-28T17:02:36.831897731Z'
-      description: Kubernetes cluster visualiser and visual explorer
-      digest: b8c39f4184d38caa1274434b16c75376e2ea3d2f08183465d5c76437519529c9
-      home: https://github.com/benc-uk/kubeview
-      icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
-      maintainers:
-        - email: benc.uk@gmail.com
-          name: Ben Coleman
-          url: https://github.com/benc-uk/
-      name: kubeview
-      sources:
-        - https://github.com/benc-uk/kubeview
-      type: application
-      urls:
-        - kubeview-2.0.3.tgz
-      version: 2.0.3
-    - apiVersion: v2
-      appVersion: 2.0.2
-      created: '2026-02-28T17:02:36.831543573Z'
-      description: Kubernetes cluster visualiser and visual explorer
-      digest: 141bbf01850b6f1be4a01fe48792784fb5dee299c08640cf83d8caf9e9987d03
-      home: https://github.com/benc-uk/kubeview
-      icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
-      maintainers:
-        - email: benc.uk@gmail.com
-          name: Ben Coleman
-          url: https://github.com/benc-uk/
-      name: kubeview
-      sources:
-        - https://github.com/benc-uk/kubeview
-      type: application
-      urls:
-        - kubeview-2.0.1.tgz
-      version: 2.0.1
-    - apiVersion: v2
-      appVersion: 2.0.0
-      created: '2026-02-28T17:02:36.83122863Z'
-      description: Kubernetes cluster visualiser and visual explorer
-      digest: 5d41894df4888693fbe559d263db728626d258410e23f2c1662e3c6b24265357
-      home: https://github.com/benc-uk/kubeview
-      icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
-      maintainers:
-        - email: benc.uk@gmail.com
-          name: Ben Coleman
-          url: https://github.com/benc-uk/
-      name: kubeview
-      sources:
-        - https://github.com/benc-uk/kubeview
-      type: application
-      urls:
-        - kubeview-2.0.0.tgz
-      version: 2.0.0
-generated: '2026-09-14T16:30:18.629429276+01:00'
+  - apiVersion: v2
+    appVersion: 2.2.1
+    created: "2026-09-14T17:24:27.134278823+01:00"
+    description: Kubernetes cluster visualiser and visual explorer
+    digest: f6215bd7b9ed3129a5a0b262d920fe777027922caa8ff3a5b5baa6e4d72efdde
+    home: https://github.com/benc-uk/kubeview
+    icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
+    maintainers:
+    - email: benc.uk@gmail.com
+      name: Ben Coleman
+      url: https://github.com/benc-uk/
+    name: kubeview
+    sources:
+    - https://github.com/benc-uk/kubeview
+    type: application
+    urls:
+    - kubeview-2.2.1.tgz
+    version: 2.2.1
+  - apiVersion: v2
+    appVersion: 2.2.1
+    created: "2026-09-14T17:24:27.133643247+01:00"
+    description: Kubernetes cluster visualiser and visual explorer
+    digest: 6aeb02dbc158b5e4e2ab4fa3c69d365e3be3147b5b9b77f15d5a307529f3a1b7
+    home: https://github.com/benc-uk/kubeview
+    icon: https://raw.githubusercontent.com/benc-uk/kubeview/main/frontend/img/icon.png
+    maintainers:
+    - email: benc.uk@gmail.com
+      name: Ben Coleman
+      url: https://github.com/benc-uk/
+    name: kubeview
+    sources:
+    - https://github.com/benc-uk/kubeview
+    type: application
+    urls:
+    - kubeview-2.0.6.tgz
+    version: 2.0.6
+  - apiVersion: v2
+    appVersion: 2.1.1
+    created: "2026-09-14T17:24:27.132986138+01:00"
+    description: Kubernetes cluster visualiser and visual explorer
+    digest: 2472949b348dba201b271dbf31687b1d7f37abfde0631a36261831a222c20ed1
+    home: https://github.com/benc-uk/kubeview
+    icon: https://kubeview.benco.io/public/img/icon.png
+    maintainers:
+    - email: benc.uk@gmail.com
+      name: Ben Coleman
+      url: https://github.com/benc-uk/
+    name: kubeview
+    sources:
+    - https://github.com/benc-uk/kubeview
+    type: application
+    urls:
+    - kubeview-2.0.5.tgz
+    version: 2.0.5
+  - apiVersion: v2
+    appVersion: 2.0.4
+    created: "2026-09-14T17:24:27.13211907+01:00"
+    description: Kubernetes cluster visualiser and visual explorer
+    digest: 94bc9f275d27741832f3464d4df45737c1410728d0771fa1da7b821586f0740c
+    home: https://github.com/benc-uk/kubeview
+    icon: https://kubeview.benco.io/public/img/icon.png
+    maintainers:
+    - email: benc.uk@gmail.com
+      name: Ben Coleman
+      url: https://github.com/benc-uk/
+    name: kubeview
+    sources:
+    - https://github.com/benc-uk/kubeview
+    type: application
+    urls:
+    - kubeview-2.0.4.tgz
+    version: 2.0.4
+  - apiVersion: v2
+    appVersion: 2.0.3
+    created: "2026-09-14T17:24:27.131456291+01:00"
+    description: Kubernetes cluster visualiser and visual explorer
+    digest: b8c39f4184d38caa1274434b16c75376e2ea3d2f08183465d5c76437519529c9
+    home: https://github.com/benc-uk/kubeview
+    icon: https://kubeview.benco.io/public/img/icon.png
+    maintainers:
+    - email: benc.uk@gmail.com
+      name: Ben Coleman
+      url: https://github.com/benc-uk/
+    name: kubeview
+    sources:
+    - https://github.com/benc-uk/kubeview
+    type: application
+    urls:
+    - kubeview-2.0.3.tgz
+    version: 2.0.3
+  - apiVersion: v2
+    appVersion: 2.0.2
+    created: "2026-09-14T17:24:27.130339361+01:00"
+    description: Kubernetes cluster visualiser and visual explorer
+    digest: 141bbf01850b6f1be4a01fe48792784fb5dee299c08640cf83d8caf9e9987d03
+    home: https://github.com/benc-uk/kubeview
+    icon: https://kubeview.benco.io/public/img/icon.png
+    maintainers:
+    - email: benc.uk@gmail.com
+      name: Ben Coleman
+      url: https://github.com/benc-uk/
+    name: kubeview
+    sources:
+    - https://github.com/benc-uk/kubeview
+    type: application
+    urls:
+    - kubeview-2.0.1.tgz
+    version: 2.0.1
+  - apiVersion: v2
+    appVersion: 2.0.0
+    created: "2026-09-14T17:24:27.12722367+01:00"
+    description: Kubernetes cluster visualiser and visual explorer
+    digest: 5d41894df4888693fbe559d263db728626d258410e23f2c1662e3c6b24265357
+    home: https://github.com/benc-uk/kubeview
+    icon: https://kubeview.benco.io/public/img/icon.png
+    maintainers:
+    - email: benc.uk@gmail.com
+      name: Ben Coleman
+      url: https://github.com/benc-uk/
+    name: kubeview
+    sources:
+    - https://github.com/benc-uk/kubeview
+    type: application
+    urls:
+    - kubeview-2.0.0.tgz
+    version: 2.0.0
+generated: "2026-09-14T17:24:27.125039767+01:00"
