@@ -81,6 +81,24 @@ resources:
     cpu: 50m
     memory: 64Mi
 
+# -- This is for changing the liveness probe for the Kubeview pods
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 0
+  failureThreshold: 3
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+
+# -- This is for changing the readiness probe for the Kubeview pods
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 0
+  failureThreshold: 3
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+
 # -- If you want to schedule the pods to specific nodes, you can set node selectors here
 nodeSelector: {}
 
