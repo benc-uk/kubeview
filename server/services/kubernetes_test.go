@@ -265,19 +265,19 @@ func TestKubernetes_GetPodLogs(t *testing.T) {
 	k := mockKubernetes()
 
 	// Test empty namespace
-	_, err := k.GetPodLogs("", "test-pod", 100)
+	_, err := k.GetPodLogs("", "test-pod", "test-container", 100)
 	if err == nil {
 		t.Error("Expected error for empty namespace, got nil")
 	}
 
 	// Test empty pod name
-	_, err = k.GetPodLogs("default", "", 100)
+	_, err = k.GetPodLogs("default", "", "test-container", 100)
 	if err == nil {
 		t.Error("Expected error for empty pod name, got nil")
 	}
 
 	// Test default line count
-	_, err = k.GetPodLogs("default", "test-pod", 0)
+	_, err = k.GetPodLogs("default", "test-pod", "test-container", 0)
 	// This will fail because we're using a fake client, but we can check that the validation works
 	if err != nil {
 		// This is expected to fail with the fake client
