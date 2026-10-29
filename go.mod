@@ -4,7 +4,7 @@ go 1.27.0
 
 require (
 	github.com/benc-uk/go-rest-api v1.1.0
-	github.com/go-chi/chi/v5 v5.3.2
+	github.com/go-chi/chi/v5 v5.4.0
 	k8s.io/api v0.37.0
 	k8s.io/apimachinery v0.37.0
 	k8s.io/client-go v0.37.0
