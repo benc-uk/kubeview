@@ -71,6 +71,9 @@ podSecurityContext: {}
 securityContext: {}
 
 # -- Run multiple instances of the Kubeview pod
+# NOTE: With more than one replica, clients need sticky sessions (session affinity) on the
+# Service or ingress, so a browser's SSE event stream and its API calls reach the same pod.
+# Without them live updates will not work, see https://github.com/benc-uk/kubeview/issues/185
 replicaCount: 1
 
 # -- This is for changing the resource limits and requests for the Kubeview pods
