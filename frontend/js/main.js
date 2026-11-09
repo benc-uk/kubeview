@@ -289,17 +289,29 @@ Alpine.data('mainApp', () => ({
 
     let data
     let res
-    try {
-      res = await fetch(`api/fetch/${this.namespace}?clientID=${getClientId()}`)
-      if (!res.ok) throw new Error(`HTTP error ${res.status}: ${res.statusText}`)
-      data = await res.json()
-
-      this.isLoading = false
-      this.showWelcome = false
-    } catch (err) {
-      this.showError(`Failed to fetch namespace data: ${err.message}`, res)
-      return
+    const maxAttempts = 5
+    for (let attempt = 1; ; attempt++) {
+      try {
+        res = await fetch(`api/fetch/${this.namespace}?clientID=${getClientId()}`)
+        // 409 means the client's SSE stream is connected to a different pod, which can happen
+        // with multiple replicas and no sticky sessions. Retrying should eventually land the
+        // fetch on the same pod as the SSE stream. See https://github.com/benc-uk/kubeview/issues/185
+        if (res.status === 409 && attempt < maxAttempts) {
+          console.warn(`⚠️ SSE stream not on this pod, retrying fetch (${attempt}/${maxAttempts})`)
+          await new Promise((resolve) => setTimeout(resolve, 250))
+          continue
+        }
+        if (!res.ok) throw new Error(`HTTP error ${res.status}: ${res.statusText}`)
+        data = await res.json()
+        break
+      } catch (err) {
+        this.showError(`Failed to fetch namespace data: ${err.message}`, res)
+        return
+      }
     }
+
+    this.isLoading = false
+    this.showWelcome = false
 
     if (this.cfg.debug) {
       console.log('📦 Fetched data:', data)

@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"slices"
 	"strconv"
 
 	"github.com/benc-uk/go-rest-api/pkg/problem"
@@ -135,6 +136,20 @@ func (s *KubeviewAPI) handleFetchData(w http.ResponseWriter, r *http.Request) {
 	if s.config.SingleNamespace != "" && ns != s.config.SingleNamespace {
 		problem.Wrap(403, r.RequestURI, "single namespace mode",
 			errors.New("only namespace permitted is:"+s.config.SingleNamespace)).Send(w)
+
+		return
+	}
+
+	// Guard: with multiple replicas and no sticky sessions, the browser's SSE
+	// stream may be connected to a different pod than this request landed on.
+	// Joining the group here would create a group member with no SSE channel on
+	// this pod, so the client would never receive any events. Reject the
+	// request instead, so the frontend can retry and land on the right pod.
+	// See https://github.com/benc-uk/kubeview/issues/185
+	if !slices.Contains(s.eventBroker.GetClients(), clientID) {
+		log.Printf("⚡ Client %s has no SSE connection on this pod, rejecting fetch", strconv.Quote(clientID))
+		problem.Wrap(409, r.RequestURI, "client not connected",
+			errors.New("clientID has no SSE connection to this pod, retry the request")).Send(w)
 
 		return
 	}
